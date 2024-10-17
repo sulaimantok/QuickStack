@@ -1,5 +1,5 @@
 {
-	"name": "quick-kube",
+	"name": "quick-stack",
 	"dockerComposeFile": "./docker.compose.yml",
 	"service": "vscode-container",
 	"workspaceFolder": "/workspace",

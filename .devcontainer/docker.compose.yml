@@ -7,5 +7,5 @@ services:
     command: /bin/sh -c "while sleep 1000; do :; done"
     volumes:
       - ..:/workspace
-      - ~/.ssh:/home/vscode/.ssh
+      - ~/.ssh:/home/node/.ssh
     env_file: devcontainer.env
