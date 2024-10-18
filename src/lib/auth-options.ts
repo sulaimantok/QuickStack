@@ -8,19 +8,16 @@ import dataAccess from "@/server/data-access/data-access.client";
 import CredentialsProvider from "next-auth/providers/credentials";
 import bcrypt from "bcrypt";
 import userService from "@/server/services/user.service";
-/*
-const response: any = await signIn("credentials", {
-        email,
-        password,
-        redirect: false,
-      });
-*/
+
 
 const saltRounds = 10;
 
 export const authOptions: NextAuthOptions = {
     session: {
         strategy: "jwt",
+    },
+    pages: {
+        signIn: "/auth",
     },
     providers: [
         CredentialsProvider({

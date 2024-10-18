@@ -3,6 +3,9 @@ import { Inter } from "next/font/google";
 import { cn } from "@/lib/utils"
 import { Toaster } from "@/components/ui/sonner"
 import "./globals.css";
+import { NavBar } from "./nav-bar";
+import { Suspense } from "react";
+import FullLoadingSpinner from "@/components/ui/full-loading-spinnter";
 
 const inter = Inter({
   subsets: ["latin"],
@@ -25,9 +28,19 @@ export default function RootLayout({
         "min-h-screen bg-background font-sans antialiased",
         inter.variable
       )}>
-        <main>{children}</main>
-        <Toaster/>
+        <NavBar />
+        <main className="flex w-full flex-col items-center">
+          <div className="w-full max-w-8xl px-4 lg:px-8">
+            <div className="p-4 hidden flex-col md:flex">
+              <Suspense fallback={<FullLoadingSpinner />}>
+                {children}
+              </Suspense>
+            </div>
+          </div>
+        </main>
+        <Toaster />
       </body>
     </html>
   );
 }
+

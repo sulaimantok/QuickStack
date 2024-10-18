@@ -52,7 +52,7 @@ export class UserService {
         }
     }
 
-    async getUsers() {
+    async getAllUsers() {
         return await unstable_cache(async () => await dataAccess.client.user.findMany(),
             [Tags.users()], {
             tags: [Tags.users()]
