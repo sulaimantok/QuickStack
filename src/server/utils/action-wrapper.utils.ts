@@ -27,13 +27,13 @@ export async function checkIfCurrentUserHasAccessToContract(contractId: string |
     return { ...session };
 }
 */
-export async function saveFormAction<ReturnType, ZodType extends ZodRawShape>(formData: FormData,
+export async function saveFormAction<ReturnType, TInputData, ZodType extends ZodRawShape>(
+    inputData: TInputData,
     validationModel: ZodObject<ZodType>,
     func: (validateData: { [k in keyof objectUtil.addQuestionMarks<baseObjectOutputType<ZodType>, any>]: objectUtil.addQuestionMarks<baseObjectOutputType<ZodType>, any>[k]; }) => Promise<ReturnType>,
     redirectOnSuccessPath?: string,
     ignoredFields: (keyof ZodType)[] = []) {
     return simpleAction<ReturnType, z.infer<typeof validationModel>>(async () => {
-        const inputData = convertFormDataToJson(formData);
 
         // Omit ignored fields from validation model
         const omitBody = {};

@@ -11,15 +11,15 @@ import {
 import { Input } from "@/components/ui/input"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { useForm } from "react-hook-form"
-import { z } from "zod";
 import { useFormState } from 'react-dom'
-import { useEffect, useState } from "react";
+import { useEffect } from "react";
 import { FormUtils } from "@/lib/form.utilts";
 import { SubmitButton } from "@/components/custom/submit-button";
 import { AuthFormInputSchema, authFormInputSchemaZod } from "@/model/auth-form"
 import { registerUser } from "./actions"
 import { signIn } from "next-auth/react";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
+import { redirect } from "next/navigation"
 
 export default function UserRegistrationForm() {
     const form = useForm<AuthFormInputSchema>({
@@ -34,8 +34,9 @@ export default function UserRegistrationForm() {
             signIn("credentials", {
                 username: formValues.email,
                 password: formValues.password,
-                redirect: true,
+                redirect: false,
             });
+            redirect('/');
         }
     }, [state]);
 
@@ -46,7 +47,8 @@ export default function UserRegistrationForm() {
                 <CardDescription>Enter your credentials to register for the service.</CardDescription>
             </CardHeader>
             <Form {...form}>
-                <form action={formAction} className="space-y-8">
+                <form action={(e) => form.handleSubmit((data) => formAction(data))()}
+                    className="space-y-8">
                     <CardContent className="space-y-4">
                         <FormField
                             control={form.control}
@@ -75,14 +77,14 @@ export default function UserRegistrationForm() {
                                 </FormItem>
                             )}
                         />
-
+                        <p className="text-red-500">{state?.message}</p>
                     </CardContent>
                     <CardFooter>
-                        <p className="text-red-500">{state?.message}</p>
-                        <SubmitButton>Register</SubmitButton>
+
+                        <SubmitButton className="w-full">Register</SubmitButton>
                     </CardFooter>
                 </form>
             </Form>
-        </Card>
+        </Card >
     )
 }
