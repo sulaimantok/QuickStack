@@ -18,22 +18,26 @@ export class UserService {
     }
 
     async authorize(credentials: Record<"password" | "username", string> | undefined) {
-        if (!credentials || !credentials.username || !credentials.password) {
-            return null;
-        }
-        const dbUser = await dataAccess.client.user.findFirst({
-            where: {
-                email: credentials.username
+        try {
+            if (!credentials || !credentials.username || !credentials.password) {
+                return null;
             }
-        });
-        if (!dbUser) {
-            return null;
+            const dbUser = await dataAccess.client.user.findFirst({
+                where: {
+                    email: credentials.username
+                }
+            });
+            if (!dbUser) {
+                return null;
+            }
+            const isPasswordValid = await bcrypt.compare(credentials.password, dbUser.password);
+            if (!isPasswordValid) {
+                return null;
+            }
+            return this.maptoDtoUser(dbUser);
+        } finally {
+            revalidateTag(Tags.users());
         }
-        const isPasswordValid = await bcrypt.compare(credentials.password, dbUser.password);
-        if (!isPasswordValid) {
-            return null;
-        }
-        return this.maptoDtoUser(dbUser);
     }
 
     async registerUser(email: string, password: string) {

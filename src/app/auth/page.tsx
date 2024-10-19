@@ -1,17 +1,17 @@
 import userService from "@/server/services/user.service";
 import UserRegistrationForm from "./register-from";
 import UserLoginForm from "./login-from";
-
+import { getUserSession } from "@/server/utils/action-wrapper.utils";
+import { redirect } from "next/navigation";
 
 export default async function AuthPage() {
-
+    const session = await getUserSession();
+    if (session) {
+        redirect('/');
+    }
     const allUsers = await userService.getAllUsers();
     return (
-        <div className="flex-1 space-y-4 p-8 pt-6">
-            <div className="flex gap-4">
-                <h2 className="text-3xl font-bold tracking-tight flex-1">Login</h2>
-
-            </div>
+        <div className="flex items-center justify-center" style={{ height: '95vh' }}>
             {allUsers.length === 0 ? <UserRegistrationForm /> : <UserLoginForm />}
         </div>
     )

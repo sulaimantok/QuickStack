@@ -2,25 +2,26 @@
 
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { User } from "lucide-react";
+import { signOut } from "next-auth/react";
 import Link from "next/link";
 import { usePathname } from "next/navigation"
-
 
 export function NavBar() {
 
     const pathname = usePathname();
     const activeCss = "text-sm font-medium transition-colors hover:text-primary";
     const inactiveCss = "text-sm font-medium text-muted-foreground transition-colors hover:text-primary";
+    if (pathname === '/auth') {
+        return <></>;
+    }
     return (
         <>
             <div className="border-b flex w-full flex-col items-center top-0 fixed bg-white z-50">
                 <div className="w-full max-w-8xl px-4 lg:px-8">
                     <div className="flex h-16 items-center px-4">
                         <nav className="flex items-center space-x-4 lg:space-x-6 mx-6">
-                            <Link href="/" className={pathname === '/' ? activeCss : inactiveCss}>Meine Checklisten</Link>
-                            <Link href="/reviewer-checklists" className={pathname === '/reviewer-checklists' ? activeCss : inactiveCss}>Reviewer Checklisten</Link>
-                            <Link href="/customers" className={pathname.startsWith('/customers') ? activeCss : inactiveCss}>Kunden</Link>
-                            <Link href="/text-modules" className={pathname.startsWith('/text-modules') ? activeCss : inactiveCss}>Textbausteine</Link>
+                            <Link href="/" className={pathname === '/' ? activeCss : inactiveCss}>Projects</Link>
+                            <Link href="/metrics" className={pathname.startsWith('/metrics') ? activeCss : inactiveCss}>Metrics</Link>
                         </nav>
                         <div className="ml-auto flex items-center space-x-4">
 
@@ -39,11 +40,13 @@ export function NavBar() {
                                         </DropdownMenuItem>
                                     </Link>
                                     <DropdownMenuSeparator />
-                                    <Link href="/.auth/logout">
-                                        <DropdownMenuItem className="text-red-500">
-                                            Logout
-                                        </DropdownMenuItem>
-                                    </Link>
+                                    <DropdownMenuItem className="text-red-500"
+                                        onClick={() => signOut({
+                                            callbackUrl: "/auth",
+                                            redirect: true
+                                        })}>
+                                        Logout
+                                    </DropdownMenuItem>
                                 </DropdownMenuContent>
                             </DropdownMenu>
                         </div>

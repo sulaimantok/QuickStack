@@ -25,6 +25,7 @@ import { cn } from "@/lib/utils"
 import { redirect } from "next/navigation"
 import LoadingSpinner from "@/components/ui/loading-spinner"
 import { Button } from "@/components/ui/button"
+import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
 
 export default function UserLoginForm() {
     const form = useForm<AuthFormInputSchema>({
@@ -34,16 +35,15 @@ export default function UserLoginForm() {
     const [errorMessages, setErrorMessages] = useState<string | undefined>(undefined);
     const [loading, setLoading] = useState<boolean>(false);
 
-    const login = async () => {
+    const login = async (data: AuthFormInputSchema) => {
         setLoading(true);
         setErrorMessages(undefined);
         try {
             await signIn("credentials", {
-                username: form.getValues().email,
-                password: form.getValues().password,
-                redirect: false,
+                username: data.email,
+                password: data.password,
+                redirect: true,
             });
-            redirect('/');
         } catch (e) {
             console.log(e);
             setErrorMessages((e as any).message);
@@ -53,40 +53,54 @@ export default function UserLoginForm() {
     }
 
     return (
-        <Form {...form}>
-            <form onSubmit={() => login()} className="space-y-8">
+        <Card className="w-[350px] mx-auto">
+            <CardHeader>
+                <CardTitle>Sign In</CardTitle>
+                <CardDescription>Enter your email and password to access your account.</CardDescription>
+            </CardHeader>
+            <Form {...form}>
+                <form onSubmit={async (e) => {
+                    e.preventDefault();
+                    return form.handleSubmit(async (data) => {
+                        await login(data);
+                    })();
+                }} className="space-y-8">
 
-                <FormField
-                    control={form.control}
-                    name="email"
-                    render={({ field }) => (
-                        <FormItem>
-                            <FormLabel>E-Mail</FormLabel>
-                            <FormControl>
-                                <Input {...field} value={field.value as string | number | readonly string[] | undefined} />
-                            </FormControl>
-                            <FormMessage />
-                        </FormItem>
-                    )}
-                />
+                    <CardContent className="space-y-4">
+                        <FormField
+                            control={form.control}
+                            name="email"
+                            render={({ field }) => (
+                                <FormItem>
+                                    <FormLabel>E-Mail</FormLabel>
+                                    <FormControl>
+                                        <Input {...field} value={field.value as string | number | readonly string[] | undefined} />
+                                    </FormControl>
+                                    <FormMessage />
+                                </FormItem>
+                            )}
+                        />
 
-                <FormField
-                    control={form.control}
-                    name="password"
-                    render={({ field }) => (
-                        <FormItem>
-                            <FormLabel>Password</FormLabel>
-                            <FormControl>
-                                <Input {...field} value={field.value as string | number | readonly string[] | undefined} />
-                            </FormControl>
-                            <FormMessage />
-                        </FormItem>
-                    )}
-                />
-                <Button type="submit" disabled={loading}>{loading ? <LoadingSpinner></LoadingSpinner> : 'Login'}</Button>
-                <p className="text-red-500">{errorMessages}</p>
-
-            </form>
-        </Form>
+                        <FormField
+                            control={form.control}
+                            name="password"
+                            render={({ field }) => (
+                                <FormItem>
+                                    <FormLabel>Password</FormLabel>
+                                    <FormControl>
+                                        <Input type="password" {...field} value={field.value as string | number | readonly string[] | undefined} />
+                                    </FormControl>
+                                    <FormMessage />
+                                </FormItem>
+                            )}
+                        />
+                    </CardContent>
+                    <CardFooter>
+                        <p className="text-red-500">{errorMessages}</p>
+                        <Button type="submit" className="w-full" disabled={loading}>{loading ? <LoadingSpinner></LoadingSpinner> : 'Login'}</Button>
+                    </CardFooter>
+                </form>
+            </Form>
+        </Card>
     )
 }

@@ -16,11 +16,10 @@ import { useFormState } from 'react-dom'
 import { useEffect, useState } from "react";
 import { FormUtils } from "@/lib/form.utilts";
 import { SubmitButton } from "@/components/custom/submit-button";
-import SelectFormField from "@/components/custom/select-form-field";
-import BottomBarMenu from "@/components/custom/bottom-bar-menu";
 import { AuthFormInputSchema, authFormInputSchemaZod } from "@/model/auth-form"
 import { registerUser } from "./actions"
 import { signIn } from "next-auth/react";
+import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
 
 export default function UserRegistrationForm() {
     const form = useForm<AuthFormInputSchema>({
@@ -35,47 +34,55 @@ export default function UserRegistrationForm() {
             signIn("credentials", {
                 username: formValues.email,
                 password: formValues.password,
-                redirect: false,
+                redirect: true,
             });
         }
     }, [state]);
 
     return (
-        <Form {...form}>
-            <form action={formAction} className="space-y-8">
+        <Card className="w-[350px] mx-auto">
+            <CardHeader>
+                <CardTitle>Registration</CardTitle>
+                <CardDescription>Enter your credentials to register for the service.</CardDescription>
+            </CardHeader>
+            <Form {...form}>
+                <form action={formAction} className="space-y-8">
+                    <CardContent className="space-y-4">
+                        <FormField
+                            control={form.control}
+                            name="email"
+                            render={({ field }) => (
+                                <FormItem>
+                                    <FormLabel>E-Mail</FormLabel>
+                                    <FormControl>
+                                        <Input {...field} value={field.value as string | number | readonly string[] | undefined} />
+                                    </FormControl>
+                                    <FormMessage />
+                                </FormItem>
+                            )}
+                        />
 
-                <FormField
-                    control={form.control}
-                    name="email"
-                    render={({ field }) => (
-                        <FormItem>
-                            <FormLabel>E-Mail</FormLabel>
-                            <FormControl>
-                                <Input {...field} value={field.value as string | number | readonly string[] | undefined} />
-                            </FormControl>
-                            <FormMessage />
-                        </FormItem>
-                    )}
-                />
+                        <FormField
+                            control={form.control}
+                            name="password"
+                            render={({ field }) => (
+                                <FormItem>
+                                    <FormLabel>Password</FormLabel>
+                                    <FormControl>
+                                        <Input type="password"  {...field} value={field.value as string | number | readonly string[] | undefined} />
+                                    </FormControl>
+                                    <FormMessage />
+                                </FormItem>
+                            )}
+                        />
 
-                <FormField
-                    control={form.control}
-                    name="password"
-                    render={({ field }) => (
-                        <FormItem>
-                            <FormLabel>Password</FormLabel>
-                            <FormControl>
-                                <Input {...field} value={field.value as string | number | readonly string[] | undefined} />
-                            </FormControl>
-                            <FormMessage />
-                        </FormItem>
-                    )}
-                />
-
-                <SubmitButton>Register</SubmitButton>
-                <p className="text-red-500">{state?.message}</p>
-
-            </form>
-        </Form>
+                    </CardContent>
+                    <CardFooter>
+                        <p className="text-red-500">{state?.message}</p>
+                        <SubmitButton>Register</SubmitButton>
+                    </CardFooter>
+                </form>
+            </Form>
+        </Card>
     )
 }
