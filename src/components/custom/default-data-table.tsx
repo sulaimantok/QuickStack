@@ -144,7 +144,7 @@ export function DefaultDataTable<TData, TValue>({
                         ) : (
                             <TableRow>
                                 <TableCell colSpan={columns.length} className="h-24 text-center">
-                                    Keine Suchergebnisse
+                                    No elements to show.
                                 </TableCell>
                             </TableRow>
                         )}
