@@ -1,6 +1,5 @@
 'use client'
 
-import { Toast } from "@/lib/toast.utils";
 import { toast } from "sonner";
 
 export function Code({ children, copieable = true }: { children: string | null | undefined, copieable?: boolean }) {
@@ -9,7 +8,7 @@ export function Code({ children, copieable = true }: { children: string | null |
             onClick={() => {
                 if (!copieable) return;
                 navigator.clipboard.writeText(children || '');
-                toast.success('In die Zwischenablage kopiert');
+                toast.success('Copied to clipboard');
             }}>
             {children}
         </code>

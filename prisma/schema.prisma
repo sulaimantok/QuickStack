@@ -111,3 +111,63 @@ model Authenticator {
 }
 
 // *** FROM HERE CUSTOM CLASSES
+
+model Project {
+  id   String @id @default(uuid())
+  name String
+  apps App[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model App {
+  id        String  @id @default(uuid())
+  name      String
+  projectId String
+  project   Project @relation(fields: [projectId], references: [id])
+
+  gitUrl         String
+  gitBranch      String
+  gitUsername    String?
+  gitToken       String?
+  dockerfilePath String  @default("./Dockerfile")
+
+  replicas Int    @default(1)
+  envVars  String
+
+  memoryReservation Int?
+  memoryLimit       Int?
+  cpuReservation    Int?
+  cpuLimit          Int?
+
+  appDomains AppDomain[]
+  appVolumes AppVolume[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model AppDomain {
+  hostname String
+  port     Int
+  useSsl   Boolean @default(true)
+  appId    String
+  app      App     @relation(fields: [appId], references: [id])
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@id([hostname, appId])
+}
+
+model AppVolume {
+  containerMountPath String
+  appId              String
+  app                App    @relation(fields: [appId], references: [id])
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@id([containerMountPath, appId])
+}

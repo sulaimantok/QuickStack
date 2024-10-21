@@ -7,8 +7,20 @@ import { ServerActionResult, SuccessActionResult } from "@/model/server-action-e
 import { FormValidationException } from "@/model/form-validation-exception.model";
 import { authOptions } from "@/lib/auth-options";
 
+/**
+ * THIS FUNCTION RETURNS NULL IF NO USER IS LOGGED IN
+ * use getAuthUserSession() if you want to throw an error if no user is logged in
+ */
 export async function getUserSession(): Promise<UserSession | null> {
     const session = await getServerSession(authOptions) as UserSession | null;
+    return session;
+}
+
+export async function getAuthUserSession(): Promise<UserSession> {
+    const session = await getUserSession();
+    if (!session) {
+        throw new ServiceException('User is not authenticated.');
+    }
     return session;
 }
 /*

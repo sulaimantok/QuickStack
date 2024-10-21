@@ -97,7 +97,7 @@ export function DefaultDataTable<TData, TValue>({
         <div>
             <div className="flex items-center py-4">
                 {!hideSearchBar && <Input
-                    placeholder="Suchen..."
+                    placeholder="Search..."
                     value={globalFilter ?? ""}
                     onChange={(event: any) =>
                         table.setGlobalFilter(String(event.target.value))
