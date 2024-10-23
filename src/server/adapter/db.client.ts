@@ -1,5 +1,4 @@
 import { Prisma, PrismaClient } from "@prisma/client";
-import { Service } from "typedi";
 import { DefaultArgs } from "@prisma/client/runtime/library";
 import { ListUtils } from "../utils/list.utils";
 
