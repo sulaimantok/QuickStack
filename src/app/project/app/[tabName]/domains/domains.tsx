@@ -20,6 +20,9 @@ import { toast } from "sonner";
 import { AppEnvVariablesModel, appEnvVariablesZodModel } from "@/model/env-edit.model";
 import { Textarea } from "@/components/ui/textarea";
 import { AppExtendedModel } from "@/model/app-extended.model";
+import { Table, TableBody, TableCaption, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import { Button } from "@/components/ui/button";
+import { CheckIcon, CrossIcon } from "lucide-react";
 
 
 export default function DomainsList({ app }: {
@@ -31,8 +34,32 @@ export default function DomainsList({ app }: {
                 <CardTitle>Domains</CardTitle>
                 <CardDescription>Add custom domains to your application. If your app has a domain configured, it will be public and accessible via the internet.</CardDescription>
             </CardHeader>
-
-
+            <CardContent>
+                <Table>
+                    <TableCaption>{app.appDomains.length} Domains</TableCaption>
+                    <TableHeader>
+                        <TableRow>
+                            <TableHead>Name</TableHead>
+                            <TableHead>Port</TableHead>
+                            <TableHead>SSL</TableHead>
+                            <TableHead>Action</TableHead>
+                        </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                        {app.appDomains.map(domain => (
+                            <TableRow key={domain.hostname}>
+                                <TableCell className="font-medium">{domain.hostname}</TableCell>
+                                <TableCell className="font-medium">{domain.port}</TableCell>
+                                <TableCell className="font-medium">{domain.useSsl ? <CheckIcon /> : <CrossIcon />}</TableCell>
+                                <TableCell className="font-medium"><Button variant="ghost">Edit</Button></TableCell>
+                            </TableRow>
+                        ))}
+                    </TableBody>
+                </Table>
+            </CardContent>
+            <CardFooter>
+                <Button>Add Domain</Button>
+            </CardFooter>
         </Card >
 
     </>;

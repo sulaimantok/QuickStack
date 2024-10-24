@@ -8,17 +8,23 @@ import { formatDateTime } from "@/lib/format.utils";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { MoreHorizontal } from "lucide-react";
 import { Toast } from "@/lib/toast.utils";
-import { Project } from "@prisma/client";
+import { App, Project } from "@prisma/client";
 import { deleteApp } from "./actions";
 
 
 
-export default function AppTable({ data }: { data: Project[] }) {
+export default function AppTable({ data }: { data: App[] }) {
 
     return <>
         <SimpleDataTable columns={[
             ['id', 'ID', false],
             ['name', 'Name', true],
+            ['sourceType', 'Source Type', false, (item) => item.sourceType === 'GIT' ? 'Git' : 'Container'],
+            ['replicas', 'Replica Count', false],
+            ['memoryLimit', 'Memory Limit', false],
+            ['memoryReservation', 'Memory Reservation', false],
+            ['cpuLimit', 'CPU Limit', false],
+            ['cpuReservation', 'CPU Reservation', false],
             ["createdAt", "Created At", true, (item) => formatDateTime(item.createdAt)],
             ["updatedAt", "Updated At", false, (item) => formatDateTime(item.updatedAt)],
         ]}

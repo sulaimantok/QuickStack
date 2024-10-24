@@ -36,11 +36,10 @@ export default function GeneralAppRateLimits({ app }: {
         FormUtils.mapValidationErrorsToForm<typeof appRateLimitsZodModel>(state, form);
     }, [state]);
 
-    const sourceTypeField = form.watch();
     return <>
         <Card>
             <CardHeader>
-                <CardTitle>Rate Limits</CardTitle>
+                <CardTitle>Container Configuration</CardTitle>
                 <CardDescription>Provide optional rate Limits per running container instance.</CardDescription>
             </CardHeader>
             <Form {...form}>
@@ -48,6 +47,22 @@ export default function GeneralAppRateLimits({ app }: {
                     return formAction(data);
                 })()}>
                     <CardContent className="space-y-4">
+                        <div className="grid grid-cols-2 gap-4">
+
+                            <FormField
+                                control={form.control}
+                                name="replicas"
+                                render={({ field }) => (
+                                    <FormItem>
+                                        <FormLabel>Replica Count</FormLabel>
+                                        <FormControl>
+                                            <Input type="number" {...field} value={field.value} />
+                                        </FormControl>
+                                        <FormMessage />
+                                    </FormItem>
+                                )}
+                            />
+                        </div>
                         <div className="grid grid-cols-2 gap-4">
 
                             <FormField
@@ -107,8 +122,9 @@ export default function GeneralAppRateLimits({ app }: {
                             />
                         </div>
                     </CardContent>
-                    <CardFooter>
+                    <CardFooter className="gap-4">
                         <SubmitButton>Save</SubmitButton>
+                        <p className="text-red-500">{state?.message}</p>
                     </CardFooter>
                 </form>
             </Form >

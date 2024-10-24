@@ -70,6 +70,5 @@ export default function EnvEdit({ app }: {
                 </form>
             </Form >
         </Card >
-
     </>;
 }

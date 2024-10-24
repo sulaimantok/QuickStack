@@ -17,7 +17,7 @@ export class SuccessActionResult<T> extends ServerActionResult<undefined, T> {
 }
 
 export class ErrorActionResult<TErrorData> extends ServerActionResult<TErrorData, undefined> {
-    constructor(errors: FormZodErrorValidationCallback<TErrorData>, message?: string) {
+    constructor(errors?: FormZodErrorValidationCallback<TErrorData>, message?: string) {
         super('error', undefined, message, errors);
     }
 }

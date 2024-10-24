@@ -10,6 +10,9 @@ import {
 import projectService from "@/server/services/project.service";
 import PageTitle from "@/components/custom/page-title";
 import AppTabs from "./app-tabs";
+import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
+import { SubmitButton } from "@/components/custom/submit-button";
+import { Button } from "@/components/ui/button";
 
 export default async function AppPage({
     searchParams,
@@ -46,6 +49,13 @@ export default async function AppPage({
                 title={app.name}
                 subtitle={`App ID: "${app.id}"`}>
             </PageTitle>
+            <Card>
+                <CardContent className="p-4 flex gap-4">
+                    <Button>Deploy</Button>
+                    <Button variant="secondary">Start</Button>
+                    <Button variant="secondary">Rebuild</Button>
+                </CardContent>
+            </Card >
             <AppTabs app={app} tabName={params.tabName} />
         </div>
     )

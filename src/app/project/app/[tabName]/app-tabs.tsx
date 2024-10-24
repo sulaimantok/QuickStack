@@ -30,7 +30,6 @@ export default function AppTabs({
                 <TabsTrigger value="environment">Environment</TabsTrigger>
                 <TabsTrigger value="domains">Domains</TabsTrigger>
                 <TabsTrigger value="storage">Storage</TabsTrigger>
-                <TabsTrigger value="logs">Logs</TabsTrigger>
             </TabsList>
             <TabsContent value="overview">Domains, Logs, etc.</TabsContent>
             <TabsContent value="general" className="space-y-4">
@@ -44,7 +43,6 @@ export default function AppTabs({
                 <DomainsList app={app} />
             </TabsContent>
             <TabsContent value="storage">storage</TabsContent>
-            <TabsContent value="logs">logs</TabsContent>
         </Tabs>
     )
 }

@@ -40,7 +40,14 @@ export const saveGeneralAppSourceInfo = async (prevState: any, inputData: AppSou
 
 export const saveGeneralAppRateLimits = async (prevState: any, inputData: AppRateLimitsModel, appId: string) =>
     saveFormAction(inputData, appRateLimitsZodModel, async (validatedData) => {
-        console.log(validatedData)
+        if (validatedData.replicas < 1) {
+            throw new ServiceException('Replica Count must be at least 1');
+        }
         await getAuthUserSession();
-
+        const existingApp = await appService.getById(appId);
+        await appService.save({
+            ...existingApp,
+            ...validatedData,
+            id: appId,
+        });
     });
