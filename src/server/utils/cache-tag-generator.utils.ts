@@ -7,4 +7,8 @@ export class Tags {
     static projects() {
         return `projects`;
     }
+
+    static apps(projectId: string) {
+        return `apps-${projectId}`;
+    }
 }

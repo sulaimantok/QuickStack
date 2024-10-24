@@ -6,6 +6,8 @@ export const AppModel = z.object({
   id: z.string(),
   name: z.string(),
   projectId: z.string(),
+  sourceType: z.string(),
+  containerImageSource: z.string(),
   gitUrl: z.string(),
   gitBranch: z.string(),
   gitUsername: z.string().nullish(),

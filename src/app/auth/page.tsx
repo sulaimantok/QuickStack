@@ -1,3 +1,5 @@
+'use server'
+
 import userService from "@/server/services/user.service";
 import UserRegistrationForm from "./register-from";
 import UserLoginForm from "./login-from";
