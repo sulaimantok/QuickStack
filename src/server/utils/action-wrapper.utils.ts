@@ -56,12 +56,12 @@ export async function saveFormAction<ReturnType, TInputData, ZodType extends Zod
         const validatedFields = schemaWithoutIgnoredFields.safeParse(inputData);
         if (!validatedFields.success) {
             console.error('Validation failed for input:', inputData, 'with errors:', validatedFields.error.flatten().fieldErrors);
-            throw new FormValidationException('Bitte überprüfen Sie Ihre eingaben.', validatedFields.error.flatten().fieldErrors);
+            throw new FormValidationException('Please correct the errors in the form.', validatedFields.error.flatten().fieldErrors);
         }
 
         if (!validatedFields.data) {
             console.error('No data available after validation of input:', validatedFields.data);
-            throw new ServiceException('Ein unbekannter Fehler ist aufgetreten.');
+            throw new ServiceException('An unknown error occurred.');
         }
         return await func(validatedFields.data);
     }, redirectOnSuccessPath);
@@ -104,7 +104,7 @@ export async function simpleAction<ReturnType, ValidationCallbackType>(
             console.error(ex)
             return {
                 status: 'error',
-                message: 'Ein unbekannter Fehler ist aufgetreten. Bitte versuchen Sie es später erneut.'
+                message: 'An unknown error occurred.'
             } as ServerActionResult<ValidationCallbackType, ReturnType>;
         }
     }

@@ -19,7 +19,8 @@
 				"esbenp.prettier-vscode",
 				"VisualStudioExptTeam.vscodeintellicode",
 				"mhutchie.git-graph",
-				"donjayamanne.githistory"
+				"donjayamanne.githistory",
+				"qwtel.sqlite-viewer"
 			]
 		}
 	},
