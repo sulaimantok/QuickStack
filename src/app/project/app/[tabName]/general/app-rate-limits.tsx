@@ -17,10 +17,11 @@ import { AppRateLimitsModel, appRateLimitsZodModel } from "@/model/app-rate-limi
 import { App } from "@prisma/client";
 import { useEffect } from "react";
 import { toast } from "sonner";
+import { AppExtendedModel } from "@/model/app-extended.model";
 
 
 export default function GeneralAppRateLimits({ app }: {
-    app: App
+    app: AppExtendedModel
 }) {
     const form = useForm<AppRateLimitsModel>({
         resolver: zodResolver(appRateLimitsZodModel),

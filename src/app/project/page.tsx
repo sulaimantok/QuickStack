@@ -16,6 +16,7 @@ import {
     BreadcrumbPage,
     BreadcrumbSeparator,
 } from "@/components/ui/breadcrumb"
+import PageTitle from "@/components/custom/page-title";
 
 
 export default async function AppsPage({
@@ -44,10 +45,11 @@ export default async function AppsPage({
                     </BreadcrumbItem>
                 </BreadcrumbList>
             </Breadcrumb>
-            <div className="flex gap-4">
-                <h2 className="text-3xl font-bold tracking-tight flex-1">Apps</h2>
+            <PageTitle
+                title="Apps"
+                subtitle={`All Apps for Project "${project.name}"`}>
                 <CreateAppDialog projectId={projectId} />
-            </div>
+            </PageTitle>
             <AppTable data={data} />
         </div>
     )

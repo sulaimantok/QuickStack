@@ -16,9 +16,10 @@ import { Label } from "@/components/ui/label";
 import { useEffect } from "react";
 import { App } from "@prisma/client";
 import { toast } from "sonner";
+import { AppExtendedModel } from "@/model/app-extended.model";
 
 export default function GeneralAppSource({ app }: {
-    app: App
+    app: AppExtendedModel
 }) {
     const form = useForm<AppSourceInfoInputModel>({
         resolver: zodResolver(appSourceInfoInputZodModel),

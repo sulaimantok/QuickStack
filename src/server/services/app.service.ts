@@ -3,6 +3,7 @@ import dataAccess from "../adapter/db.client";
 import { Tags } from "../utils/cache-tag-generator.utils";
 import { App, Prisma, Project } from "@prisma/client";
 import { DefaultArgs } from "@prisma/client/runtime/library";
+import { AppExtendedModel } from "@/model/app-extended.model";
 
 class AppService {
 
@@ -20,7 +21,7 @@ class AppService {
     }
 
     async getAllAppsByProjectID(projectId: string) {
-        return await unstable_cache(async (projectId:string) => await dataAccess.client.app.findMany({
+        return await unstable_cache(async (projectId: string) => await dataAccess.client.app.findMany({
             where: {
                 projectId
             }
@@ -28,6 +29,18 @@ class AppService {
             [Tags.apps(projectId)], {
             tags: [Tags.apps(projectId)]
         })(projectId as string);
+    }
+
+    async getExtendedById(id: string): Promise<AppExtendedModel> {
+        return dataAccess.client.app.findFirstOrThrow({
+            where: {
+                id
+            }, include: {
+                project: true,
+                appDomains: true,
+                appVolumes: true,
+            }
+        });
     }
 
     async getById(id: string) {
