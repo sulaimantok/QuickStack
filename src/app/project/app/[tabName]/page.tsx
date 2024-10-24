@@ -47,7 +47,7 @@ export default async function AppPage({
             </Breadcrumb>
             <PageTitle
                 title={app.name}
-                subtitle={`App ID: "${app.id}"`}>
+                subtitle={`App ID: ${app.id}`}>
             </PageTitle>
             <Card>
                 <CardContent className="p-4 flex gap-4">
