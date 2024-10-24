@@ -4,7 +4,7 @@ import EmailProvider from "next-auth/providers/email";
 import { PrismaAdapter } from "@next-auth/prisma-adapter"
 import { JWT } from "next-auth/jwt";
 import { UserSession } from "@/model/sim-session.model";
-import dataAccess from "@/server/data-access/data-access.client";
+import dataAccess from "@/server/adapter/db.client";
 import CredentialsProvider from "next-auth/providers/credentials";
 import bcrypt from "bcrypt";
 import userService from "@/server/services/user.service";

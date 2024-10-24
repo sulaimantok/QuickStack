@@ -1,5 +1,5 @@
 import { revalidateTag, unstable_cache } from "next/cache";
-import dataAccess from "../data-access/data-access.client";
+import dataAccess from "../adapter/db.client";
 import { Tags } from "../utils/cache-tag-generator.utils";
 import { Prisma, Project } from "@prisma/client";
 import { DefaultArgs } from "@prisma/client/runtime/library";

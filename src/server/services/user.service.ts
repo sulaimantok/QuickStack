@@ -1,7 +1,7 @@
 
 
 import { Prisma, User } from "@prisma/client";
-import dataAccess from "../data-access/data-access.client";
+import dataAccess from "../adapter/db.client";
 import { revalidateTag, unstable_cache } from "next/cache";
 import { Tags } from "../utils/cache-tag-generator.utils";
 import bcrypt from "bcrypt";
