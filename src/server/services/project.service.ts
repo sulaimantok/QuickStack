@@ -27,7 +27,7 @@ class ProjectService {
     }
 
     async getById(id: string) {
-        return dataAccess.client.project.findUnique({
+        return dataAccess.client.project.findFirstOrThrow({
             where: {
                 id
             }

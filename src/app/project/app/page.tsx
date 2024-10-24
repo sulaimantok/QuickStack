@@ -5,8 +5,15 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import GeneralAppRateLimits from "./general/app-rate-limits";
 import GeneralAppSource from "./general/app-source";
 import appService from "@/server/services/app.service";
-
-
+import {
+    Breadcrumb,
+    BreadcrumbItem,
+    BreadcrumbLink,
+    BreadcrumbList,
+    BreadcrumbPage,
+    BreadcrumbSeparator,
+} from "@/components/ui/breadcrumb"
+import projectService from "@/server/services/project.service";
 
 export default async function AppPage({
     searchParams,
@@ -19,9 +26,25 @@ export default async function AppPage({
         return <p>Could not find app with id {appId}</p>
     }
     const app = await appService.getById(appId);
+    const project = await projectService.getById(app.projectId);
 
     return (
         <div className="flex-1 space-y-4 p-8 pt-6">
+        <Breadcrumb>
+            <BreadcrumbList>
+                <BreadcrumbItem>
+                    <BreadcrumbLink href="/">Projects</BreadcrumbLink>
+                </BreadcrumbItem>
+                <BreadcrumbSeparator />
+                <BreadcrumbItem>
+                    <BreadcrumbLink href={`/project?projectId=${app.projectId}`}>{project.name}</BreadcrumbLink>
+                </BreadcrumbItem>
+                <BreadcrumbSeparator />
+                <BreadcrumbItem>
+                    <BreadcrumbLink>{app.name}</BreadcrumbLink>
+                </BreadcrumbItem>
+            </BreadcrumbList>
+        </Breadcrumb>
             <div className="flex gap-4">
                 <h2 className="text-3xl font-bold tracking-tight flex-1">App</h2>
             </div>

@@ -3,8 +3,9 @@
 import { AppRateLimitsModel, appRateLimitsZodModel } from "@/model/app-rate-limits.model";
 import { appSourceInfoContainerZodModel, appSourceInfoGitZodModel, AppSourceInfoInputModel, appSourceInfoInputZodModel } from "@/model/app-source-info.model";
 import { AuthFormInputSchema, authFormInputSchemaZod } from "@/model/auth-form";
-import { ErrorActionResult, ServerActionResult } from "@/model/server-action-error-return.model";
+import { ErrorActionResult, ServerActionResult, SuccessActionResult } from "@/model/server-action-error-return.model";
 import { ServiceException } from "@/model/service.exception.model";
+import appService from "@/server/services/app.service";
 import userService from "@/server/services/user.service";
 import { getAuthUserSession, saveFormAction, simpleAction } from "@/server/utils/action-wrapper.utils";
 
@@ -12,14 +13,25 @@ import { getAuthUserSession, saveFormAction, simpleAction } from "@/server/utils
 export const saveGeneralAppSourceInfo = async (prevState: any, inputData: AppSourceInfoInputModel, appId: string) => {
     if (inputData.sourceType === 'GIT') {
         return saveFormAction(inputData, appSourceInfoGitZodModel, async (validatedData) => {
-            console.log(validatedData)
             await getAuthUserSession();
+            const existingApp = await appService.getById(appId);
+            await appService.save({
+                ...existingApp,
+                ...validatedData,
+                sourceType: 'GIT',
+                id: appId,
+            });
         });
     } else if (inputData.sourceType === 'CONTAINER') {
         return saveFormAction(inputData, appSourceInfoContainerZodModel, async (validatedData) => {
-            console.log(validatedData)
             await getAuthUserSession();
-            
+            const existingApp = await appService.getById(appId);
+            await appService.save({
+                ...existingApp,
+                ...validatedData,
+                sourceType: 'CONTAINER',
+                id: appId,
+            });
         });
     } else {
         return simpleAction(async () => new ServerActionResult('error', undefined, 'Invalid Source Type', undefined));

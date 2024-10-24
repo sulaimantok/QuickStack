@@ -15,6 +15,8 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Label } from "@/components/ui/label";
 import { AppRateLimitsModel, appRateLimitsZodModel } from "@/model/app-rate-limits.model";
 import { App } from "@prisma/client";
+import { useEffect } from "react";
+import { toast } from "sonner";
 
 
 export default function GeneralAppRateLimits({ app }: {
@@ -25,9 +27,13 @@ export default function GeneralAppRateLimits({ app }: {
         defaultValues: app
     });
 
-    const appId = '123'; // todo get from url;
-
-    const [state, formAction] = useFormState((state: ServerActionResult<any, any>, payload: AppRateLimitsModel) => saveGeneralAppRateLimits(state, payload, appId), FormUtils.getInitialFormState<typeof appRateLimitsZodModel>());
+    const [state, formAction] = useFormState((state: ServerActionResult<any, any>, payload: AppRateLimitsModel) => saveGeneralAppRateLimits(state, payload, app.id), FormUtils.getInitialFormState<typeof appRateLimitsZodModel>());
+    useEffect(() => {
+        if (state.status === 'success') {
+            toast.success('Rate Limits Saved');
+        }
+        FormUtils.mapValidationErrorsToForm<typeof appRateLimitsZodModel>(state, form);
+    }, [state]);
 
     const sourceTypeField = form.watch();
     return <>

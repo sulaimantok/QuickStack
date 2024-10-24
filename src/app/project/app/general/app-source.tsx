@@ -15,6 +15,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Label } from "@/components/ui/label";
 import { useEffect } from "react";
 import { App } from "@prisma/client";
+import { toast } from "sonner";
 
 export default function GeneralAppSource({ app }: {
     app: App
@@ -27,12 +28,12 @@ export default function GeneralAppSource({ app }: {
         }
     });
 
-    const appId = '123'; // todo get from url;
-
-    const [state, formAction] = useFormState((state: ServerActionResult<any, any>, payload: AppSourceInfoInputModel) => saveGeneralAppSourceInfo(state, payload, appId), FormUtils.getInitialFormState<typeof appSourceInfoInputZodModel>());
+    const [state, formAction] = useFormState((state: ServerActionResult<any, any>, payload: AppSourceInfoInputModel) => saveGeneralAppSourceInfo(state, payload, app.id), FormUtils.getInitialFormState<typeof appSourceInfoInputZodModel>());
     useEffect(() => {
+        if (state.status === 'success') {
+            toast.success('Source Info Saved');
+        }
         FormUtils.mapValidationErrorsToForm<typeof appSourceInfoInputZodModel>(state, form)
-
     }, [state]);
 
     const sourceTypeField = form.watch();
@@ -121,7 +122,7 @@ export default function GeneralAppSource({ app }: {
                                             <FormItem>
                                                 <FormLabel>Git Branch</FormLabel>
                                                 <FormControl>
-                                                    <Input   {...field} value={field.value as string | number | readonly string[] | undefined} />
+                                                    <Input {...field} value={field.value as string | number | readonly string[] | undefined} />
                                                 </FormControl>
                                                 <FormMessage />
                                             </FormItem>
