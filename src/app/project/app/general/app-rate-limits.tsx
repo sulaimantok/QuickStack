@@ -14,11 +14,15 @@ import { Input } from "@/components/ui/input";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Label } from "@/components/ui/label";
 import { AppRateLimitsModel, appRateLimitsZodModel } from "@/model/app-rate-limits.model";
+import { App } from "@prisma/client";
 
 
-export default function GeneralAppRateLimits() {
+export default function GeneralAppRateLimits({ app }: {
+    app: App
+}) {
     const form = useForm<AppRateLimitsModel>({
-        resolver: zodResolver(appRateLimitsZodModel)
+        resolver: zodResolver(appRateLimitsZodModel),
+        defaultValues: app
     });
 
     const appId = '123'; // todo get from url;

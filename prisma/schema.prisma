@@ -128,16 +128,16 @@ model App {
   project    Project @relation(fields: [projectId], references: [id])
   sourceType String  @default("GIT") // GIT, CONTAINER
 
-  containerImageSource String
+  containerImageSource String?
 
-  gitUrl         String
-  gitBranch      String
+  gitUrl         String?
+  gitBranch      String?
   gitUsername    String?
   gitToken       String?
   dockerfilePath String  @default("./Dockerfile")
 
   replicas Int    @default(1)
-  envVars  String
+  envVars  String @default("")
 
   memoryReservation Int?
   memoryLimit       Int?

@@ -14,10 +14,17 @@ import { Input } from "@/components/ui/input";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Label } from "@/components/ui/label";
 import { useEffect } from "react";
+import { App } from "@prisma/client";
 
-export default function GeneralAppSource() {
+export default function GeneralAppSource({ app }: {
+    app: App
+}) {
     const form = useForm<AppSourceInfoInputModel>({
-        resolver: zodResolver(appSourceInfoInputZodModel)
+        resolver: zodResolver(appSourceInfoInputZodModel),
+        defaultValues: {
+            ...app,
+            sourceType: app.sourceType as 'GIT' | 'CONTAINER'
+        }
     });
 
     const appId = '123'; // todo get from url;

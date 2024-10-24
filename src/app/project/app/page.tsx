@@ -4,6 +4,7 @@ import { redirect } from "next/navigation";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import GeneralAppRateLimits from "./general/app-rate-limits";
 import GeneralAppSource from "./general/app-source";
+import appService from "@/server/services/app.service";
 
 
 
@@ -13,6 +14,11 @@ export default async function AppPage({
     searchParams?: { [key: string]: string | undefined };
 }) {
     await getAuthUserSession();
+    const appId = searchParams?.appId;
+    if (!appId) {
+        return <p>Could not find app with id {appId}</p>
+    }
+    const app = await appService.getById(appId);
 
     return (
         <div className="flex-1 space-y-4 p-8 pt-6">
@@ -30,8 +36,8 @@ export default async function AppPage({
                 </TabsList>
                 <TabsContent value="overview">Domains, Logs, etc.</TabsContent>
                 <TabsContent value="general" className="space-y-4">
-                    <GeneralAppSource />
-                    <GeneralAppRateLimits />
+                    <GeneralAppSource app={app} />
+                    <GeneralAppRateLimits app={app} />
                 </TabsContent>
                 <TabsContent value="environment">environment</TabsContent>
                 <TabsContent value="domains">domains</TabsContent>

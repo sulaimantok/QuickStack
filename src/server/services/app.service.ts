@@ -31,7 +31,7 @@ class AppService {
     }
 
     async getById(id: string) {
-        return dataAccess.client.app.findUnique({
+        return dataAccess.client.app.findFirstOrThrow({
             where: {
                 id
             }

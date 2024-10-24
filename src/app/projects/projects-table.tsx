@@ -23,7 +23,7 @@ export default function ProjectsTable({ data }: { data: Project[] }) {
             ["updatedAt", "Updated At", false, (item) => formatDateTime(item.updatedAt)],
         ]}
             data={data}
-            onItemClickLink={(item) => `/project?id=${item.id}`}
+            onItemClickLink={(item) => `/project?projectId=${item.id}`}
             actionCol={(item) =>
                 <>
                     <div className="flex">
@@ -37,7 +37,7 @@ export default function ProjectsTable({ data }: { data: Project[] }) {
                             </DropdownMenuTrigger>
                             <DropdownMenuContent align="end">
                                 <DropdownMenuLabel>Actions</DropdownMenuLabel>
-                                <Link href={`/project?id=${item.id}`}>
+                                <Link href={`/project?projectId=${item.id}`}>
                                     <DropdownMenuItem>
                                         <span>Show Apps of Project</span>
                                     </DropdownMenuItem>
