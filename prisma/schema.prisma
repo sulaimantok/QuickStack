@@ -152,7 +152,8 @@ model App {
 }
 
 model AppDomain {
-  hostname String
+  id       String  @id @default(uuid())
+  hostname String @unique
   port     Int
   useSsl   Boolean @default(true)
   appId    String
@@ -160,17 +161,14 @@ model AppDomain {
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
-
-  @@id([hostname, appId])
 }
 
 model AppVolume {
+  id                 String @id @default(uuid())
   containerMountPath String
   appId              String
   app                App    @relation(fields: [appId], references: [id])
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
-
-  @@id([containerMountPath, appId])
 }

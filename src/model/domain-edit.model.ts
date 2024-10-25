@@ -1,0 +1,10 @@
+import { stringToBoolean, stringToNumber } from "@/lib/zod.utils";
+import { z } from "zod";
+
+export const appDomainEditZodModel = z.object({
+  hostname: z.string().trim().min(1),
+  useSsl: stringToBoolean,
+  port: stringToNumber,
+})
+
+export type AppDomainEditModel = z.infer<typeof appDomainEditZodModel>;

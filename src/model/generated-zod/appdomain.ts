@@ -1,8 +1,9 @@
 import * as z from "zod"
-import * as imports from "../../../prisma/null"
+
 import { CompleteApp, RelatedAppModel } from "./index"
 
 export const AppDomainModel = z.object({
+  id: z.string(),
   hostname: z.string(),
   port: z.number().int(),
   useSsl: z.boolean(),

@@ -38,7 +38,6 @@ export default function EnvEdit({ app }: {
         FormUtils.mapValidationErrorsToForm<typeof appEnvVariablesZodModel>(state, form);
     }, [state]);
 
-    const sourceTypeField = form.watch();
     return <>
         <Card>
             <CardHeader>

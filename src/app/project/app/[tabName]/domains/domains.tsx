@@ -7,7 +7,6 @@ import { FormUtils } from "@/lib/form.utilts";
 import { AppSourceInfoInputModel, appSourceInfoInputZodModel } from "@/model/app-source-info.model";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
-import { saveEnvVariables } from "./actions";
 import { useFormState } from "react-dom";
 import { ServerActionResult } from "@/model/server-action-error-return.model";
 import { Input } from "@/components/ui/input";
@@ -22,7 +21,10 @@ import { Textarea } from "@/components/ui/textarea";
 import { AppExtendedModel } from "@/model/app-extended.model";
 import { Table, TableBody, TableCaption, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
-import { CheckIcon, CrossIcon } from "lucide-react";
+import { CheckIcon, CrossIcon, DeleteIcon, EditIcon, TrashIcon, XIcon } from "lucide-react";
+import DialogEditDialog from "./domain-edit.-overlay";
+import { Toast } from "@/lib/toast.utils";
+import { deleteDomain } from "./actions";
 
 
 export default function DomainsList({ app }: {
@@ -42,7 +44,7 @@ export default function DomainsList({ app }: {
                             <TableHead>Name</TableHead>
                             <TableHead>Port</TableHead>
                             <TableHead>SSL</TableHead>
-                            <TableHead>Action</TableHead>
+                            <TableHead className="w-[100px]">Action</TableHead>
                         </TableRow>
                     </TableHeader>
                     <TableBody>
@@ -50,15 +52,24 @@ export default function DomainsList({ app }: {
                             <TableRow key={domain.hostname}>
                                 <TableCell className="font-medium">{domain.hostname}</TableCell>
                                 <TableCell className="font-medium">{domain.port}</TableCell>
-                                <TableCell className="font-medium">{domain.useSsl ? <CheckIcon /> : <CrossIcon />}</TableCell>
-                                <TableCell className="font-medium"><Button variant="ghost">Edit</Button></TableCell>
+                                <TableCell className="font-medium">{domain.useSsl ? <CheckIcon /> : <XIcon />}</TableCell>
+                                <TableCell className="font-medium flex gap-2">
+                                    <DialogEditDialog appId={app.id} domain={domain}>
+                                        <Button variant="ghost"><EditIcon /></Button>
+                                    </DialogEditDialog>
+                                    <Button variant="ghost" onClick={() => Toast.fromAction(() => deleteDomain(domain.id))}>
+                                        <TrashIcon />
+                                    </Button>
+                                </TableCell>
                             </TableRow>
                         ))}
                     </TableBody>
                 </Table>
             </CardContent>
             <CardFooter>
-                <Button>Add Domain</Button>
+                <DialogEditDialog appId={app.id}>
+                    <Button>Add Domain</Button>
+                </DialogEditDialog>
             </CardFooter>
         </Card >
 
