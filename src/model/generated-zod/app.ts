@@ -19,6 +19,7 @@ export const AppModel = z.object({
   memoryLimit: z.number().int().nullish(),
   cpuReservation: z.number().int().nullish(),
   cpuLimit: z.number().int().nullish(),
+  defaultPort: z.number().int(),
   createdAt: z.date(),
   updatedAt: z.date(),
 })

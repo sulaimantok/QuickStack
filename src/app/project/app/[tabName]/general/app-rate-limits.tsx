@@ -62,6 +62,19 @@ export default function GeneralAppRateLimits({ app }: {
                                     </FormItem>
                                 )}
                             />
+                             <FormField
+                                control={form.control}
+                                name="defaultPort"
+                                render={({ field }) => (
+                                    <FormItem>
+                                        <FormLabel>Default Port</FormLabel>
+                                        <FormControl>
+                                            <Input type="number" {...field} value={field.value} />
+                                        </FormControl>
+                                        <FormMessage />
+                                    </FormItem>
+                                )}
+                            />
                         </div>
                         <div className="grid grid-cols-2 gap-4">
 

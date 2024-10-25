@@ -144,8 +144,9 @@ model App {
   cpuReservation    Int?
   cpuLimit          Int?
 
-  appDomains AppDomain[]
-  appVolumes AppVolume[]
+  defaultPort Int         @default(80)
+  appDomains  AppDomain[]
+  appVolumes  AppVolume[]
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -153,7 +154,7 @@ model App {
 
 model AppDomain {
   id       String  @id @default(uuid())
-  hostname String @unique
+  hostname String  @unique
   port     Int
   useSsl   Boolean @default(true)
   appId    String

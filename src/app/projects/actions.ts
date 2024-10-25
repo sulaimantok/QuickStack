@@ -1,6 +1,5 @@
 'use server'
 
-import { ProjectModel } from "@/model/generated-zod";
 import { SuccessActionResult } from "@/model/server-action-error-return.model";
 import projectService from "@/server/services/project.service";
 import { getAuthUserSession, saveFormAction, simpleAction } from "@/server/utils/action-wrapper.utils";
@@ -13,11 +12,9 @@ const createProjectSchema = z.object({
 export const createProject = async (projectName: string) =>
     saveFormAction({ projectName }, createProjectSchema, async (validatedData) => {
         await getAuthUserSession();
-
         await projectService.save({
             name: validatedData.projectName
         });
-
         return new SuccessActionResult(undefined, "Project created successfully.");
     });
 

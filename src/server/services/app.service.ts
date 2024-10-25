@@ -5,21 +5,38 @@ import { App, AppDomain, Prisma } from "@prisma/client";
 import { DefaultArgs } from "@prisma/client/runtime/library";
 import { AppExtendedModel } from "@/model/app-extended.model";
 import { ServiceException } from "@/model/service.exception.model";
+import { StringUtils } from "../utils/string.utils";
+import deploymentService from "./deployment.service";
 
 class AppService {
+
+    async buildAndDeploy(appId: string) {
+        const app = await this.getExtendedById(appId);
+        if (app.sourceType === 'GIT') {
+            // first make build
+        } else {
+            // only deploy
+            await deploymentService.createDeployment(app);
+        }
+    }
 
     async deleteById(id: string) {
         const existingItem = await this.getById(id);
         if (!existingItem) {
             return;
         }
-        await dataAccess.client.app.delete({
-            where: {
-                id
-            }
-        });
-        revalidateTag(Tags.apps(existingItem.projectId));
-        revalidateTag(Tags.app(existingItem.id));
+        try {
+            await deploymentService.deleteService(existingItem.projectId, existingItem.id);
+            await deploymentService.deleteDeployment(existingItem.projectId, existingItem.id);
+            await dataAccess.client.app.delete({
+                where: {
+                    id
+                }
+            });
+        } finally {
+            revalidateTag(Tags.apps(existingItem.projectId));
+            revalidateTag(Tags.app(existingItem.id));
+        }
     }
 
     async getAllAppsByProjectID(projectId: string) {
@@ -70,6 +87,7 @@ class AppService {
                     data: item
                 });
             } else {
+                item.id = StringUtils.toAppId(item.name as string);
                 savedItem = dataAccess.client.app.create({
                     data: item as Prisma.AppUncheckedCreateInput
                 });

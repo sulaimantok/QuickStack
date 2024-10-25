@@ -2,7 +2,8 @@ import { revalidateTag, unstable_cache } from "next/cache";
 import dataAccess from "../adapter/db.client";
 import { Tags } from "../utils/cache-tag-generator.utils";
 import { Prisma, Project } from "@prisma/client";
-import { DefaultArgs } from "@prisma/client/runtime/library";
+import { StringUtils } from "../utils/string.utils";
+import deploymentService from "./deployment.service";
 
 class ProjectService {
 
@@ -11,12 +12,16 @@ class ProjectService {
         if (!existingItem) {
             return;
         }
-        await dataAccess.client.project.delete({
-            where: {
-                id
-            }
-        });
-        revalidateTag(Tags.projects());
+        try {
+            await deploymentService.deleteNamespace(existingItem.id);
+            await dataAccess.client.project.delete({
+                where: {
+                    id
+                }
+            });
+        } finally {
+            revalidateTag(Tags.projects());
+        }
     }
 
     async getAllProjects() {
@@ -34,22 +39,26 @@ class ProjectService {
         });
     }
 
-    async save(property: Prisma.ProjectUncheckedCreateInput | Prisma.ProjectUncheckedUpdateInput) {
-        let savedItem: Prisma.Prisma__ProjectClient<Project, never, DefaultArgs>;
-        if (property.id) {
-            savedItem = dataAccess.client.project.update({
-                where: {
-                    id: property.id as string
-                },
-                data: property
-            });
-        } else {
-            savedItem = dataAccess.client.project.create({
-                data: property as Prisma.ProjectUncheckedCreateInput
-            });
+    async save(item: Prisma.ProjectUncheckedCreateInput | Prisma.ProjectUncheckedUpdateInput) {
+        let savedItem: Project;
+        try {
+            if (item.id) {
+                savedItem = await dataAccess.client.project.update({
+                    where: {
+                        id: item.id as string
+                    },
+                    data: item
+                });
+            } else {
+                item.id = StringUtils.toProjectId(item.name as string);
+                savedItem = await dataAccess.client.project.create({
+                    data: item as Prisma.ProjectUncheckedCreateInput
+                });
+            }
+            await deploymentService.createNamespaceIfNotExists(savedItem.id);
+        } finally {
+            revalidateTag(Tags.projects());
         }
-
-        revalidateTag(Tags.projects());
         return savedItem;
     }
 }

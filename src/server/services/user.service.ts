@@ -41,9 +41,8 @@ export class UserService {
     }
 
     async registerUser(email: string, password: string) {
-
-        const hashedPassword = await bcrypt.hash(password, saltRounds);
         try {
+            const hashedPassword = await bcrypt.hash(password, saltRounds);
             const user = await dataAccess.client.user.create({
                 data: {
                     email,
