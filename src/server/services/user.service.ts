@@ -5,10 +5,39 @@ import dataAccess from "../adapter/db.client";
 import { revalidateTag, unstable_cache } from "next/cache";
 import { Tags } from "../utils/cache-tag-generator.utils";
 import bcrypt from "bcrypt";
+import { ServiceException } from "@/model/service.exception.model";
 
 const saltRounds = 10;
 
 export class UserService {
+
+    async changePassword(userMail: string, oldPassword: string, newPassword: string) {
+        try {
+            const user = await dataAccess.client.user.findUnique({
+                where: {
+                    email: userMail
+                }
+            });
+            if (!user) {
+                throw new ServiceException("User not found");
+            }
+            const isPasswordValid = await bcrypt.compare(oldPassword, user.password);
+            if (!isPasswordValid) {
+                throw new ServiceException("Old password is incorrect");
+            }
+            const hashedPassword = await bcrypt.hash(newPassword, saltRounds);
+            await dataAccess.client.user.update({
+                where: {
+                    email: userMail
+                },
+                data: {
+                    password: hashedPassword
+                }
+            });
+        } finally {
+            revalidateTag(Tags.users());
+        }
+    }
 
     async maptoDtoUser(user: User) {
         return {

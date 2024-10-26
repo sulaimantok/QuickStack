@@ -36,7 +36,7 @@ export function NavBar() {
                                 <DropdownMenuContent className="w-56">
                                     <Link href="/profile">
                                         <DropdownMenuItem>
-                                            Profil
+                                            Profile
                                         </DropdownMenuItem>
                                     </Link>
                                     <DropdownMenuSeparator />

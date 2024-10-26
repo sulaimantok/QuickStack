@@ -3,7 +3,7 @@ import { UserSession } from "@/model/sim-session.model";
 import { getServerSession } from "next-auth";
 import { ZodRawShape, ZodObject, objectUtil, baseObjectOutputType, z, ZodType } from "zod";
 import { redirect } from "next/navigation";
-import { ServerActionResult, SuccessActionResult } from "@/model/server-action-error-return.model";
+import { ServerActionResult } from "@/model/server-action-error-return.model";
 import { FormValidationException } from "@/model/form-validation-exception.model";
 import { authOptions } from "@/lib/auth-options";
 
@@ -12,8 +12,13 @@ import { authOptions } from "@/lib/auth-options";
  * use getAuthUserSession() if you want to throw an error if no user is logged in
  */
 export async function getUserSession(): Promise<UserSession | null> {
-    const session = await getServerSession(authOptions) as UserSession | null;
-    return session;
+    const session = await getServerSession(authOptions);
+    if (!session) {
+        return null;
+    }
+    return {
+        email: session?.user?.email as string
+    };
 }
 
 export async function getAuthUserSession(): Promise<UserSession> {
