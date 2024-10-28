@@ -22,42 +22,40 @@ import { AppExtendedModel } from "@/model/app-extended.model";
 import { Table, TableBody, TableCaption, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
 import { CheckIcon, CrossIcon, DeleteIcon, EditIcon, TrashIcon, XIcon } from "lucide-react";
-import DialogEditDialog from "./domain-edit-overlay";
+import DialogEditDialog from "./storage-edit-overlay";
 import { Toast } from "@/lib/toast.utils";
-import { deleteDomain } from "./actions";
+import { deleteVolume } from "./actions";
 
 
-export default function DomainsList({ app }: {
+export default function StorageList({ app }: {
     app: AppExtendedModel
 }) {
     return <>
         <Card>
             <CardHeader>
-                <CardTitle>Domains</CardTitle>
-                <CardDescription>Add custom domains to your application. If your app has a domain configured, it will be public and accessible via the internet.</CardDescription>
+                <CardTitle>Storage</CardTitle>
+                <CardDescription>Add one or more volumes to your application.</CardDescription>
             </CardHeader>
             <CardContent>
                 <Table>
-                    <TableCaption>{app.appDomains.length} Domains</TableCaption>
+                    <TableCaption>{app.appVolumes.length} Storage</TableCaption>
                     <TableHeader>
                         <TableRow>
-                            <TableHead>Name</TableHead>
-                            <TableHead>Port</TableHead>
-                            <TableHead>SSL</TableHead>
+                            <TableHead>Mount Path</TableHead>
+                            <TableHead>Size in GB</TableHead>
                             <TableHead className="w-[100px]">Action</TableHead>
                         </TableRow>
                     </TableHeader>
                     <TableBody>
-                        {app.appDomains.map(domain => (
-                            <TableRow key={domain.hostname}>
-                                <TableCell className="font-medium">{domain.hostname}</TableCell>
-                                <TableCell className="font-medium">{domain.port}</TableCell>
-                                <TableCell className="font-medium">{domain.useSsl ? <CheckIcon /> : <XIcon />}</TableCell>
+                        {app.appVolumes.map(volume => (
+                            <TableRow key={volume.containerMountPath}>
+                                <TableCell className="font-medium">{volume.containerMountPath}</TableCell>
+                                <TableCell className="font-medium">{volume.size}</TableCell>
                                 <TableCell className="font-medium flex gap-2">
-                                    <DialogEditDialog appId={app.id} domain={domain}>
+                                    <DialogEditDialog appId={app.id} volume={volume}>
                                         <Button variant="ghost"><EditIcon /></Button>
                                     </DialogEditDialog>
-                                    <Button variant="ghost" onClick={() => Toast.fromAction(() => deleteDomain(domain.id))}>
+                                    <Button variant="ghost" onClick={() => Toast.fromAction(() => deleteVolume(volume.id))}>
                                         <TrashIcon />
                                     </Button>
                                 </TableCell>
@@ -68,7 +66,7 @@ export default function DomainsList({ app }: {
             </CardContent>
             <CardFooter>
                 <DialogEditDialog appId={app.id}>
-                    <Button>Add Domain</Button>
+                    <Button>Add Volume</Button>
                 </DialogEditDialog>
             </CardFooter>
         </Card >

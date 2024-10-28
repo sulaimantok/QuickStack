@@ -167,6 +167,7 @@ model AppDomain {
 model AppVolume {
   id                 String @id @default(uuid())
   containerMountPath String
+  size               Int
   appId              String
   app                App    @relation(fields: [appId], references: [id])
 

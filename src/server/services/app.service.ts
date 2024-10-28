@@ -1,7 +1,7 @@
 import { revalidateTag, unstable_cache } from "next/cache";
 import dataAccess from "../adapter/db.client";
 import { Tags } from "../utils/cache-tag-generator.utils";
-import { App, AppDomain, Prisma } from "@prisma/client";
+import { App, AppDomain, AppVolume, Prisma } from "@prisma/client";
 import { DefaultArgs } from "@prisma/client/runtime/library";
 import { AppExtendedModel } from "@/model/app-extended.model";
 import { ServiceException } from "@/model/service.exception.model";
@@ -151,6 +151,62 @@ class AppService {
         } finally {
             revalidateTag(Tags.app(existingDomain.appId));
             revalidateTag(Tags.apps(existingDomain.app.projectId));
+        }
+    }
+
+    async saveVolume(volumeToBeSaved: Prisma.AppVolumeUncheckedCreateInput | Prisma.AppVolumeUncheckedUpdateInput) {
+        let savedItem: AppVolume;
+        const existingApp = await this.getExtendedById(volumeToBeSaved.appId as string);
+        const existingAppWithSameVolumeMountPath = await dataAccess.client.appVolume.findFirst({
+            where: {
+                appId: volumeToBeSaved.appId as string,
+                containerMountPath: volumeToBeSaved.containerMountPath as string,
+            }
+        });
+        if (volumeToBeSaved.appId == existingAppWithSameVolumeMountPath?.appId && volumeToBeSaved.id !== existingAppWithSameVolumeMountPath?.id) {
+            throw new ServiceException("Volume mount path is already in use from another volume within the same app.");
+        }
+        try {
+            if (volumeToBeSaved.id) {
+                savedItem = await dataAccess.client.appVolume.update({
+                    where: {
+                        id: volumeToBeSaved.id as string
+                    },
+                    data: volumeToBeSaved
+                });
+            } else {
+                savedItem = await dataAccess.client.appVolume.create({
+                    data: volumeToBeSaved as Prisma.AppVolumeUncheckedCreateInput
+                });
+            }
+
+        } finally {
+            revalidateTag(Tags.apps(existingApp.projectId as string));
+            revalidateTag(Tags.app(existingApp.id as string));
+        }
+        return savedItem;
+    }
+
+    async deleteVolumeById(id: string) {
+        const existingVolume = await dataAccess.client.appVolume.findFirst({
+            where: {
+                id
+            }, include: {
+                app: true
+            }
+        });
+        if (!existingVolume) {
+            return;
+        }
+        try {
+            await dataAccess.client.appVolume.delete({
+                where: {
+                    id
+                }
+            });
+        } finally {
+            revalidateTag(Tags.app(existingVolume.appId));
+            revalidateTag(Tags.apps(existingVolume.app.projectId));
         }
     }
 }

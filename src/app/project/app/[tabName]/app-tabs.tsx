@@ -7,6 +7,7 @@ import GeneralAppSource from "./general/app-source";
 import EnvEdit from "./environment/env-edit";
 import { App } from "@prisma/client";
 import DomainsList from "./domains/domains";
+import StorageList from "./storage/storages";
 import { AppExtendedModel } from "@/model/app-extended.model";
 
 export default function AppTabs({
@@ -42,7 +43,9 @@ export default function AppTabs({
             <TabsContent value="domains" className="space-y-4">
                 <DomainsList app={app} />
             </TabsContent>
-            <TabsContent value="storage">storage</TabsContent>
+            <TabsContent value="storage" className="space-y-4">
+                <StorageList app={app} />
+            </TabsContent>
         </Tabs>
     )
 }
