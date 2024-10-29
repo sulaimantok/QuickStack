@@ -8,6 +8,8 @@ export const UserModel = z.object({
   email: z.string(),
   emailVerified: z.date().nullish(),
   password: z.string(),
+  twoFaSecret: z.string().nullish(),
+  twoFaEnabled: z.boolean(),
   image: z.string().nullish(),
   createdAt: z.date(),
   updatedAt: z.date(),

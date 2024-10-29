@@ -28,11 +28,29 @@ export const authOptions: NextAuthOptions = {
             // e.g. domain, username, password, 2FA token, etc.
             // You can pass any HTML attribute to the <input> tag through the object.
             credentials: {
-                username: { label: "Username", type: "text", placeholder: "jsmith" },
-                password: { label: "Password", type: "password" }
+                username: { label: "Username", type: "text" },
+                password: { label: "Password", type: "password" },
+                totpToken: { label: "TOTP Token", type: "text" },
             },
             async authorize(credentials, req) {
-                return await userService.authorize(credentials);
+                if (!credentials) {
+                    return null;
+                }
+                const authUserInfo = await userService.authorize(credentials);
+                if (!authUserInfo) {
+                    return null;
+                }
+                const user = await userService.getUserByEmail(authUserInfo.email);
+                if (user.twoFaEnabled) {
+                    if (!credentials.totpToken) {
+                        return null;
+                    }
+                    const tokenValid = await userService.verifyTotpToken(authUserInfo.email, credentials.totpToken);
+                    if (!tokenValid) {
+                        return null;
+                    }
+                }
+                return mapUser(user);
             }
         })
     ],
@@ -61,6 +79,6 @@ export const authOptions: NextAuthOptions = {
 function mapUser(user: User) {
     return {
         id: user.id,
-        username: user.email
+        email: user.email
     };
 }

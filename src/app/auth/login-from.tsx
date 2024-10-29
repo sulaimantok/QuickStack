@@ -11,21 +11,14 @@ import {
 import { Input } from "@/components/ui/input"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { useForm } from "react-hook-form"
-import { z } from "zod";
-import { useFormState } from 'react-dom'
-import { useEffect, useState } from "react";
-import { FormUtils } from "@/lib/form.utilts";
-import { SubmitButton } from "@/components/custom/submit-button";
-import SelectFormField from "@/components/custom/select-form-field";
-import BottomBarMenu from "@/components/custom/bottom-bar-menu";
+import { useState } from "react";
 import { AuthFormInputSchema, authFormInputSchemaZod } from "@/model/auth-form"
-import { registerUser } from "./actions"
+import { authUser } from "./actions"
 import { signIn } from "next-auth/react";
-import { cn } from "@/lib/utils"
-import { redirect } from "next/navigation"
 import LoadingSpinner from "@/components/ui/loading-spinner"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
+import TwoFaAuthForm from "./two-fa-auth"
 
 export default function UserLoginForm() {
     const form = useForm<AuthFormInputSchema>({
@@ -34,22 +27,39 @@ export default function UserLoginForm() {
 
     const [errorMessages, setErrorMessages] = useState<string | undefined>(undefined);
     const [loading, setLoading] = useState<boolean>(false);
+    const [authInput, setAuthInput] = useState<AuthFormInputSchema | undefined>(undefined);
 
     const login = async (data: AuthFormInputSchema) => {
         setLoading(true);
         setErrorMessages(undefined);
         try {
-            await signIn("credentials", {
-                username: data.email,
-                password: data.password,
-                redirect: true,
-            });
+            const authStatusResponse = await authUser(data);
+            if (authStatusResponse.status !== 'success') {
+                throw new Error(authStatusResponse.message);
+            }
+            if (!authStatusResponse.data) {
+                throw new Error("Unknown error occured");
+            }
+            const authData = authStatusResponse.data as { email: string, twoFaEnabled: boolean };
+            if (!authData.twoFaEnabled) {
+                await signIn("credentials", {
+                    username: data.email,
+                    password: data.password,
+                    redirect: true,
+                });
+            } else {
+                setAuthInput(data); // 2fa window will be shown
+            }
         } catch (e) {
             console.log(e);
             setErrorMessages((e as any).message);
         } finally {
             setLoading(false);
         }
+    }
+
+    if (authInput) {
+        return <TwoFaAuthForm authData={authInput} />;
     }
 
     return (

@@ -75,6 +75,8 @@ model User {
   email         String          @unique
   emailVerified DateTime?
   password      String
+  twoFaSecret   String?
+  twoFaEnabled  Boolean         @default(false)
   image         String?
   accounts      Account[]
   sessions      Session[]

@@ -1,11 +1,11 @@
-
-
-import { Prisma, User } from "@prisma/client";
+import { User } from "@prisma/client";
 import dataAccess from "../adapter/db.client";
 import { revalidateTag, unstable_cache } from "next/cache";
 import { Tags } from "../utils/cache-tag-generator.utils";
 import bcrypt from "bcrypt";
 import { ServiceException } from "@/model/service.exception.model";
+import QRCode from "qrcode";
+import * as OTPAuth from "otpauth";
 
 const saltRounds = 10;
 
@@ -41,8 +41,8 @@ export class UserService {
 
     async maptoDtoUser(user: User) {
         return {
-            id: user.id,
-            email: user.email
+            email: user.email,
+            twoFaEnabled: user.twoFaEnabled
         };
     }
 
@@ -89,6 +89,108 @@ export class UserService {
             [Tags.users()], {
             tags: [Tags.users()]
         })();
+    }
+
+    async getUserByEmail(email: string) {
+        return await dataAccess.client.user.findFirstOrThrow({
+            where: {
+                email
+            }
+        });
+    }
+
+    async createNewTotpToken(userMail: string) {
+        try {
+            await this.getUserByEmail(userMail);
+
+            let totpSecret = new OTPAuth.Secret({ size: 20 });
+
+            let totp = new OTPAuth.TOTP({
+                // Provider or service the account is associated with.
+                issuer: "QuickStack",
+                // Account identifier.
+                label: userMail,
+                // Algorithm used for the HMAC function.
+                algorithm: "SHA1",
+                // Length of the generated tokens.
+                digits: 6,
+                // Interval of time for which a token is valid, in seconds.
+                period: 30,
+                // Arbitrary key encoded in base32 or OTPAuth.Secret instance
+                // (if omitted, a cryptographically secure random secret is generated).
+                secret: totpSecret
+            });
+
+            let authenticatorUrl = totp.toString();
+            const qrCodeForTotp = await QRCode.toDataURL(authenticatorUrl);
+
+            await dataAccess.client.user.update({
+                where: {
+                    email: userMail
+                },
+                data: {
+                    twoFaSecret: totp.secret.base32,
+                    twoFaEnabled: false
+                }
+            });
+            return qrCodeForTotp;
+        } finally {
+            revalidateTag(Tags.users());
+        }
+    }
+
+    async verifyTotpTokenAfterCreation(userMail: string, token: string) {
+        try {
+            const isVerified = await this.verifyTotpToken(userMail, token);
+            if (!isVerified) {
+                throw new ServiceException("Token is invalid");
+            }
+            await dataAccess.client.user.update({
+                where: {
+                    email: userMail
+                },
+                data: {
+                    twoFaEnabled: true
+                }
+            });
+        } finally {
+            revalidateTag(Tags.users());
+        }
+    }
+
+    async verifyTotpToken(userMail: string, token: string) {
+        const user = await this.getUserByEmail(userMail);
+        if (!user.twoFaSecret) {
+            throw new ServiceException("2FA is not enabled for this user");
+        }
+        const totp = new OTPAuth.TOTP({
+            issuer: "QuickStack",
+            label: user.email,
+            algorithm: "SHA1",
+            digits: 6,
+            period: 30,
+            secret: user.twoFaSecret,
+        });
+
+        const delta = totp.validate({ token });
+        return delta === 0; // 0 means the token is valid and was generated in the current time window, -1 and 1 mean the token is valid for the previous or next time window.
+    }
+
+    async deactivate2fa(userMail: string) {
+        try {
+            await this.getUserByEmail(userMail);
+            await dataAccess.client.user.update({
+                where: {
+                    email: userMail
+                },
+                data: {
+                    twoFaSecret: null,
+                    twoFaEnabled: false
+                }
+            });
+        } finally {
+            revalidateTag(Tags.users());
+        }
     }
 }
 

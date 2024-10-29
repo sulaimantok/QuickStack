@@ -14,3 +14,15 @@ export const registerUser = async (prevState: any, inputData: AuthFormInputSchem
         }
         return await userService.registerUser(validatedData.email, validatedData.password);
     });
+
+export const authUser = async (inputData: AuthFormInputSchema) =>
+    saveFormAction(inputData, authFormInputSchemaZod, async (validatedData) => {
+        const authResult = await userService.authorize({
+            username: validatedData.email,
+            password: validatedData.password
+        });
+        if (!authResult) {
+            throw new ServiceException('Username or password is incorrect');
+        }
+        return authResult;
+    });
