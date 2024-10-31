@@ -14,9 +14,17 @@ const getK8sAppsApiClient = () => {
     return k8sCoreClient;
 }
 
+const getK8sBatchApiClient = () => {
+    const kc = new k8s.KubeConfig();
+    kc.loadFromFile('/workspace/kube-config.config'); // todo update --> use security role
+    const k8sJobClient = kc.makeApiClient(k8s.BatchV1Api);
+    return k8sJobClient;
+}
+
 declare const globalThis: {
     k8sCoreGlobal: ReturnType<typeof getK8sCoreApiClient>;
     k8sAppsGlobal: ReturnType<typeof getK8sAppsApiClient>;
+    k8sJobGlobal: ReturnType<typeof getK8sBatchApiClient>;
 } & typeof global;
 
 const k8sCoreClient = globalThis.k8sCoreGlobal ?? getK8sCoreApiClient()
@@ -26,9 +34,13 @@ if (process.env.NODE_ENV !== 'production') globalThis.k8sCoreGlobal = k8sCoreCli
 const k8sAppsClient = globalThis.k8sAppsGlobal ?? getK8sAppsApiClient()
 if (process.env.NODE_ENV !== 'production') globalThis.k8sAppsGlobal = k8sAppsClient
 
+const k8sJobClient = globalThis.k8sJobGlobal ?? getK8sBatchApiClient()
+if (process.env.NODE_ENV !== 'production') globalThis.k8sJobGlobal = k8sJobClient
+
 class K3sApiAdapter {
     core = k8sCoreClient;
     apps = k8sAppsClient;
+    batch = k8sJobClient;
 }
 
 const k3s = new K3sApiAdapter();

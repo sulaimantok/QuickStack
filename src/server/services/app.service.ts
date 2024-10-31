@@ -7,6 +7,7 @@ import { AppExtendedModel } from "@/model/app-extended.model";
 import { ServiceException } from "@/model/service.exception.model";
 import { StringUtils } from "../utils/string.utils";
 import deploymentService from "./deployment.service";
+import buildService, { buildNamespace } from "./build.service";
 
 class AppService {
 
@@ -14,6 +15,8 @@ class AppService {
         const app = await this.getExtendedById(appId);
         if (app.sourceType === 'GIT') {
             // first make build
+            await deploymentService.createNamespaceIfNotExists(buildNamespace)
+            await buildService.buildApp(app);
         } else {
             // only deploy
             await deploymentService.createDeployment(app);
