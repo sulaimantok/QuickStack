@@ -14,12 +14,10 @@ import BuildsTab from "./overview/builds-tab";
 
 export default function AppTabs({
     app,
-    tabName,
-    appBuilds
+    tabName
 }: {
     app: AppExtendedModel;
     tabName: string;
-    appBuilds: BuildJobModel[];
 }) {
     const router = useRouter();
 
@@ -37,7 +35,7 @@ export default function AppTabs({
                 <TabsTrigger value="storage">Storage</TabsTrigger>
             </TabsList>
             <TabsContent value="overview" className="space-y-4">
-                <BuildsTab app={app} appBuilds={appBuilds} />
+                <BuildsTab app={app} />
             </TabsContent>
             <TabsContent value="general" className="space-y-4">
                 <GeneralAppSource app={app} />

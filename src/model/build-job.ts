@@ -1,11 +1,14 @@
 import { z } from "zod";
 
+export const buildJobStatusEnumZod = z.union([z.literal('UNKNOWN'), z.literal('RUNNING'), z.literal('FAILED'), z.literal('SUCCEEDED')]);
+
 export const buildJobSchemaZod = z.object({
     name: z.string(),
     startTime: z.date(),
-    status:  z.union([z.literal('UNKNOWN'), z.literal('RUNNING'), z.literal('FAILED'), z.literal('SUCCEEDED')]),
+    status:  buildJobStatusEnumZod
 });
 
 export type BuildJobModel = z.infer<typeof buildJobSchemaZod>;
+export type BuildJobStatus = z.infer<typeof buildJobStatusEnumZod>;
 
 

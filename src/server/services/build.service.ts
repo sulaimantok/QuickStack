@@ -5,6 +5,7 @@ import { StringUtils } from "../utils/string.utils";
 import { revalidateTag, unstable_cache } from "next/cache";
 import { Tags } from "../utils/cache-tag-generator.utils";
 import { BuildJobModel } from "@/model/build-job";
+import { ServiceException } from "@/model/service.exception.model";
 
 const kanikoImage = "gcr.io/kaniko-project/executor:latest";
 export const registryURL = "registry-svc.registry-and-build.svc.cluster.local"
@@ -13,6 +14,12 @@ export const buildNamespace = "registry-and-build";
 class BuildService {
 
     async buildApp(app: AppExtendedModel) {
+
+        const runningJobsForApp = await this.getBuildsForApp(app.id);
+        if (runningJobsForApp.some((job) => job.status === 'RUNNING')) {
+            throw new ServiceException("A build job is already running for this app.");
+        }
+
         const buildName = StringUtils.addRandomSuffix(StringUtils.toJobName(app.id));
         const jobDefinition: V1Job = {
             apiVersion: "batch/v1",
@@ -59,7 +66,11 @@ class BuildService {
             .then(() => revalidateTag(Tags.appBuilds(app.id)))
             .catch((err) => revalidateTag(Tags.appBuilds(app.id)));
 
-            
+
+    }
+
+    async deleteBuild(buildName: string) {
+        await k3s.batch.deleteNamespacedJob(buildName, buildNamespace);
     }
 
     async getBuildsForApp(appId: string) {
@@ -67,13 +78,20 @@ class BuildService {
             const jobNamePrefix = StringUtils.toJobName(appId);
             const jobs = await k3s.batch.listNamespacedJob(buildNamespace);
             const jobsOfBuild = jobs.body.items.filter((job) => job.metadata?.name?.startsWith(jobNamePrefix));
-            return jobsOfBuild.map((job) => {
+            const builds = jobsOfBuild.map((job) => {
                 return {
                     name: job.metadata?.name,
                     startTime: job.status?.startTime,
                     status: this.getJobStatusString(job.status),
                 } as BuildJobModel;
             });
+            builds.sort((a, b) => {
+                if (a.startTime && b.startTime) {
+                    return new Date(b.startTime).getTime() - new Date(a.startTime).getTime();
+                }
+                return 0;
+            });
+            return builds;
         },
             [Tags.appBuilds(appId)], {
             tags: [Tags.appBuilds(appId)],
@@ -112,9 +130,9 @@ class BuildService {
         });
     }
 
-    async getJobStatus(jobName: string): Promise<'UNKNOWN' | 'RUNNING' | 'FAILED' | 'SUCCEEDED'> {
+    async getJobStatus(buildName: string): Promise<'UNKNOWN' | 'RUNNING' | 'FAILED' | 'SUCCEEDED'> {
         try {
-            const response = await k3s.batch.readNamespacedJobStatus(jobName, buildNamespace);
+            const response = await k3s.batch.readNamespacedJobStatus(buildName, buildNamespace);
             const status = response.body.status;
             return this.getJobStatusString(status);
         } catch (err) {

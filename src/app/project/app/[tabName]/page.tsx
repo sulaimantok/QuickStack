@@ -25,7 +25,6 @@ export default async function AppPage({
         return <p>Could not find app with id {appId}</p>
     }
     const app = await appService.getExtendedById(appId);
-    const builds = await buildService.getBuildsForApp(appId);
 
     return (
         <div className="flex-1 space-y-6 p-8 pt-6">
@@ -49,7 +48,7 @@ export default async function AppPage({
                 subtitle={`App ID: ${app.id}`}>
             </PageTitle>
             <AppActionButtons app={app} />
-            <AppTabs app={app} appBuilds={builds} tabName={params.tabName} />
+            <AppTabs app={app} tabName={params.tabName} />
         </div>
     )
 }
