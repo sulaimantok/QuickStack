@@ -15,4 +15,8 @@ export class Tags {
     static app(appId: string) {
         return `app-${appId}`;
     }
+
+    static appBuilds(appId: string) {
+        return `app-build-${appId}`;
+    }
 }

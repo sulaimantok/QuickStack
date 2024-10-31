@@ -9,13 +9,17 @@ import { App } from "@prisma/client";
 import DomainsList from "./domains/domains";
 import StorageList from "./storage/storages";
 import { AppExtendedModel } from "@/model/app-extended.model";
+import { BuildJobModel } from "@/model/build-job";
+import BuildsTab from "./overview/builds-tab";
 
 export default function AppTabs({
     app,
-    tabName
+    tabName,
+    appBuilds
 }: {
     app: AppExtendedModel;
     tabName: string;
+    appBuilds: BuildJobModel[];
 }) {
     const router = useRouter();
 
@@ -32,7 +36,9 @@ export default function AppTabs({
                 <TabsTrigger value="domains">Domains</TabsTrigger>
                 <TabsTrigger value="storage">Storage</TabsTrigger>
             </TabsList>
-            <TabsContent value="overview">Domains, Logs, etc.</TabsContent>
+            <TabsContent value="overview" className="space-y-4">
+                <BuildsTab app={app} appBuilds={appBuilds} />
+            </TabsContent>
             <TabsContent value="general" className="space-y-4">
                 <GeneralAppSource app={app} />
                 <GeneralAppRateLimits app={app} />

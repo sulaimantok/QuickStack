@@ -30,4 +30,13 @@ export class StringUtils {
     static toAppId(str: string): string {
         return `app-${StringUtils.toObjectId(str)}`;
     }
+
+    static toJobName(appId: string) {
+        return `build-${appId}`;
+    }
+
+    static addRandomSuffix(str: string): string {
+        const randomString = crypto.randomBytes(4).toString('hex');
+        return `${str}-${randomString}`;
+    }
 }
