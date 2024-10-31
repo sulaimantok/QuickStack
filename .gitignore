@@ -38,3 +38,5 @@ next-env.d.ts
 
 db
 kube-config.config
+kube-config.config_clusteradmin
+kube-config.config_old
