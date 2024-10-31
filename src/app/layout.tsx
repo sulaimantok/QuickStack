@@ -6,6 +6,7 @@ import "./globals.css";
 import { NavBar } from "./nav-bar";
 import { Suspense } from "react";
 import FullLoadingSpinner from "@/components/ui/full-loading-spinnter";
+import { ConfirmDialog } from "@/components/custom/confirm-dialog";
 
 const inter = Inter({
   subsets: ["latin"],
@@ -39,6 +40,7 @@ export default function RootLayout({
           </div>
         </main>
         <Toaster />
+        <ConfirmDialog />
       </body>
     </html>
   );

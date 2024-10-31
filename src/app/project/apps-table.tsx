@@ -8,12 +8,15 @@ import { formatDateTime } from "@/lib/format.utils";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { MoreHorizontal } from "lucide-react";
 import { Toast } from "@/lib/toast.utils";
-import { App, Project } from "@prisma/client";
+import { App } from "@prisma/client";
 import { deleteApp } from "./actions";
+import { useConfirmDialog } from "@/lib/zustand.states";
 
 
 
 export default function AppTable({ data }: { data: App[] }) {
+
+    const { openDialog } = useConfirmDialog();
 
     return <>
         <SimpleDataTable columns={[
@@ -49,7 +52,10 @@ export default function AppTable({ data }: { data: App[] }) {
                                     </DropdownMenuItem>
                                 </Link>
                                 <DropdownMenuSeparator />
-                                <DropdownMenuItem onClick={() => Toast.fromAction(() => deleteApp(item.id))}>
+                                <DropdownMenuItem onClick={() => openDialog({
+                                    title: "Delete App",
+                                    description: "Are you sure you want to delete this app?",
+                                }).then((result) => result ? Toast.fromAction(() => deleteApp(item.id)) : undefined)}>
                                     <span className="text-red-500">Delete App</span>
                                 </DropdownMenuItem>
                             </DropdownMenuContent>

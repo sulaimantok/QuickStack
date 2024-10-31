@@ -5,6 +5,7 @@ import { CompleteApp, RelatedAppModel } from "./index"
 export const AppVolumeModel = z.object({
   id: z.string(),
   containerMountPath: z.string(),
+  size: z.number().int(),
   appId: z.string(),
   createdAt: z.date(),
   updatedAt: z.date(),
