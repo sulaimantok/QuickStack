@@ -1,6 +1,6 @@
 import { AppExtendedModel } from "@/model/app-extended.model";
 import k3s from "../adapter/kubernetes-api.adapter";
-import { V1Deployment, V1Job, V1JobStatus } from "@kubernetes/client-node";
+import { V1Job, V1JobStatus } from "@kubernetes/client-node";
 import { StringUtils } from "../utils/string.utils";
 import { revalidateTag, unstable_cache } from "next/cache";
 import { Tags } from "../utils/cache-tag-generator.utils";
@@ -13,7 +13,7 @@ export const buildNamespace = "registry-and-build";
 
 class BuildService {
 
-    async buildApp(app: AppExtendedModel) {
+    async buildApp(app: AppExtendedModel): Promise<[string, Promise<void>]> {
 
         const runningJobsForApp = await this.getBuildsForApp(app.id);
         if (runningJobsForApp.some((job) => job.status === 'RUNNING')) {
@@ -38,7 +38,7 @@ class BuildService {
                                 image: kanikoImage,
                                 args: [`--dockerfile=${app.dockerfilePath}`,
                                 `--context=${app.gitUrl!.replace("https://", "git://")}#refs/heads/${app.gitBranch}`,
-                                `--destination=${registryURL}/${app.id}`]
+                                `--destination=${this.createContainerRegistryUrlForAppId(app.id)}`]
                             },
                         ],
                         restartPolicy: "Never",
@@ -62,11 +62,17 @@ class BuildService {
         }
         await k3s.batch.createNamespacedJob(buildNamespace, jobDefinition);
         revalidateTag(Tags.appBuilds(app.id));
-        this.waitForJobCompletion(jobDefinition.metadata!.name!)
-            .then(() => revalidateTag(Tags.appBuilds(app.id)))
-            .catch((err) => revalidateTag(Tags.appBuilds(app.id)));
 
+        const buildJobPromise = this.waitForJobCompletion(jobDefinition.metadata!.name!)
 
+        return [buildName, buildJobPromise];
+    }
+
+    createContainerRegistryUrlForAppId(appId?: string) {
+        if (!appId) {
+            return undefined;
+        }
+        return `${registryURL}/${appId}:latest`;
     }
 
     async deleteBuild(buildName: string) {

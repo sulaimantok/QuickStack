@@ -5,7 +5,7 @@ import { formatDateTime } from "@/lib/format.utils";
 import { AppExtendedModel } from "@/model/app-extended.model";
 import { BuildJobModel } from "@/model/build-job";
 import { useEffect, useState } from "react";
-import { deleteBuild, getBuildsForApp } from "./actions";
+import { deleteBuild, getDeploymentsAndBuildsForApp } from "./actions";
 import { set } from "date-fns";
 import FullLoadingSpinner from "@/components/ui/full-loading-spinnter";
 import { Item } from "@radix-ui/react-dropdown-menu";
@@ -13,6 +13,8 @@ import BuildStatusBadge from "./build-status-badge";
 import { Button } from "@/components/ui/button";
 import { useConfirmDialog } from "@/lib/zustand.states";
 import { Toast } from "@/lib/toast.utils";
+import { DeploymentInfoModel } from "@/model/deployment";
+import DeploymentStatusBadge from "./deployment-status-badge";
 
 export default function BuildsTab({
     app
@@ -21,13 +23,13 @@ export default function BuildsTab({
 }) {
 
     const { openDialog } = useConfirmDialog();
-    const [appBuilds, setAppBuilds] = useState<BuildJobModel[] | undefined>(undefined);
+    const [appBuilds, setAppBuilds] = useState<DeploymentInfoModel[] | undefined>(undefined);
     const [error, setError] = useState<string | undefined>(undefined);
 
     const updateBuilds = async () => {
         setError(undefined);
         try {
-            const response = await getBuildsForApp(app.id);
+            const response = await getDeploymentsAndBuildsForApp(app.id);
             if (response.status === 'success' && response.data) {
                 setAppBuilds(response.data);
             } else {
@@ -70,25 +72,25 @@ export default function BuildsTab({
     return <>
         <Card>
             <CardHeader>
-                <CardTitle>Container Builds</CardTitle>
-                <CardDescription>This is an overview of the last container builds for this App.</CardDescription>
+                <CardTitle>Deployments</CardTitle>
+                <CardDescription>This is an overview of the last deplyoments for this App.</CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
                 {!appBuilds ? <FullLoadingSpinner /> :
                     <SimpleDataTable columns={[
-                        ['name', 'Name', false],
-                        ['status', 'Status', true, (item) => <BuildStatusBadge>{item.status}</BuildStatusBadge>],
-                        ["startTime", "Started At", true, (item) => formatDateTime(item.startTime)],
+                        ['replicasetName', 'Deployment Name', false],
+                        ['buildJobName', 'Build Job Name', false],
+                        ['status', 'Status', true, (item) => <DeploymentStatusBadge>{item.status}</DeploymentStatusBadge>],
+                        ["startTime", "Started At", true, (item) => formatDateTime(item.createdAt)],
                     ]}
                         data={appBuilds}
                         hideSearchBar={true}
                         actionCol={(item) => {
-                            // todo add: <>{ ?}</>
                             return <>
                                 <div className="flex gap-4">
                                     <div className="flex-1"></div>
-                                    <Button variant="secondary">Show Logs</Button>
-                                    {item.status === 'RUNNING' && <Button variant="destructive" onClick={() => deleteBuildClick(item.name)}>Stop Build</Button>}
+                                    {item.buildJobName && <Button variant="secondary">Show Logs</Button>}
+                                    {item.buildJobName && item.status === 'BUILDING' && <Button variant="destructive" onClick={() => deleteBuildClick(item.buildJobName!)}>Stop Build</Button>}
                                 </div>
                             </>
                         }}

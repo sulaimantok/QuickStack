@@ -15,8 +15,12 @@ class AppService {
         const app = await this.getExtendedById(appId);
         if (app.sourceType === 'GIT') {
             // first make build
-            await deploymentService.createNamespaceIfNotExists(buildNamespace)
-            await buildService.buildApp(app);
+            await deploymentService.createNamespaceIfNotExists(buildNamespace);
+            const [buildJobName, buildPromise] = await buildService.buildApp(app);
+            buildPromise.then(async () => {
+                console.warn('Build job finished, deploying...');
+                await deploymentService.createDeployment(app, buildJobName);
+            });
         } else {
             // only deploy
             await deploymentService.createDeployment(app);

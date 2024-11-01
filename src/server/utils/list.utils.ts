@@ -1,5 +1,13 @@
 export class ListUtils {
 
+    static sortByDate<T>(array: T[], dateSelector: (item: T) => Date, descending = false): T[] {
+        return array.toSorted((a, b) => {
+            const dateA = dateSelector(a);
+            const dateB = dateSelector(b);
+            return descending ? dateB.getTime() - dateA.getTime() : dateA.getTime() - dateB.getTime();
+        });
+    }
+
     static distinctBy<T, TKey>(array: T[], keySelector: (item: T) => TKey): T[] {
         const keys = new Set<TKey>();
         const result = new Array<T>();
