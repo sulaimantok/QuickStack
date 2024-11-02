@@ -1,6 +1,6 @@
 'use client'
 
-import { DeplyomentStatus } from "@/model/deployment";
+import { DeplyomentStatus } from "@/model/deployment-info.model";
 
 
 export default function DeploymentStatusBadge(

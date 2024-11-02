@@ -13,8 +13,10 @@ import BuildStatusBadge from "./build-status-badge";
 import { Button } from "@/components/ui/button";
 import { useConfirmDialog } from "@/lib/zustand.states";
 import { Toast } from "@/lib/toast.utils";
-import { DeploymentInfoModel } from "@/model/deployment";
+import { DeploymentInfoModel } from "@/model/deployment-info.model";
 import DeploymentStatusBadge from "./deployment-status-badge";
+import { io } from "socket.io-client";
+import { podLogsSocket } from "@/socket";
 
 export default function BuildsTab({
     app
@@ -53,7 +55,6 @@ export default function BuildsTab({
             await updateBuilds();
         }
     }
-
 
     useEffect(() => {
         if (app.sourceType === 'container') {

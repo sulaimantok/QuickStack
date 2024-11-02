@@ -3,8 +3,10 @@ import k3s from "../adapter/kubernetes-api.adapter";
 import { V1Deployment } from "@kubernetes/client-node";
 import buildService from "./build.service";
 import { ListUtils } from "../utils/list.utils";
-import { DeploymentInfoModel, DeplyomentStatus } from "@/model/deployment";
+import { DeploymentInfoModel, DeplyomentStatus } from "@/model/deployment-info.model";
 import { BuildJobStatus } from "@/model/build-job";
+import { ServiceException } from "@/model/service.exception.model";
+import { PodsInfoModel } from "@/model/pods-info.model";
 
 class DeploymentService {
 
@@ -140,6 +142,15 @@ class DeploymentService {
         await this.createOrUpdateService(app);
     }
 
+    async setReplicasForDeployment(projectId: string, appId: string, replicas: number) {
+        const existingDeployment = await this.getDeployment(projectId, appId);
+        if (!existingDeployment) {
+            throw new ServiceException("This app has not been deployed yet. Please deploy it first.");
+        }
+        existingDeployment.spec!.replicas = replicas;
+        return k3s.apps.replaceNamespacedDeployment(appId, projectId, existingDeployment);
+    }
+
     async createNamespaceIfNotExists(namespace: string) {
         const existingNamespaces = await this.getNamespaces();
         if (existingNamespaces.includes(namespace)) {
@@ -157,6 +168,22 @@ class DeploymentService {
         if (nameSpaces.includes(namespace)) {
             await k3s.core.deleteNamespace(namespace);
         }
+    }
+
+    async getPodsForApp(projectId: string, appId: string) {
+        const res = await k3s.core.listNamespacedPod(projectId, undefined, undefined, undefined, undefined, `app=${appId}`);
+        return res.body.items.map((item) => ({
+            podName: item.metadata?.name!,
+            containerName: item.spec?.containers?.[0].name!
+        })).filter((item) => !!item.podName && !!item.containerName) as PodsInfoModel[];
+    }
+
+    async getPodByName(projectId: string, podName: string) {
+        const res = await k3s.core.readNamespacedPod(podName, projectId);
+        return {
+            podName: res.body.metadata?.name!,
+            containerName: res.body.spec?.containers?.[0].name!
+        } as PodsInfoModel;
     }
 
 

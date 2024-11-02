@@ -1,7 +1,8 @@
 'use server'
 
 import { BuildJobModel } from "@/model/build-job";
-import { DeploymentInfoModel } from "@/model/deployment";
+import { DeploymentInfoModel } from "@/model/deployment-info.model";
+import { PodsInfoModel } from "@/model/pods-info.model";
 import { ServerActionResult, SuccessActionResult } from "@/model/server-action-error-return.model";
 import appService from "@/server/services/app.service";
 import buildService from "@/server/services/build.service";
@@ -22,3 +23,10 @@ export const deleteBuild = async (buildName: string) =>
         await buildService.deleteBuild(buildName);
         return new SuccessActionResult(undefined, 'Successfully stopped and deleted build.');
     }) as Promise<ServerActionResult<unknown, void>>;
+
+export const getPodsForApp = async (appId: string) =>
+    simpleAction(async () => {
+        await getAuthUserSession();
+        const app = await appService.getExtendedById(appId);
+        return await deploymentService.getPodsForApp(app.projectId, appId);
+    }) as Promise<ServerActionResult<unknown, PodsInfoModel[]>>;

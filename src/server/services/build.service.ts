@@ -2,8 +2,6 @@ import { AppExtendedModel } from "@/model/app-extended.model";
 import k3s from "../adapter/kubernetes-api.adapter";
 import { V1Job, V1JobStatus } from "@kubernetes/client-node";
 import { StringUtils } from "../utils/string.utils";
-import { revalidateTag, unstable_cache } from "next/cache";
-import { Tags } from "../utils/cache-tag-generator.utils";
 import { BuildJobModel } from "@/model/build-job";
 import { ServiceException } from "@/model/service.exception.model";
 
@@ -61,7 +59,7 @@ class BuildService {
             ];
         }
         await k3s.batch.createNamespacedJob(buildNamespace, jobDefinition);
-        revalidateTag(Tags.appBuilds(app.id));
+        //revalidateTag(Tags.appBuilds(app.id));
 
         const buildJobPromise = this.waitForJobCompletion(jobDefinition.metadata!.name!)
 
@@ -80,29 +78,23 @@ class BuildService {
     }
 
     async getBuildsForApp(appId: string) {
-        return await unstable_cache(async (appId: string) => {
-            const jobNamePrefix = StringUtils.toJobName(appId);
-            const jobs = await k3s.batch.listNamespacedJob(buildNamespace);
-            const jobsOfBuild = jobs.body.items.filter((job) => job.metadata?.name?.startsWith(jobNamePrefix));
-            const builds = jobsOfBuild.map((job) => {
-                return {
-                    name: job.metadata?.name,
-                    startTime: job.status?.startTime,
-                    status: this.getJobStatusString(job.status),
-                } as BuildJobModel;
-            });
-            builds.sort((a, b) => {
-                if (a.startTime && b.startTime) {
-                    return new Date(b.startTime).getTime() - new Date(a.startTime).getTime();
-                }
-                return 0;
-            });
-            return builds;
-        },
-            [Tags.appBuilds(appId)], {
-            tags: [Tags.appBuilds(appId)],
-            revalidate: 10,
-        })(appId);
+        const jobNamePrefix = StringUtils.toJobName(appId);
+        const jobs = await k3s.batch.listNamespacedJob(buildNamespace);
+        const jobsOfBuild = jobs.body.items.filter((job) => job.metadata?.name?.startsWith(jobNamePrefix));
+        const builds = jobsOfBuild.map((job) => {
+            return {
+                name: job.metadata?.name,
+                startTime: job.status?.startTime,
+                status: this.getJobStatusString(job.status),
+            } as BuildJobModel;
+        });
+        builds.sort((a, b) => {
+            if (a.startTime && b.startTime) {
+                return new Date(b.startTime).getTime() - new Date(a.startTime).getTime();
+            }
+            return 0;
+        });
+        return builds;
     }
 
     async waitForJobCompletion(jobName: string) {

@@ -2,19 +2,20 @@
 
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
-import { deploy, test } from "./action";
+import { deploy, startApp, stopApp } from "./action";
 import { AppExtendedModel } from "@/model/app-extended.model";
+import { Toast } from "@/lib/toast.utils";
 
 export default function AppActionButtons({
     app
 }: {
     app: AppExtendedModel;
 }) {
-
     return <Card>
         <CardContent className="p-4 flex gap-4">
-            <Button onClick={() => deploy(app.id)}>Deploy</Button>
-            <Button  onClick={() => test(app.id)} variant="secondary">Start</Button>
+            <Button onClick={() => Toast.fromAction(() => deploy(app.id))}>Deploy</Button>
+            <Button onClick={() => Toast.fromAction(() => startApp(app.id))} variant="secondary">Start</Button>
+            <Button onClick={() => Toast.fromAction(() => stopApp(app.id))} variant="secondary">Stop</Button>
             <Button variant="secondary">Rebuild</Button>
         </CardContent>
     </Card >;

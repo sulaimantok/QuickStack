@@ -1,5 +1,6 @@
 'use server'
 
+import { SuccessActionResult } from "@/model/server-action-error-return.model";
 import appService from "@/server/services/app.service";
 import deploymentService from "@/server/services/deployment.service";
 import { getAuthUserSession, simpleAction } from "@/server/utils/action-wrapper.utils";
@@ -9,11 +10,21 @@ export const deploy = async (appId: string) =>
     simpleAction(async () => {
         await getAuthUserSession();
         await appService.buildAndDeploy(appId);
+        return new SuccessActionResult(undefined, 'Successfully started deployment.');
     });
 
-export const test = async (appId: string) =>
+export const stopApp = async (appId: string) =>
     simpleAction(async () => {
         await getAuthUserSession();
         const app = await appService.getExtendedById(appId);
-        await deploymentService.getDeploymentHistory(app.projectId, app.id);
+        await deploymentService.setReplicasForDeployment(app.projectId, app.id, 0);
+        return new SuccessActionResult(undefined, 'Successfully stopped app.');
+    });
+
+export const startApp = async (appId: string) =>
+    simpleAction(async () => {
+        await getAuthUserSession();
+        const app = await appService.getExtendedById(appId);
+        await deploymentService.setReplicasForDeployment(app.projectId, app.id, app.replicas);
+        return new SuccessActionResult(undefined, 'Successfully started app.');
     });
