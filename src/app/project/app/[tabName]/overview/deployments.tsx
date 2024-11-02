@@ -17,6 +17,7 @@ import { DeploymentInfoModel } from "@/model/deployment-info.model";
 import DeploymentStatusBadge from "./deployment-status-badge";
 import { io } from "socket.io-client";
 import { podLogsSocket } from "@/lib/sockets";
+import { BuildLogsDialog } from "./build-logs-overlay";
 
 export default function BuildsTab({
     app
@@ -27,6 +28,7 @@ export default function BuildsTab({
     const { openDialog } = useConfirmDialog();
     const [appBuilds, setAppBuilds] = useState<DeploymentInfoModel[] | undefined>(undefined);
     const [error, setError] = useState<string | undefined>(undefined);
+    const [selectedDeploymentForLogs, setSelectedDeploymentForLogs] = useState<DeploymentInfoModel | undefined>(undefined);
 
     const updateBuilds = async () => {
         setError(undefined);
@@ -90,7 +92,7 @@ export default function BuildsTab({
                             return <>
                                 <div className="flex gap-4">
                                     <div className="flex-1"></div>
-                                    {item.buildJobName && <Button variant="secondary">Show Logs</Button>}
+                                    {item.buildJobName && <Button variant="secondary" onClick={() => setSelectedDeploymentForLogs(item)}>Show Logs</Button>}
                                     {item.buildJobName && item.status === 'BUILDING' && <Button variant="destructive" onClick={() => deleteBuildClick(item.buildJobName!)}>Stop Build</Button>}
                                 </div>
                             </>
@@ -98,6 +100,7 @@ export default function BuildsTab({
                     />
                 }
             </CardContent>
-        </Card >
+        </Card>
+        <BuildLogsDialog deploymentInfo={selectedDeploymentForLogs} onClose={() => setSelectedDeploymentForLogs(undefined)} />
     </>;
 }

@@ -4,6 +4,7 @@ import { V1Job, V1JobStatus } from "@kubernetes/client-node";
 import { StringUtils } from "../utils/string.utils";
 import { BuildJobModel } from "@/model/build-job";
 import { ServiceException } from "@/model/service.exception.model";
+import { PodsInfoModel } from "@/model/pods-info.model";
 
 const kanikoImage = "gcr.io/kaniko-project/executor:latest";
 export const registryURL = "registry-svc.registry-and-build.svc.cluster.local"
@@ -95,6 +96,20 @@ class BuildService {
             return 0;
         });
         return builds;
+    }
+
+
+    async getPodForJob(jobName: string) {
+        const res = await k3s.core.listNamespacedPod(buildNamespace, undefined, undefined, undefined, undefined, `job-name=${jobName}`);
+        const jobs = res.body.items;
+        if (jobs.length === 0) {
+            throw new ServiceException(`No pod found for job ${jobName}`);
+        }
+        const pod = jobs[0];
+        return {
+            podName: pod.metadata?.name!,
+            containerName: pod.spec?.containers?.[0].name!
+        } as PodsInfoModel;
     }
 
     async waitForJobCompletion(jobName: string) {

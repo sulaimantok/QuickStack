@@ -10,7 +10,7 @@ import DomainsList from "./domains/domains";
 import StorageList from "./storage/storages";
 import { AppExtendedModel } from "@/model/app-extended.model";
 import { BuildJobModel } from "@/model/build-job";
-import BuildsTab from "./overview/builds";
+import BuildsTab from "./overview/deployments";
 import Logs from "./overview/logs";
 
 export default function AppTabs({

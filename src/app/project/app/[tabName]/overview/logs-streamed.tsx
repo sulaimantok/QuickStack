@@ -1,17 +1,21 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { podLogsSocket } from "@/lib/sockets";
 import { Textarea } from "@/components/ui/textarea";
+import React from "react";
 
 export default function LogsStreamed({
     namespace,
     podName,
+    buildJobName,
 }: {
-    namespace: string;
-    podName: string;
+    namespace?: string;
+    podName?: string;
+    buildJobName?: string;
 }) {
     const [isConnected, setIsConnected] = useState(false);
     const [transport, setTransport] = useState("N/A");
     const [logs, setLogs] = useState<string>('');
+    const textAreaRef = useRef<HTMLTextAreaElement>(null);
 
     function onConnect() {
         setIsConnected(true);
@@ -28,40 +32,47 @@ export default function LogsStreamed({
     }
 
     const myListener = (e: string) => {
-        setLogs(e);
+        setLogs((prevLogs) => prevLogs + e);
     }
 
     useEffect(() => {
-        if (!podName) {
+        if (!buildJobName && (!namespace || !podName)) {
             return;
         }
-        const logEventName = `${namespace}_${podName}`;
-        console.log('Connecting to logs ' + logEventName);
+        const streamKey = buildJobName ? buildJobName : `${namespace}_${podName}`;
+        console.log('Connecting to logs ' + streamKey);
 
         if (podLogsSocket.connected) {
             onConnect();
         }
 
-        podLogsSocket.emit('joinPodLog', { namespace, podName });
+        podLogsSocket.emit('joinPodLog', { namespace, podName, buildJobName });
 
         podLogsSocket.on("connect", onConnect);
         podLogsSocket.on("disconnect", onDisconnect);
-        podLogsSocket.on(logEventName, myListener);
+        podLogsSocket.on(streamKey, myListener);
         return () => {
             if (!podName) {
                 return;
             }
-            console.log('Disconnecting from logs ' + logEventName);
-            podLogsSocket.emit('leavePodLog', { namespace, podName });
+            console.log('Disconnecting from logs ' + streamKey);
+            podLogsSocket.emit('leavePodLog', { streamKey: streamKey });
             setLogs('');
             podLogsSocket.off("connect", onConnect);
             podLogsSocket.off("disconnect", onDisconnect);
-            podLogsSocket.off(logEventName, myListener);
+            podLogsSocket.off(streamKey, myListener);
         };
-    }, [namespace, podName]);
+    }, [namespace, podName, buildJobName]);
+
+    useEffect(() => {
+        if (textAreaRef.current) {
+            // Scroll to the bottom every time logs change
+            textAreaRef.current.scrollTop = textAreaRef.current.scrollHeight;
+        }
+    }, [logs]);
 
     return <>
-        <Textarea value={logs} readOnly className="h-[400px] bg-slate-900 text-white" />
+        <Textarea ref={textAreaRef} value={logs} readOnly className="h-[400px] bg-slate-900 text-white" />
         <div className="text-sm pl-1">Status: {isConnected ? 'Connected' : 'Disconnected'}</div>
     </>;
 }
