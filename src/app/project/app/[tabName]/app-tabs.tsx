@@ -10,7 +10,7 @@ import DomainsList from "./domains/domains";
 import StorageList from "./storage/storages";
 import { AppExtendedModel } from "@/model/app-extended.model";
 import { BuildJobModel } from "@/model/build-job";
-import BuildsTab from "./overview/builds-tab";
+import BuildsTab from "./overview/builds";
 import Logs from "./overview/logs";
 
 export default function AppTabs({
@@ -35,10 +35,9 @@ export default function AppTabs({
                 <TabsTrigger value="domains">Domains</TabsTrigger>
                 <TabsTrigger value="storage">Storage</TabsTrigger>
             </TabsList>
-            <TabsContent value="overview" className="space-y-4">
+            <TabsContent value="overview" className="grid grid-cols-1 3xl:grid-cols-2 gap-4">
                 <Logs app={app} />
                 <BuildsTab app={app} />
-
             </TabsContent>
             <TabsContent value="general" className="space-y-4">
                 <GeneralAppSource app={app} />

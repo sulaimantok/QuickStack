@@ -16,7 +16,7 @@ import { Toast } from "@/lib/toast.utils";
 import { DeploymentInfoModel } from "@/model/deployment-info.model";
 import DeploymentStatusBadge from "./deployment-status-badge";
 import { io } from "socket.io-client";
-import { podLogsSocket } from "@/socket";
+import { podLogsSocket } from "@/lib/sockets";
 
 export default function BuildsTab({
     app
