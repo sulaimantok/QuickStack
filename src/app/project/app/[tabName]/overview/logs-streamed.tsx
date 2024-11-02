@@ -16,6 +16,9 @@ export default function LogsStreamed({
     const [logs, setLogs] = useState<string>('');
 
     useEffect(() => {
+
+    const logEventName = `${app.projectId}_${app.id}_${podName}`;
+
         function onConnect() {
             setIsConnected(true);
             setTransport(podLogsSocket.io.engine.transport.name);
@@ -42,12 +45,15 @@ export default function LogsStreamed({
 
         podLogsSocket.on("connect", onConnect);
         podLogsSocket.on("disconnect", onDisconnect);
-        podLogsSocket.on(`logs_${app.projectId}_${app.id}_${podName}`, myListener);
+
+        podLogsSocket.on(logEventName, myListener);
 
         return () => {
+            setLogs('');
             podLogsSocket.off("connect", onConnect);
             podLogsSocket.off("disconnect", onDisconnect);
-            podLogsSocket.off(`logs_${app.projectId}_${app.id}_${podName}`, myListener);
+            podLogsSocket.off(logEventName, myListener);
+            podLogsSocket.disconnect();
         };
     }, [app, podName]);
 

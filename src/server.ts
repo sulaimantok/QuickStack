@@ -1,8 +1,7 @@
 import { createServer } from 'http'
 import { parse } from 'url'
 import next from 'next'
-import webSocketHandler from './socket-io'
-import { Server } from 'socket.io'
+import socketIoServer from './socket-io.server'
 
 // Source: https://nextjs.org/docs/app/building-your-application/configuring/custom-server
 
@@ -18,9 +17,7 @@ app.prepare().then(() => {
         handle(req, res, parsedUrl)
     });
 
-    webSocketHandler.initializeSocketIo(server);
-    //const io = new Server(server);
-
+    socketIoServer.initialize(server);
 
     server.listen(port)
 
