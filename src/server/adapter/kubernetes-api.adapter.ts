@@ -37,11 +37,21 @@ const getK8sLogApiClient = () => {
 const k8sLogClient = globalThis.k8sLogGlobal ?? getK8sLogApiClient()
 if (process.env.NODE_ENV !== 'production') globalThis.k8sLogGlobal = k8sLogClient
 
+const getK8sNetworkApiClient = () => {
+    const kc = new k8s.KubeConfig();
+    kc.loadFromFile('/workspace/kube-config.config'); // todo update --> use security role
+    const networkClient = kc.makeApiClient(k8s.NetworkingV1Api);
+    return networkClient;
+}
+const k8sNetworkClient = globalThis.k8sNetworkGlobal ?? getK8sNetworkApiClient()
+if (process.env.NODE_ENV !== 'production') globalThis.k8sNetworkGlobal = k8sNetworkClient
+
 declare const globalThis: {
     k8sCoreGlobal: ReturnType<typeof getK8sCoreApiClient>;
     k8sAppsGlobal: ReturnType<typeof getK8sAppsApiClient>;
     k8sJobGlobal: ReturnType<typeof getK8sBatchApiClient>;
     k8sLogGlobal: ReturnType<typeof getK8sLogApiClient>;
+    k8sNetworkGlobal: ReturnType<typeof getK8sNetworkApiClient>;
 } & typeof global;
 
 
@@ -53,6 +63,7 @@ class K3sApiAdapter {
     apps = k8sAppsClient;
     batch = k8sJobClient;
     log = k8sLogClient;
+    network = k8sNetworkClient;
 }
 
 const k3s = new K3sApiAdapter();

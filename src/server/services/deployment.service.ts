@@ -1,12 +1,16 @@
 import { AppExtendedModel } from "@/model/app-extended.model";
 import k3s from "../adapter/kubernetes-api.adapter";
-import { V1Deployment } from "@kubernetes/client-node";
+import { V1Deployment, V1Ingress } from "@kubernetes/client-node";
+import { NetworkingV1Api } from "@kubernetes/client-node";
 import buildService from "./build.service";
 import { ListUtils } from "../utils/list.utils";
 import { DeploymentInfoModel, DeplyomentStatus } from "@/model/deployment-info.model";
 import { BuildJobStatus } from "@/model/build-job";
 import { ServiceException } from "@/model/service.exception.model";
 import { PodsInfoModel } from "@/model/pods-info.model";
+import { spec } from "node:test/reporters";
+import { rule } from "postcss";
+import path from "node:path";
 
 class DeploymentService {
 
@@ -85,6 +89,8 @@ class DeploymentService {
         } else {
             await k3s.core.createNamespacedService(app.projectId, body);
         }
+        await this.createOrUpdateIngress(app);
+
     }
 
     async createDeployment(app: AppExtendedModel, buildJobName?: string) {
@@ -186,6 +192,62 @@ class DeploymentService {
         } as PodsInfoModel;
     }
 
+    async getIngress(projectId: string, appId: string) {
+        const res = await k3s.network.listIngressClass(projectId);
+        return res.body.items.find((item) => item.metadata?.name === `ingress-${appId}`);
+    }
+
+    async createOrUpdateIngress(app: AppExtendedModel) {
+        //const existingIngress = await this.getIngress(app.projectId, app.id);
+        const ingressDefinition: V1Ingress = {
+            apiVersion: 'networking.k8s.io/v1',
+            kind: 'Ingress',
+            metadata: {
+                name: `ingress-${app.id}`,
+                namespace: app.projectId,
+                annotations: {
+                    'cert-manager.io/cluster-issuer': 'letsencrypt-staging',
+                },
+            },
+            spec: {
+                ingressClassName: 'traefik',
+                rules: [
+                    {
+                        host: `shelby.meyer-net.ch`,
+                        http: {
+                            paths: [
+                                {
+                                    path: '/',
+                                    pathType: 'Prefix',
+                                    backend: {
+                                        service: {
+                                            name: this.getServiceName(app.id),
+                                            port: {
+                                                number: app.defaultPort,
+                                            },
+                                        },
+                                    },
+                                },
+                            ],
+                        },
+                    },
+                ],
+                tls: [
+                    {
+                        hosts: [`shelby.meyer-net.ch`],
+                        secretName: `secret-tls-${app.id}`,
+                    },
+                ],
+            },
+        };
+
+        await k3s.network.createNamespacedIngress(app.projectId, ingressDefinition);
+        /*if (existingIngress) {
+            await k3s.network.replaceNamespacedIngress(`ingress-${app.id}`, app.projectId, ingressDefinition);
+        } else {
+            await k3s.network.createNamespacedIngress(app.projectId, ingressDefinition);
+        }*/
+    }
 
     /**
      * Searches for Build Jobs (only for Git Projects) and ReplicaSets (for all projects) and returns a list of DeploymentModel
@@ -259,6 +321,9 @@ class DeploymentService {
         });
         return ListUtils.sortByDate(revisions, (i) => i.createdAt!, true);
     }
+
+
+
 }
 
 const deploymentService = new DeploymentService();
