@@ -90,6 +90,13 @@ class DeploymentService {
     async createDeployment(app: AppExtendedModel, buildJobName?: string) {
         await this.createNamespaceIfNotExists(app.projectId);
 
+        const envVars = app.envVars
+        ? app.envVars.split(',').map(env => {
+            const [name, value] = env.split('=');
+            return { name, value };
+        })
+        : [];
+
         const existingDeployment = await this.getDeployment(app.projectId, app.id);
         const body: V1Deployment = {
             metadata: {
@@ -120,6 +127,7 @@ class DeploymentService {
                                 name: app.id,
                                 image: !!buildJobName ? buildService.createContainerRegistryUrlForAppId(app.id) : app.containerImageSource as string,
                                 imagePullPolicy: 'Always',
+                                ...(envVars.length > 0 ? { env: envVars } : {}),
                                 /*ports: [
                                     {
                                         containerPort: app.port
