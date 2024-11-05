@@ -39,4 +39,8 @@ export class StringUtils {
         const randomString = crypto.randomBytes(4).toString('hex');
         return `${str}-${randomString}`;
     }
+
+    static toServiceName(appId: string) {
+        return `svc-${appId}`;
+    }
 }

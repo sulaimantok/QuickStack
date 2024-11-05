@@ -1,16 +1,13 @@
 import { AppExtendedModel } from "@/model/app-extended.model";
 import k3s from "../adapter/kubernetes-api.adapter";
 import { V1Deployment, V1Ingress } from "@kubernetes/client-node";
-import { NetworkingV1Api } from "@kubernetes/client-node";
 import buildService from "./build.service";
 import { ListUtils } from "../utils/list.utils";
 import { DeploymentInfoModel, DeplyomentStatus } from "@/model/deployment-info.model";
 import { BuildJobStatus } from "@/model/build-job";
 import { ServiceException } from "@/model/service.exception.model";
 import { PodsInfoModel } from "@/model/pods-info.model";
-import { spec } from "node:test/reporters";
-import { rule } from "postcss";
-import path from "node:path";
+import { StringUtils } from "../utils/string.utils";
 
 class DeploymentService {
 
@@ -40,17 +37,14 @@ class DeploymentService {
         if (!existingService) {
             return;
         }
-        return k3s.core.deleteNamespacedService(this.getServiceName(appId), projectId);
+        return k3s.core.deleteNamespacedService(StringUtils.toServiceName(appId), projectId);
     }
 
-    getServiceName(appId: string) {
-        return `svc-${appId}`;
-    }
 
     async getService(projectId: string, appId: string) {
         const allServices = await k3s.core.listNamespacedService(projectId);
-        if (allServices.body.items.some((item) => item.metadata?.name === this.getServiceName(appId))) {
-            const res = await k3s.core.readNamespacedService(this.getServiceName(appId), projectId);
+        if (allServices.body.items.some((item) => item.metadata?.name === StringUtils.toServiceName(appId))) {
+            const res = await k3s.core.readNamespacedService(StringUtils.toServiceName(appId), projectId);
             return res.body;
         }
     }
@@ -75,7 +69,7 @@ class DeploymentService {
 
         const body = {
             metadata: {
-                name: this.getServiceName(app.id)
+                name: StringUtils.toServiceName(app.id)
             },
             spec: {
                 selector: {
@@ -85,7 +79,7 @@ class DeploymentService {
             }
         };
         if (existingService) {
-            await k3s.core.replaceNamespacedService(this.getServiceName(app.id), app.projectId, body);
+            await k3s.core.replaceNamespacedService(StringUtils.toServiceName(app.id), app.projectId, body);
         } else {
             await k3s.core.createNamespacedService(app.projectId, body);
         }
@@ -221,7 +215,7 @@ class DeploymentService {
                                     pathType: 'Prefix',
                                     backend: {
                                         service: {
-                                            name: this.getServiceName(app.id),
+                                            name: StringUtils.toServiceName(app.id),
                                             port: {
                                                 number: app.defaultPort,
                                             },

@@ -25,16 +25,21 @@ import { CheckIcon, CrossIcon, DeleteIcon, EditIcon, TrashIcon, XIcon } from "lu
 import DialogEditDialog from "./domain-edit-overlay";
 import { Toast } from "@/lib/toast.utils";
 import { deleteDomain } from "./actions";
+import { ListUtils } from "@/server/utils/list.utils";
+import { StringUtils } from "@/server/utils/string.utils";
+import { Code } from "@/components/custom/code";
 
 
 export default function DomainsList({ app }: {
     app: AppExtendedModel
 }) {
+
+    const internalUrl = StringUtils.toServiceName(app.id);
     return <>
         <Card>
             <CardHeader>
                 <CardTitle>Domains</CardTitle>
-                <CardDescription>Add custom domains to your application. If your app has a domain configured, it will be public and accessible via the internet.</CardDescription>
+                <CardDescription>Add custom domains to your application. If your app has a domain configured, it will be public and accessible via the internet. <br />Internal Hostname: <Code>{internalUrl}</Code></CardDescription>
             </CardHeader>
             <CardContent>
                 <Table>
