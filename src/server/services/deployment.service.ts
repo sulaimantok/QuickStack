@@ -1,6 +1,6 @@
 import { AppExtendedModel } from "@/model/app-extended.model";
 import k3s from "../adapter/kubernetes-api.adapter";
-import { V1Deployment, V1Ingress } from "@kubernetes/client-node";
+import { V1Deployment, V1Ingress, V1PersistentVolumeClaim } from "@kubernetes/client-node";
 import buildService from "./build.service";
 import { ListUtils } from "../utils/list.utils";
 import { DeploymentInfoModel, DeplyomentStatus } from "@/model/deployment-info.model";
@@ -83,12 +83,13 @@ class DeploymentService {
         } else {
             await k3s.core.createNamespacedService(app.projectId, body);
         }
-        await this.createOrUpdateIngress(app);
+        //await this.createOrUpdateIngress(app);
 
     }
 
     async createDeployment(app: AppExtendedModel, buildJobName?: string) {
         await this.createNamespaceIfNotExists(app.projectId);
+        await this.createPersistentVolumeClaim(app);
 
         const envVars = app.envVars
         ? app.envVars.split(',').map(env => {
@@ -128,13 +129,27 @@ class DeploymentService {
                                 image: !!buildJobName ? buildService.createContainerRegistryUrlForAppId(app.id) : app.containerImageSource as string,
                                 imagePullPolicy: 'Always',
                                 ...(envVars.length > 0 ? { env: envVars } : {}),
+                                /*volumeMounts: [
+                                    {
+                                        name: 'pvc-test-stefan',
+                                        mountPath: '/data',
+                                    },
+                                ],*/
                                 /*ports: [
                                     {
                                         containerPort: app.port
                                     }
                                 ]*/
                             }
-                        ]
+                        ],
+                        /*volumes: [
+                            {
+                                name: 'pvc-test-stefan',
+                                persistentVolumeClaim: {
+                                    claimName: 'pvc-test-stefan',
+                                },
+                            },
+                        ]*/
                     }
                 }
             }
@@ -249,6 +264,28 @@ class DeploymentService {
         } else {
             await k3s.network.createNamespacedIngress(app.projectId, ingressDefinition);
         }*/
+    }
+
+    async createPersistentVolumeClaim(app: AppExtendedModel) {
+        const pvcDefinition: V1PersistentVolumeClaim = {
+            apiVersion: 'v1',
+            kind: 'PersistentVolumeClaim',
+            metadata: {
+                name: 'pvc-test-stefan',
+                namespace: app.projectId,
+            },
+            spec: {
+                accessModes: ['ReadWriteOnce'],
+                storageClassName: 'longhorn',
+                resources: {
+                    requests: {
+                        storage: '5Gi',
+                    },
+                },
+            },
+        };
+
+        await k3s.core.createNamespacedPersistentVolumeClaim(app.projectId, pvcDefinition);
     }
 
     /**
