@@ -36,28 +36,11 @@ export default function DomainsList({ app }: {
     app: AppExtendedModel
 }) {
 
-    const internalUrl = StringUtils.toServiceName(app.id);
     return <>
         <Card>
             <CardHeader>
                 <CardTitle>Domains</CardTitle>
-                <CardDescription>Add custom domains to your application. If your app has a domain configured, it will be public and accessible via the internet. <br />
-
-                    <div className="flex gap-1">
-                        <div>Internal Hostname: <Code>{internalUrl}</Code></div>
-                        <div className="self-center">
-                            <TooltipProvider>
-                                <Tooltip>
-                                    <TooltipTrigger asChild><QuestionMarkCircledIcon /></TooltipTrigger>
-                                    <TooltipContent>
-                                        <p className="max-w-[350px]">
-                                            Other app can connect to this app using this hostname. This hostname is valid for all internal connections within the same project.
-                                        </p>
-                                    </TooltipContent>
-                                </Tooltip>
-                            </TooltipProvider>
-                        </div>
-                    </div>
+                <CardDescription>Add custom domains to your application. If your app has a domain configured, it will be public and accessible via the internet.
                 </CardDescription>
             </CardHeader>
             <CardContent>

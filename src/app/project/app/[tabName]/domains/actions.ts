@@ -1,5 +1,7 @@
 'use server'
 
+import { AppRateLimitsModel } from "@/model/app-rate-limits.model";
+import { AppDefaultPortsModel, appdefaultPortZodModel } from "@/model/default-port.model";
 import { appDomainEditZodModel } from "@/model/domain-edit.model";
 import { SuccessActionResult } from "@/model/server-action-error-return.model";
 import appService from "@/server/services/app.service";
@@ -20,9 +22,20 @@ export const saveDomain = async (prevState: any, inputData: z.infer<typeof actio
         });
     });
 
-    export const deleteDomain = async (domainId: string) =>
-        simpleAction(async () => {
-            await getAuthUserSession();
-            await appService.deleteDomainById(domainId);
-            return new SuccessActionResult(undefined, 'Successfully deleted domain');
+export const deleteDomain = async (domainId: string) =>
+    simpleAction(async () => {
+        await getAuthUserSession();
+        await appService.deleteDomainById(domainId);
+        return new SuccessActionResult(undefined, 'Successfully deleted domain');
+    });
+
+export const saveDefaultPortConfiguration = async (prevState: any, inputData: AppDefaultPortsModel, appId: string) =>
+    saveFormAction(inputData, appdefaultPortZodModel, async (validatedData) => {
+        await getAuthUserSession();
+        const existingApp = await appService.getById(appId);
+        await appService.save({
+            ...existingApp,
+            ...validatedData,
+            id: appId,
         });
+    });

@@ -1,5 +1,9 @@
 export class ListUtils {
 
+    static removeDuplicates<T>(array: T[]): T[] {
+        return Array.from(new Set(array));
+    }
+
     static sortByDate<T>(array: T[], dateSelector: (item: T) => Date, descending = false): T[] {
         return array.toSorted((a, b) => {
             const dateA = dateSelector(a);

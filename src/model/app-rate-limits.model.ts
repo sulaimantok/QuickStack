@@ -7,7 +7,6 @@ export const appRateLimitsZodModel = z.object({
   cpuReservation: stringToOptionalNumber,
   cpuLimit: stringToOptionalNumber,
   replicas: stringToNumber,
-  defaultPort: stringToNumber,
 })
 
 export type AppRateLimitsModel = z.infer<typeof appRateLimitsZodModel>;

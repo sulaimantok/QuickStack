@@ -12,6 +12,7 @@ import { AppExtendedModel } from "@/model/app-extended.model";
 import { BuildJobModel } from "@/model/build-job";
 import BuildsTab from "./overview/deployments";
 import Logs from "./overview/logs";
+import InternalHostnames from "./domains/internal-hostnames";
 
 export default function AppTabs({
     app,
@@ -48,6 +49,7 @@ export default function AppTabs({
             </TabsContent>
             <TabsContent value="domains" className="space-y-4">
                 <DomainsList app={app} />
+                <InternalHostnames app={app} />
             </TabsContent>
             <TabsContent value="storage" className="space-y-4">
                 <StorageList app={app} />
