@@ -54,8 +54,6 @@ export default function InternalHostnames({ app }: {
                 })()}>
                     <CardContent className="space-y-4">
                         <div className="grid grid-cols-2 gap-4">
-
-
                             <FormField
                                 control={form.control}
                                 name="defaultPort"
@@ -70,7 +68,6 @@ export default function InternalHostnames({ app }: {
                                 )}
                             />
                         </div>
-
                     </CardContent>
                     <CardFooter className="gap-4">
                         <SubmitButton>Save</SubmitButton>
@@ -98,7 +95,9 @@ export default function InternalHostnames({ app }: {
                                     <TooltipTrigger asChild><QuestionMarkCircledIcon /></TooltipTrigger>
                                     <TooltipContent>
                                         <p className="max-w-[350px]">
-                                            Other app can connect to this app using this hostname. This hostname is valid for all internal connections within the same project.
+                                            Other apps can connect to this app using this hostname. This hostname is valid for all internal connections within the same project.<br /><br />
+                                            <span className="font-bold">Hostname:</span> {internalUrl}<br />
+                                            <span className="font-bold">Port:</span> {port}
                                         </p>
                                     </TooltipContent>
                                 </Tooltip>
