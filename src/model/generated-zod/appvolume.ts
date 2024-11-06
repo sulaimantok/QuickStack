@@ -1,11 +1,12 @@
 import * as z from "zod"
-
+import * as imports from "../../../prisma/null"
 import { CompleteApp, RelatedAppModel } from "./index"
 
 export const AppVolumeModel = z.object({
   id: z.string(),
   containerMountPath: z.string(),
   size: z.number().int(),
+  accessMode: z.string(),
   appId: z.string(),
   createdAt: z.date(),
   updatedAt: z.date(),

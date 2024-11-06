@@ -4,12 +4,27 @@ import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } f
 import {
     Form,
     FormControl,
+    FormDescription,
     FormField,
     FormItem,
     FormLabel,
     FormMessage,
 } from "@/components/ui/form"
+import {
+    Command,
+    CommandGroup,
+    CommandItem,
+    CommandList,
+  } from "@/components/ui/command"
+  import {
+    Popover,
+    PopoverContent,
+    PopoverTrigger,
+  } from "@/components/ui/popover"
 import { Input } from "@/components/ui/input"
+import { cn } from "@/lib/utils"
+import { Button } from "@/components/ui/button"
+import { Check, ChevronsUpDown } from "lucide-react"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { useForm } from "react-hook-form"
 import { useFormState } from 'react-dom'
@@ -22,7 +37,10 @@ import { ServerActionResult } from "@/model/server-action-error-return.model"
 import { saveVolume } from "./actions"
 import { toast } from "sonner"
 
-
+const accessModes = [
+    { label: "ReadWriteOnce", value: "ReadWriteOnce" },
+    { label: "ReadWriteMany", value: "ReadWriteMany" },
+  ] as const
 
 export default function DialogEditDialog({ children, volume, appId }: { children: React.ReactNode; volume?: AppVolume; appId: string; }) {
 
@@ -33,6 +51,7 @@ export default function DialogEditDialog({ children, volume, appId }: { children
         resolver: zodResolver(appVolumeEditZodModel),
         defaultValues: {
             ...volume,
+            accessMode: "ReadWriteOnce"
         }
     });
 
@@ -97,6 +116,68 @@ export default function DialogEditDialog({ children, volume, appId }: { children
                                             <FormMessage />
                                         </FormItem>
                                     )}
+                                />
+
+                                <FormField
+                                              control={form.control}
+                                              name="accessMode"
+                                              render={({ field }) => (
+                                                <FormItem className="flex flex-col">
+                                                  <FormLabel>Access Mode</FormLabel>
+                                                  <Popover>
+                                                    <PopoverTrigger asChild>
+                                                      <FormControl>
+                                                        <Button
+                                                          variant="outline"
+                                                          role="combobox"
+                                                          className={cn(
+                                                            "w-[200px] justify-between",
+                                                            !field.value && "text-muted-foreground"
+                                                          )}
+                                                        >
+                                                          {field.value
+                                                            ? accessModes.find(
+                                                                (accessMode) => accessMode.value === field.value
+                                                              )?.label
+                                                            : "Select accessMode"}
+                                                          <ChevronsUpDown className="opacity-50" />
+                                                        </Button>
+                                                      </FormControl>
+                                                    </PopoverTrigger>
+                                                    <PopoverContent className="w-[200px] p-0">
+                                                      <Command>
+                                                        <CommandList>
+                                                          <CommandGroup>
+                                                            {accessModes.map((accessMode) => (
+                                                              <CommandItem
+                                                                value={accessMode.label}
+                                                                key={accessMode.value}
+                                                                onSelect={() => {
+                                                                  form.setValue("accessMode", accessMode.value)
+                                                                }}
+                                                              >
+                                                                {accessMode.label}
+                                                                <Check
+                                                                  className={cn(
+                                                                    "ml-auto",
+                                                                    accessMode.value === field.value
+                                                                      ? "opacity-100"
+                                                                      : "opacity-0"
+                                                                  )}
+                                                                />
+                                                              </CommandItem>
+                                                            ))}
+                                                          </CommandGroup>
+                                                        </CommandList>
+                                                      </Command>
+                                                    </PopoverContent>
+                                                  </Popover>
+                                                  <FormDescription>
+                                                    This is the access mode that will be used for the volume.
+                                                  </FormDescription>
+                                                  <FormMessage />
+                                                </FormItem>
+                                              )}
                                 />
                                 <p className="text-red-500">{state.message}</p>
                                 <SubmitButton>Save</SubmitButton>

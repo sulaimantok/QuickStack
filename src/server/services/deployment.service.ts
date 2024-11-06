@@ -89,7 +89,7 @@ class DeploymentService {
 
     async createDeployment(app: AppExtendedModel, buildJobName?: string) {
         await this.createNamespaceIfNotExists(app.projectId);
-        //await this.createPersistentVolumeClaim(app);
+        await this.createOrUpdatePvc(app);
 
         const envVars = app.envVars
         ? app.envVars.split(',').map(env => {
@@ -97,6 +97,22 @@ class DeploymentService {
             return { name, value };
         })
         : [];
+
+        const volumes = app.appVolumes
+            .filter(pvcObj => pvcObj.appId === app.id)
+            .map(pvcObj => ({
+            name: `pvc-${app.id}-${pvcObj.id}`,
+            persistentVolumeClaim: {
+                claimName: `pvc-${app.id}-${pvcObj.id}`,
+            },
+        }));
+
+        const volumeMounts = app.appVolumes
+            .filter(pvcObj => pvcObj.appId === app.id)
+            .map(pvcObj => ({
+            name: `pvc-${app.id}-${pvcObj.id}`,
+            mountPath: pvcObj.containerMountPath,
+        }));
 
         const existingDeployment = await this.getDeployment(app.projectId, app.id);
         const body: V1Deployment = {
@@ -129,27 +145,10 @@ class DeploymentService {
                                 image: !!buildJobName ? buildService.createContainerRegistryUrlForAppId(app.id) : app.containerImageSource as string,
                                 imagePullPolicy: 'Always',
                                 ...(envVars.length > 0 ? { env: envVars } : {}),
-                                /*volumeMounts: [
-                                    {
-                                        name: 'pvc-test-stefan',
-                                        mountPath: '/data',
-                                    },
-                                ],*/
-                                /*ports: [
-                                    {
-                                        containerPort: app.port
-                                    }
-                                ]*/
+                                ...(volumeMounts.length > 0 ? { volumeMounts: volumeMounts } : {}),
                             }
                         ],
-                        /*volumes: [
-                            {
-                                name: 'pvc-test-stefan',
-                                persistentVolumeClaim: {
-                                    claimName: 'pvc-test-stefan',
-                                },
-                            },
-                        ]*/
+                        ...(volumes.length > 0 ? { volumes: volumes } : {}),
                     }
                 }
             }
@@ -215,6 +214,11 @@ class DeploymentService {
         return res.body.items.filter((item) => item.metadata?.name?.startsWith(`ingress-${appId}`));
     }
 
+    async getIngress(projectId: string, appId: string, domainId: string) {
+        const res = await k3s.network.listNamespacedIngress(projectId);
+        return res.body.items.find((item) => item.metadata?.name === `ingress-${appId}-${domainId}`);
+    }
+
     async deleteObsoleteIngresses(app: AppExtendedModel) {
         const currentDomains = new Set(app.appDomains.map(domainObj => domainObj.hostname));
         const existingIngresses = await this.getAllIngressForApp(app.projectId, app.id);
@@ -243,12 +247,6 @@ class DeploymentService {
         }
     }
 }
-
-
-    async getIngress(projectId: string, appId: string, domainId: string) {
-        const res = await k3s.network.listNamespacedIngress(projectId);
-        return res.body.items.find((item) => item.metadata?.name === `ingress-${appId}-${domainId}`);
-    }
 
     async createOrUpdateIngress(app: AppExtendedModel) {
         for (const domainObj of app.appDomains) {
@@ -313,26 +311,52 @@ class DeploymentService {
         await this.deleteObsoleteIngresses(app);
     }
 
-    async createPersistentVolumeClaim(app: AppExtendedModel) {
-        const pvcDefinition: V1PersistentVolumeClaim = {
-            apiVersion: 'v1',
-            kind: 'PersistentVolumeClaim',
-            metadata: {
-                name: 'pvc-test-stefan',
-                namespace: app.projectId,
-            },
-            spec: {
-                accessModes: ['ReadWriteOnce'],
-                storageClassName: 'longhorn',
-                resources: {
-                    requests: {
-                        storage: '5Gi',
+    async getAllPvcForApp(projectId: string, appId: string) {
+        const res = await k3s.core.listNamespacedPersistentVolumeClaim(projectId);
+        return res.body.items.filter((item) => item.metadata?.name?.startsWith(`pvc-${appId}`));
+    }
+
+    async deleteAllPvcOfApp(app: AppExtendedModel) {
+        const existingPvc = await this.getAllPvcForApp(app.projectId, app.id);
+
+        for (const pvc of existingPvc) {
+            try {
+                await k3s.core.deleteNamespacedPersistentVolumeClaim(pvc.metadata!.name!, app.projectId);
+                console.log(`Alle PVC-Konfigurationen für die App ${app.id} erfolgreich gelöscht.`);
+            } catch (error) {
+                console.error(`Fehler beim Löschen der PVC ${pvc.metadata!.name}:`, error);
+            }
+        }
+    }
+
+    async createOrUpdatePvc(app: AppExtendedModel) {
+        // Delete all existing PVCs for the app, need to be done because PVCs are mutable
+        await this.deleteAllPvcOfApp(app);
+        for (const pvcObj of app.appVolumes) {
+            const pvcName = `pvc-${app.id}-${pvcObj.id}`;
+
+            const pvcDefinition: V1PersistentVolumeClaim = {
+                apiVersion: 'v1',
+                kind: 'PersistentVolumeClaim',
+                metadata: {
+                    name: pvcName,
+                    namespace: app.projectId,
+                },
+                spec: {
+                    accessModes: [pvcObj.accessMode],
+                    storageClassName: 'longhorn',
+                    resources: {
+                        requests: {
+                            storage: `${pvcObj.size}Gi`,
+                        },
                     },
                 },
-            },
-        };
+            };
 
-        await k3s.core.createNamespacedPersistentVolumeClaim(app.projectId, pvcDefinition);
+            await k3s.core.createNamespacedPersistentVolumeClaim(app.projectId, pvcDefinition);
+            console.log(`PVC ${pvcName} für App ${app.id} erfolgreich erstellt.`);
+
+        }
     }
 
     /**

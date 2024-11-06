@@ -170,6 +170,7 @@ model AppVolume {
   id                 String @id @default(uuid())
   containerMountPath String
   size               Int
+  accessMode         String @default("rwo")
   appId              String
   app                App    @relation(fields: [appId], references: [id])
 

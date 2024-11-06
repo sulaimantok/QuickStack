@@ -43,6 +43,7 @@ export default function StorageList({ app }: {
                         <TableRow>
                             <TableHead>Mount Path</TableHead>
                             <TableHead>Size in GB</TableHead>
+                            <TableHead>Access Mode</TableHead>
                             <TableHead className="w-[100px]">Action</TableHead>
                         </TableRow>
                     </TableHeader>
@@ -51,6 +52,7 @@ export default function StorageList({ app }: {
                             <TableRow key={volume.containerMountPath}>
                                 <TableCell className="font-medium">{volume.containerMountPath}</TableCell>
                                 <TableCell className="font-medium">{volume.size}</TableCell>
+                                <TableCell className="font-medium">{volume.accessMode}</TableCell>
                                 <TableCell className="font-medium flex gap-2">
                                     <DialogEditDialog appId={app.id} volume={volume}>
                                         <Button variant="ghost"><EditIcon /></Button>
