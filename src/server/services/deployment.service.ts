@@ -83,13 +83,13 @@ class DeploymentService {
         } else {
             await k3s.core.createNamespacedService(app.projectId, body);
         }
-        //await this.createOrUpdateIngress(app);
+        await this.createOrUpdateIngress(app);
 
     }
 
     async createDeployment(app: AppExtendedModel, buildJobName?: string) {
         await this.createNamespaceIfNotExists(app.projectId);
-        await this.createPersistentVolumeClaim(app);
+        //await this.createPersistentVolumeClaim(app);
 
         const envVars = app.envVars
         ? app.envVars.split(',').map(env => {
@@ -209,61 +209,108 @@ class DeploymentService {
         } as PodsInfoModel;
     }
 
-    async getIngress(projectId: string, appId: string) {
-        const res = await k3s.network.listIngressClass(projectId);
-        return res.body.items.find((item) => item.metadata?.name === `ingress-${appId}`);
+
+    async getAllIngressForApp(projectId: string, appId: string) {
+        const res = await k3s.network.listNamespacedIngress(projectId);
+        return res.body.items.filter((item) => item.metadata?.name?.startsWith(`ingress-${appId}`));
+    }
+
+    async deleteObsoleteIngresses(app: AppExtendedModel) {
+        const currentDomains = new Set(app.appDomains.map(domainObj => domainObj.hostname));
+        const existingIngresses = await this.getAllIngressForApp(app.projectId, app.id);
+
+    if (currentDomains.size === 0) {
+        for (const ingress of existingIngresses) {
+            try {
+                await k3s.network.deleteNamespacedIngress(ingress.metadata!.name!, app.projectId);
+                console.log(`Alle Ingress-Konfigurationen für die App ${app.id} erfolgreich gelöscht.`);
+            } catch (error) {
+                console.error(`Fehler beim Löschen des Ingress ${ingress.metadata!.name}:`, error);
+            }
+        }
+    } else {
+        for (const ingress of existingIngresses) {
+            const ingressDomain = ingress.spec?.rules?.[0]?.host;
+
+            if (ingressDomain && !currentDomains.has(ingressDomain)) {
+                try {
+                    await k3s.network.deleteNamespacedIngress(ingress.metadata!.name!, app.projectId);
+                    console.log(`Ingress ${ingress.metadata!.name} für Domain ${ingressDomain} erfolgreich gelöscht.`);
+                } catch (error) {
+                    console.error(`Fehler beim Löschen des Ingress ${ingress.metadata!.name} für Domain ${ingressDomain}:`, error);
+                }
+            }
+        }
+    }
+}
+
+
+    async getIngress(projectId: string, appId: string, domainId: string) {
+        const res = await k3s.network.listNamespacedIngress(projectId);
+        return res.body.items.find((item) => item.metadata?.name === `ingress-${appId}-${domainId}`);
     }
 
     async createOrUpdateIngress(app: AppExtendedModel) {
-        //const existingIngress = await this.getIngress(app.projectId, app.id);
-        const ingressDefinition: V1Ingress = {
-            apiVersion: 'networking.k8s.io/v1',
-            kind: 'Ingress',
-            metadata: {
-                name: `ingress-${app.id}`,
-                namespace: app.projectId,
-                annotations: {
-                    'cert-manager.io/cluster-issuer': 'letsencrypt-staging',
+        for (const domainObj of app.appDomains) {
+            const domain = domainObj.hostname;
+            const ingressName = `ingress-${app.id}-${domainObj.id}`;
+
+            const existingIngress = await this.getIngress(app.projectId, app.id, domainObj.id);
+
+            const ingressDefinition: V1Ingress = {
+                apiVersion: 'networking.k8s.io/v1',
+                kind: 'Ingress',
+                metadata: {
+                    name: ingressName,
+                    namespace: app.projectId,
+                    annotations: {
+                        ...(domainObj.useSsl === true && { 'cert-manager.io/cluster-issuer': 'letsencrypt-production' }),
+                    },
                 },
-            },
-            spec: {
-                ingressClassName: 'traefik',
-                rules: [
-                    {
-                        host: `shelby.meyer-net.ch`,
-                        http: {
-                            paths: [
-                                {
-                                    path: '/',
-                                    pathType: 'Prefix',
-                                    backend: {
-                                        service: {
-                                            name: StringUtils.toServiceName(app.id),
-                                            port: {
-                                                number: app.defaultPort,
+                spec: {
+                    ingressClassName: 'traefik',
+                    rules: [
+                        {
+                            host: domain,
+                            http: {
+                                paths: [
+                                    {
+                                        path: '/',
+                                        pathType: 'Prefix',
+                                        backend: {
+                                            service: {
+                                                name: StringUtils.toServiceName(app.id),
+                                                port: {
+                                                    number: app.defaultPort,
+                                                },
                                             },
                                         },
                                     },
-                                },
-                            ],
+                                ],
+                            },
                         },
-                    },
-                ],
-                tls: [
-                    {
-                        hosts: [`shelby.meyer-net.ch`],
-                        secretName: `secret-tls-${app.id}`,
-                    },
-                ],
-            },
-        };
+                    ],
+                    ...(domainObj.useSsl === true && {
+                        tls: [
+                            {
+                                hosts: [domain],
+                                secretName: `secret-tls-${app.id}-${domainObj.id}`,
+                            },
+                        ],
+                    }),
+                },
+            };
 
-        await k3s.network.createNamespacedIngress(app.projectId, ingressDefinition);
-        /*if (existingIngress) {
-            await k3s.network.replaceNamespacedIngress(`ingress-${app.id}`, app.projectId, ingressDefinition);
-        } else {
-            await k3s.network.createNamespacedIngress(app.projectId, ingressDefinition);
-        }*/
+            if (existingIngress) {
+                await k3s.network.replaceNamespacedIngress(ingressName, app.projectId, ingressDefinition);
+                console.log(`Ingress ${ingressName} für Domain ${domain} erfolgreich aktualisiert.`);
+            } else {
+                await k3s.network.createNamespacedIngress(app.projectId, ingressDefinition);
+                console.log(`Ingress ${ingressName} für Domain ${domain} erfolgreich erstellt.`);
+            }
+        }
+
+        await this.deleteObsoleteIngresses(app);
     }
 
     async createPersistentVolumeClaim(app: AppExtendedModel) {
