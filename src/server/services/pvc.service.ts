@@ -1,6 +1,8 @@
 import { AppExtendedModel } from "@/model/app-extended.model";
 import k3s from "../adapter/kubernetes-api.adapter";
-import {  V1PersistentVolumeClaim } from "@kubernetes/client-node";
+import { V1PersistentVolumeClaim } from "@kubernetes/client-node";
+import { ServiceException } from "@/model/service.exception.model";
+import { AppVolume } from "@prisma/client";
 
 class PvcService {
 
@@ -76,6 +78,11 @@ class PvcService {
                 await k3s.core.replaceNamespacedPersistentVolumeClaim(pvcName, app.projectId, existingPvc);
                 console.log(`Updated PVC ${pvcName} for app ${app.id}`);
 
+                // wait until persisten volume ist resized
+                console.log(`Waiting for PV ${existingPvc.spec!.volumeName} to be resized`);
+
+                await this.waitUntilPvResized(existingPvc.spec!.volumeName!, appVolume.size);
+                console.log(`PV ${existingPvc.spec!.volumeName} resized to ${appVolume.size}Gi`);
             } else {
                 await k3s.core.createNamespacedPersistentVolumeClaim(app.projectId, pvcDefinition);
                 console.log(`Created PVC ${pvcName} for app ${app.id}`);
@@ -99,6 +106,20 @@ class PvcService {
             }));
 
         return { volumes, volumeMounts };
+    }
+
+    private async waitUntilPvResized(persistentVolumeName: string, size: number) {
+        let iterationCount = 0;
+        let pv = await k3s.core.readPersistentVolume(persistentVolumeName);
+        while (pv.body.spec!.capacity!.storage !== `${size}Gi`) {
+            if (iterationCount > 30) {
+                console.error(`Timeout: PV ${persistentVolumeName} not resized to ${size}Gi`);
+                throw new ServiceException(`Timeout: Volume could not be resized to ${size}Gi`);
+            }
+            await new Promise(resolve => setTimeout(resolve, 3000)); // wait 5 Seconds, so that the PV is resized
+            pv = await k3s.core.readPersistentVolume(persistentVolumeName);
+            iterationCount++;
+        }
     }
 }
 

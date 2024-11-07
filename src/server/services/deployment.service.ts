@@ -9,6 +9,7 @@ import { ServiceException } from "@/model/service.exception.model";
 import { PodsInfoModel } from "@/model/pods-info.model";
 import { StringUtils } from "../utils/string.utils";
 import pvcService from "./pvc.service";
+import ingressService from "./ingress.service";
 
 class DeploymentService {
 
@@ -87,7 +88,6 @@ class DeploymentService {
         } else {
             await k3s.core.createNamespacedService(app.projectId, body);
         }
-        await this.createOrUpdateIngress(app);
 
     }
 
@@ -101,7 +101,7 @@ class DeploymentService {
         await this.validateDeployment(app);
         await this.createNamespaceIfNotExists(app.projectId);
         if (await pvcService.doesAppConfigurationIncreaseAnyPvcSize(app)) {
-            await this.setReplicasForDeployment(app.projectId, app.id, 0); // update of PVCs is only possible if deployment is scaled down
+           // await this.setReplicasForDeployment(app.projectId, app.id, 0); // update of PVCs is only possible if deployment is scaled down
         }
         const { volumes, volumeMounts } = await pvcService.createOrUpdatePvc(app);
 
@@ -174,6 +174,7 @@ class DeploymentService {
         }
         await pvcService.deleteUnusedPvcOfApp(app);
         await this.createOrUpdateService(app);
+        await ingressService.createOrUpdateIngress(app);
     }
 
     async setReplicasForDeployment(projectId: string, appId: string, replicas: number) {
@@ -220,108 +221,6 @@ class DeploymentService {
         } as PodsInfoModel;
     }
 
-
-    async getAllIngressForApp(projectId: string, appId: string) {
-        const res = await k3s.network.listNamespacedIngress(projectId);
-        return res.body.items.filter((item) => item.metadata?.name?.startsWith(`ingress-${appId}`));
-    }
-
-    async getIngress(projectId: string, appId: string, domainId: string) {
-        const res = await k3s.network.listNamespacedIngress(projectId);
-        return res.body.items.find((item) => item.metadata?.name === `ingress-${appId}-${domainId}`);
-    }
-
-    async deleteObsoleteIngresses(app: AppExtendedModel) {
-        const currentDomains = new Set(app.appDomains.map(domainObj => domainObj.hostname));
-        const existingIngresses = await this.getAllIngressForApp(app.projectId, app.id);
-
-        if (currentDomains.size === 0) {
-            for (const ingress of existingIngresses) {
-                try {
-                    await k3s.network.deleteNamespacedIngress(ingress.metadata!.name!, app.projectId);
-                    console.log(`Alle Ingress-Konfigurationen für die App ${app.id} erfolgreich gelöscht.`);
-                } catch (error) {
-                    console.error(`Fehler beim Löschen des Ingress ${ingress.metadata!.name}:`, error);
-                }
-            }
-        } else {
-            for (const ingress of existingIngresses) {
-                const ingressDomain = ingress.spec?.rules?.[0]?.host;
-
-                if (ingressDomain && !currentDomains.has(ingressDomain)) {
-                    try {
-                        await k3s.network.deleteNamespacedIngress(ingress.metadata!.name!, app.projectId);
-                        console.log(`Ingress ${ingress.metadata!.name} für Domain ${ingressDomain} erfolgreich gelöscht.`);
-                    } catch (error) {
-                        console.error(`Fehler beim Löschen des Ingress ${ingress.metadata!.name} für Domain ${ingressDomain}:`, error);
-                    }
-                }
-            }
-        }
-    }
-
-    async createOrUpdateIngress(app: AppExtendedModel) {
-        for (const domainObj of app.appDomains) {
-            const domain = domainObj.hostname;
-            const ingressName = `ingress-${app.id}-${domainObj.id}`;
-
-            const existingIngress = await this.getIngress(app.projectId, app.id, domainObj.id);
-
-            const ingressDefinition: V1Ingress = {
-                apiVersion: 'networking.k8s.io/v1',
-                kind: 'Ingress',
-                metadata: {
-                    name: ingressName,
-                    namespace: app.projectId,
-                    annotations: {
-                        ...(domainObj.useSsl === true && { 'cert-manager.io/cluster-issuer': 'letsencrypt-production' }),
-                    },
-                },
-                spec: {
-                    ingressClassName: 'traefik',
-                    rules: [
-                        {
-                            host: domain,
-                            http: {
-                                paths: [
-                                    {
-                                        path: '/',
-                                        pathType: 'Prefix',
-                                        backend: {
-                                            service: {
-                                                name: StringUtils.toServiceName(app.id),
-                                                port: {
-                                                    number: app.defaultPort,
-                                                },
-                                            },
-                                        },
-                                    },
-                                ],
-                            },
-                        },
-                    ],
-                    ...(domainObj.useSsl === true && {
-                        tls: [
-                            {
-                                hosts: [domain],
-                                secretName: `secret-tls-${app.id}-${domainObj.id}`,
-                            },
-                        ],
-                    }),
-                },
-            };
-
-            if (existingIngress) {
-                await k3s.network.replaceNamespacedIngress(ingressName, app.projectId, ingressDefinition);
-                console.log(`Ingress ${ingressName} für Domain ${domain} erfolgreich aktualisiert.`);
-            } else {
-                await k3s.network.createNamespacedIngress(app.projectId, ingressDefinition);
-                console.log(`Ingress ${ingressName} für Domain ${domain} erfolgreich erstellt.`);
-            }
-        }
-
-        await this.deleteObsoleteIngresses(app);
-    }
 
     /**
      * Searches for Build Jobs (only for Git Projects) and ReplicaSets (for all projects) and returns a list of DeploymentModel
