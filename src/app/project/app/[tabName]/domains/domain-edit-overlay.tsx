@@ -54,6 +54,7 @@ export default function DialogEditDialog({ children, domain, appId }: { children
         FormUtils.mapValidationErrorsToForm<typeof appDomainEditZodModel>(state, form);
     }, [state]);
 
+    const values = form.watch();
 
     return (
         <>
@@ -102,6 +103,7 @@ export default function DialogEditDialog({ children, domain, appId }: { children
                                 />
 
                                 <CheckboxFormField form={form} name="useSsl" label="use HTTPS" />
+                                {values.useSsl && <CheckboxFormField form={form} name="redirectHttps" label="Redirect HTTP to HTTPS" />}
                                 <p className="text-red-500">{state.message}</p>
                                 <SubmitButton>Save</SubmitButton>
                             </div>

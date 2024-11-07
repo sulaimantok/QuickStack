@@ -4,6 +4,7 @@ import { z } from "zod";
 export const appDomainEditZodModel = z.object({
   hostname: z.string().trim().min(1),
   useSsl: stringToBoolean,
+  redirectHttps: stringToBoolean,
   port: stringToNumber,
 })
 

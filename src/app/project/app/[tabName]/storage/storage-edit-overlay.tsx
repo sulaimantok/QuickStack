@@ -111,7 +111,7 @@ export default function DialogEditDialog({ children, volume, appId }: { children
                   name="size"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>Size in GB</FormLabel>
+                      <FormLabel>Size in MB</FormLabel>
                       <FormControl>
                         <Input type="number" placeholder="ex. 20" {...field} />
                       </FormControl>

@@ -12,7 +12,7 @@ class PvcService {
         for (const appVolume of app.appVolumes) {
             const pvcName = `pvc-${app.id}-${appVolume.id}`;
             const existingPvc = existingPvcs.find(pvc => pvc.metadata?.name === pvcName);
-            if (existingPvc && existingPvc.spec!.resources!.requests!.storage !== `${appVolume.size}Gi`) {
+            if (existingPvc && existingPvc.spec!.resources!.requests!.storage !== `${appVolume.size}Mi`) {
                 return true;
             }
         }
@@ -60,7 +60,7 @@ class PvcService {
                     storageClassName: 'longhorn',
                     resources: {
                         requests: {
-                            storage: `${appVolume.size}Gi`,
+                            storage: `${appVolume.size}Mi`,
                         },
                     },
                 },
@@ -68,13 +68,13 @@ class PvcService {
 
             const existingPvc = existingPvcs.find(pvc => pvc.metadata?.name === pvcName);
             if (existingPvc) {
-                if (existingPvc.spec!.resources!.requests!.storage === `${appVolume.size}Gi`) {
+                if (existingPvc.spec!.resources!.requests!.storage === `${appVolume.size}Mi`) {
                     console.log(`PVC ${pvcName} for app ${app.id} already exists with the same size`);
                     continue;
                 }
                 // Only the Size of PVC can be updated, so we need to delete and recreate the PVC
                 // update PVC size
-                existingPvc.spec!.resources!.requests!.storage = `${appVolume.size}Gi`;
+                existingPvc.spec!.resources!.requests!.storage = `${appVolume.size}Mi`;
                 await k3s.core.replaceNamespacedPersistentVolumeClaim(pvcName, app.projectId, existingPvc);
                 console.log(`Updated PVC ${pvcName} for app ${app.id}`);
 
@@ -82,7 +82,7 @@ class PvcService {
                 console.log(`Waiting for PV ${existingPvc.spec!.volumeName} to be resized`);
 
                 await this.waitUntilPvResized(existingPvc.spec!.volumeName!, appVolume.size);
-                console.log(`PV ${existingPvc.spec!.volumeName} resized to ${appVolume.size}Gi`);
+                console.log(`PV ${existingPvc.spec!.volumeName} resized to ${appVolume.size}Mi`);
             } else {
                 await k3s.core.createNamespacedPersistentVolumeClaim(app.projectId, pvcDefinition);
                 console.log(`Created PVC ${pvcName} for app ${app.id}`);
@@ -111,10 +111,10 @@ class PvcService {
     private async waitUntilPvResized(persistentVolumeName: string, size: number) {
         let iterationCount = 0;
         let pv = await k3s.core.readPersistentVolume(persistentVolumeName);
-        while (pv.body.spec!.capacity!.storage !== `${size}Gi`) {
+        while (pv.body.spec!.capacity!.storage !== `${size}Mi`) {
             if (iterationCount > 30) {
-                console.error(`Timeout: PV ${persistentVolumeName} not resized to ${size}Gi`);
-                throw new ServiceException(`Timeout: Volume could not be resized to ${size}Gi`);
+                console.error(`Timeout: PV ${persistentVolumeName} not resized to ${size}Mi`);
+                throw new ServiceException(`Timeout: Volume could not be resized to ${size}Mi`);
             }
             await new Promise(resolve => setTimeout(resolve, 3000)); // wait 5 Seconds, so that the PV is resized
             pv = await k3s.core.readPersistentVolume(persistentVolumeName);

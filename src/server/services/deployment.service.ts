@@ -100,17 +100,18 @@ class DeploymentService {
     async createDeployment(app: AppExtendedModel, buildJobName?: string) {
         await this.validateDeployment(app);
         await this.createNamespaceIfNotExists(app.projectId);
-        if (await pvcService.doesAppConfigurationIncreaseAnyPvcSize(app)) {
-           // await this.setReplicasForDeployment(app.projectId, app.id, 0); // update of PVCs is only possible if deployment is scaled down
+        const appHasPvcChanges = await pvcService.doesAppConfigurationIncreaseAnyPvcSize(app)
+        if (appHasPvcChanges) {
+            await this.setReplicasForDeployment(app.projectId, app.id, 0); // update of PVCs is only possible if deployment is scaled down
+            await new Promise(resolve => setTimeout(resolve, 5000));
         }
         const { volumes, volumeMounts } = await pvcService.createOrUpdatePvc(app);
 
-        const envVars = app.envVars
-            ? app.envVars.split(',').map(env => {
-                const [name, value] = env.split('=');
-                return { name, value };
-            })
-            : [];
+        const envVars = app.envVars ? app.envVars.split('\n').filter(x => !!x).map(env => {
+            const [name] = env.split('=');
+            const value = env.replace(`${name}=`, '');
+            return { name, value };
+        }) : [];
 
         const existingDeployment = await this.getDeployment(app.projectId, app.id);
         const body: V1Deployment = {
@@ -153,7 +154,7 @@ class DeploymentService {
             body.spec!.template!.metadata!.annotations!.buildJobName = buildJobName; // add buildJobName to deployment
         }
 
-        if (app.appVolumes.length === 0 || app.appVolumes.every(vol => vol.accessMode === 'ReadWriteMany')) {
+        if (!appHasPvcChanges && app.appVolumes.length === 0 || app.appVolumes.every(vol => vol.accessMode === 'ReadWriteMany')) {
             body.spec!.strategy = {
                 type: 'RollingUpdate',
                 rollingUpdate: {
@@ -174,7 +175,7 @@ class DeploymentService {
         }
         await pvcService.deleteUnusedPvcOfApp(app);
         await this.createOrUpdateService(app);
-        await ingressService.createOrUpdateIngress(app);
+        await ingressService.createOrUpdateIngressForApp(app);
     }
 
     async setReplicasForDeployment(projectId: string, appId: string, replicas: number) {

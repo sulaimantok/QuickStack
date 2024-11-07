@@ -42,7 +42,7 @@ export default function StorageList({ app }: {
                     <TableHeader>
                         <TableRow>
                             <TableHead>Mount Path</TableHead>
-                            <TableHead>Size in GB</TableHead>
+                            <TableHead>Size in MB</TableHead>
                             <TableHead>Access Mode</TableHead>
                             <TableHead className="w-[100px]">Action</TableHead>
                         </TableRow>

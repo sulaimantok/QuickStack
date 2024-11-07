@@ -51,6 +51,7 @@ export default function DomainsList({ app }: {
                             <TableHead>Name</TableHead>
                             <TableHead>Port</TableHead>
                             <TableHead>SSL</TableHead>
+                            <TableHead>Redirect HTTP to HTTPS</TableHead>
                             <TableHead className="w-[100px]">Action</TableHead>
                         </TableRow>
                     </TableHeader>
@@ -60,6 +61,7 @@ export default function DomainsList({ app }: {
                                 <TableCell className="font-medium">{domain.hostname}</TableCell>
                                 <TableCell className="font-medium">{domain.port}</TableCell>
                                 <TableCell className="font-medium">{domain.useSsl ? <CheckIcon /> : <XIcon />}</TableCell>
+                                <TableCell className="font-medium">{domain.useSsl && domain.redirectHttps ? <CheckIcon /> : <XIcon />}</TableCell>
                                 <TableCell className="font-medium flex gap-2">
                                     <DialogEditDialog appId={app.id} domain={domain}>
                                         <Button variant="ghost"><EditIcon /></Button>

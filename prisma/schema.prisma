@@ -155,12 +155,13 @@ model App {
 }
 
 model AppDomain {
-  id       String  @id @default(uuid())
-  hostname String  @unique
-  port     Int
-  useSsl   Boolean @default(true)
-  appId    String
-  app      App     @relation(fields: [appId], references: [id])
+  id            String  @id @default(uuid())
+  hostname      String  @unique
+  port          Int
+  useSsl        Boolean @default(true)
+  redirectHttps Boolean @default(true)
+  appId         String
+  app           App     @relation(fields: [appId], references: [id])
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt

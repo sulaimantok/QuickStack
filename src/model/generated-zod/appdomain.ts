@@ -7,6 +7,7 @@ export const AppDomainModel = z.object({
   hostname: z.string(),
   port: z.number().int(),
   useSsl: z.boolean(),
+  redirectHttps: z.boolean(),
   appId: z.string(),
   createdAt: z.date(),
   updatedAt: z.date(),
