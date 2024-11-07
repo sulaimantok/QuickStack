@@ -8,6 +8,7 @@ import { BuildJobStatus } from "@/model/build-job";
 import { ServiceException } from "@/model/service.exception.model";
 import { PodsInfoModel } from "@/model/pods-info.model";
 import { StringUtils } from "../utils/string.utils";
+import pvcService from "./pvc.service";
 
 class DeploymentService {
 
@@ -53,14 +54,17 @@ class DeploymentService {
         const existingService = await this.getService(app.projectId, app.id);
         // port configuration with removed duplicates
         const ports: {
+            name: string;
             port: number;
             targetPort: number;
         }[] = [
             ...app.appDomains.map((domain) => ({
+                name: `custom-${domain.id}`,
                 port: domain.port,
                 targetPort: domain.port
             })),
             {
+                name: 'default',
                 port: app.defaultPort,
                 targetPort: app.defaultPort
             }
@@ -87,41 +91,33 @@ class DeploymentService {
 
     }
 
+    async validateDeployment(app: AppExtendedModel) {
+        if (app.replicas > 1 && app.appVolumes.every(vol => vol.accessMode === 'ReadWriteOnce')) {
+            throw new ServiceException("Deployment with more than one replica is not possible if access mode of one volume is ReadWriteOnce.");
+        }
+    }
+
     async createDeployment(app: AppExtendedModel, buildJobName?: string) {
+        await this.validateDeployment(app);
         await this.createNamespaceIfNotExists(app.projectId);
-        await this.createOrUpdatePvc(app);
+        if (await pvcService.doesAppConfigurationIncreaseAnyPvcSize(app)) {
+            await this.setReplicasForDeployment(app.projectId, app.id, 0); // update of PVCs is only possible if deployment is scaled down
+        }
+        const { volumes, volumeMounts } = await pvcService.createOrUpdatePvc(app);
 
         const envVars = app.envVars
-        ? app.envVars.split(',').map(env => {
-            const [name, value] = env.split('=');
-            return { name, value };
-        })
-        : [];
-
-        const volumes = app.appVolumes
-            .filter(pvcObj => pvcObj.appId === app.id)
-            .map(pvcObj => ({
-            name: `pvc-${app.id}-${pvcObj.id}`,
-            persistentVolumeClaim: {
-                claimName: `pvc-${app.id}-${pvcObj.id}`,
-            },
-        }));
-
-        const volumeMounts = app.appVolumes
-            .filter(pvcObj => pvcObj.appId === app.id)
-            .map(pvcObj => ({
-            name: `pvc-${app.id}-${pvcObj.id}`,
-            mountPath: pvcObj.containerMountPath,
-        }));
+            ? app.envVars.split(',').map(env => {
+                const [name, value] = env.split('=');
+                return { name, value };
+            })
+            : [];
 
         const existingDeployment = await this.getDeployment(app.projectId, app.id);
         const body: V1Deployment = {
             metadata: {
                 name: app.id,
-
             },
             spec: {
-                // strategy: 'rollingUpdate',
                 replicas: app.replicas,
                 selector: {
                     matchLabels: {
@@ -156,11 +152,27 @@ class DeploymentService {
         if (buildJobName) {
             body.spec!.template!.metadata!.annotations!.buildJobName = buildJobName; // add buildJobName to deployment
         }
+
+        if (app.appVolumes.length === 0 || app.appVolumes.every(vol => vol.accessMode === 'ReadWriteMany')) {
+            body.spec!.strategy = {
+                type: 'RollingUpdate',
+                rollingUpdate: {
+                    maxSurge: 1,
+                    maxUnavailable: 0
+                }
+            }
+        } else {
+            body.spec!.strategy = {
+                type: 'Recreate',
+            }
+        }
+
         if (existingDeployment) {
             const res = await k3s.apps.replaceNamespacedDeployment(app.id, app.projectId, body);
         } else {
             const res = await k3s.apps.createNamespacedDeployment(app.projectId, body);
         }
+        await pvcService.deleteUnusedPvcOfApp(app);
         await this.createOrUpdateService(app);
     }
 
@@ -223,30 +235,30 @@ class DeploymentService {
         const currentDomains = new Set(app.appDomains.map(domainObj => domainObj.hostname));
         const existingIngresses = await this.getAllIngressForApp(app.projectId, app.id);
 
-    if (currentDomains.size === 0) {
-        for (const ingress of existingIngresses) {
-            try {
-                await k3s.network.deleteNamespacedIngress(ingress.metadata!.name!, app.projectId);
-                console.log(`Alle Ingress-Konfigurationen für die App ${app.id} erfolgreich gelöscht.`);
-            } catch (error) {
-                console.error(`Fehler beim Löschen des Ingress ${ingress.metadata!.name}:`, error);
-            }
-        }
-    } else {
-        for (const ingress of existingIngresses) {
-            const ingressDomain = ingress.spec?.rules?.[0]?.host;
-
-            if (ingressDomain && !currentDomains.has(ingressDomain)) {
+        if (currentDomains.size === 0) {
+            for (const ingress of existingIngresses) {
                 try {
                     await k3s.network.deleteNamespacedIngress(ingress.metadata!.name!, app.projectId);
-                    console.log(`Ingress ${ingress.metadata!.name} für Domain ${ingressDomain} erfolgreich gelöscht.`);
+                    console.log(`Alle Ingress-Konfigurationen für die App ${app.id} erfolgreich gelöscht.`);
                 } catch (error) {
-                    console.error(`Fehler beim Löschen des Ingress ${ingress.metadata!.name} für Domain ${ingressDomain}:`, error);
+                    console.error(`Fehler beim Löschen des Ingress ${ingress.metadata!.name}:`, error);
+                }
+            }
+        } else {
+            for (const ingress of existingIngresses) {
+                const ingressDomain = ingress.spec?.rules?.[0]?.host;
+
+                if (ingressDomain && !currentDomains.has(ingressDomain)) {
+                    try {
+                        await k3s.network.deleteNamespacedIngress(ingress.metadata!.name!, app.projectId);
+                        console.log(`Ingress ${ingress.metadata!.name} für Domain ${ingressDomain} erfolgreich gelöscht.`);
+                    } catch (error) {
+                        console.error(`Fehler beim Löschen des Ingress ${ingress.metadata!.name} für Domain ${ingressDomain}:`, error);
+                    }
                 }
             }
         }
     }
-}
 
     async createOrUpdateIngress(app: AppExtendedModel) {
         for (const domainObj of app.appDomains) {
@@ -309,54 +321,6 @@ class DeploymentService {
         }
 
         await this.deleteObsoleteIngresses(app);
-    }
-
-    async getAllPvcForApp(projectId: string, appId: string) {
-        const res = await k3s.core.listNamespacedPersistentVolumeClaim(projectId);
-        return res.body.items.filter((item) => item.metadata?.name?.startsWith(`pvc-${appId}`));
-    }
-
-    async deleteAllPvcOfApp(app: AppExtendedModel) {
-        const existingPvc = await this.getAllPvcForApp(app.projectId, app.id);
-
-        for (const pvc of existingPvc) {
-            try {
-                await k3s.core.deleteNamespacedPersistentVolumeClaim(pvc.metadata!.name!, app.projectId);
-                console.log(`Alle PVC-Konfigurationen für die App ${app.id} erfolgreich gelöscht.`);
-            } catch (error) {
-                console.error(`Fehler beim Löschen der PVC ${pvc.metadata!.name}:`, error);
-            }
-        }
-    }
-
-    async createOrUpdatePvc(app: AppExtendedModel) {
-        // Delete all existing PVCs for the app, need to be done because PVCs are mutable
-        await this.deleteAllPvcOfApp(app);
-        for (const pvcObj of app.appVolumes) {
-            const pvcName = `pvc-${app.id}-${pvcObj.id}`;
-
-            const pvcDefinition: V1PersistentVolumeClaim = {
-                apiVersion: 'v1',
-                kind: 'PersistentVolumeClaim',
-                metadata: {
-                    name: pvcName,
-                    namespace: app.projectId,
-                },
-                spec: {
-                    accessModes: [pvcObj.accessMode],
-                    storageClassName: 'longhorn',
-                    resources: {
-                        requests: {
-                            storage: `${pvcObj.size}Gi`,
-                        },
-                    },
-                },
-            };
-
-            await k3s.core.createNamespacedPersistentVolumeClaim(app.projectId, pvcDefinition);
-            console.log(`PVC ${pvcName} für App ${app.id} erfolgreich erstellt.`);
-
-        }
     }
 
     /**

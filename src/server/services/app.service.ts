@@ -161,6 +161,14 @@ class AppService {
         }
     }
 
+    async getVolumeById(id: string) {
+        return await dataAccess.client.appVolume.findFirst({
+            where: {
+                id
+            }
+        });
+    }
+
     async saveVolume(volumeToBeSaved: Prisma.AppVolumeUncheckedCreateInput | Prisma.AppVolumeUncheckedUpdateInput) {
         let savedItem: AppVolume;
         const existingApp = await this.getExtendedById(volumeToBeSaved.appId as string);

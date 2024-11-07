@@ -6,21 +6,23 @@ export class Toast {
 
         return new Promise<ServerActionResult<A, B>>(async (resolve, reject) => {
             toast.promise(async () => {
-                return await action();
+                const retVal = await action();
+                if (!retVal || (retVal as ServerActionResult<A, B>).status !== 'success') {
+                    throw new Error(retVal?.message ?? 'An unknown error occurred.');
+                }
+                return retVal;
             }, {
                 loading: 'laden...',
-                success: (result) => {
+                success: (result: ServerActionResult<A, B>) => {
                     resolve(result);
-                    if (result.status === 'success') {
-                        return result.message;
-                    }
+                    return result.message ?? 'Operation successful';
                 },
                 error: (error) => {
                     reject(error);
                     if (error.message) {
-                        return 'Fehler: ' + error.message;
+                        return 'Error: ' + error.message;
                     }
-                    return 'Ein unbekannter Fehler ist aufgetreten';
+                    return 'An unknown error occurred';
                 }
             });
         });
