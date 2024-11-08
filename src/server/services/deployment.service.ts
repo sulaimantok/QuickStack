@@ -209,6 +209,7 @@ class DeploymentService {
     async getDeploymentHistory(projectId: string, appId: string): Promise<DeploymentInfoModel[]> {
         const replicasetRevisions = await this.getReplicasetRevisionHistory(projectId, appId);
         const builds = await buildService.getBuildsForApp(appId);
+        // adding running or failed builds as "Deployment" to the list
         const runningOrFailedBuilds = builds
             .filter((build) => ['RUNNING', 'FAILED', 'UNKNOWN'].includes(build.status))
             .map((build) => {
@@ -265,7 +266,7 @@ class DeploymentService {
             return {
                 replicasetName: rs.metadata?.name!,
                 createdAt: rs.metadata?.creationTimestamp!,
-                buildJobName: rs.metadata?.annotations?.buildJobName!,
+                buildJobName: rs.spec?.template?.metadata?.annotations?.buildJobName!,
                 status: status
             }
         });

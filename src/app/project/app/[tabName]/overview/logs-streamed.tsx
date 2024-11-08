@@ -1,5 +1,4 @@
 import { useEffect, useRef, useState } from "react";
-import { podLogsSocket } from "@/lib/sockets";
 import { Textarea } from "@/components/ui/textarea";
 import React from "react";
 
@@ -13,54 +12,59 @@ export default function LogsStreamed({
     buildJobName?: string;
 }) {
     const [isConnected, setIsConnected] = useState(false);
-    const [transport, setTransport] = useState("N/A");
     const [logs, setLogs] = useState<string>('');
     const textAreaRef = useRef<HTMLTextAreaElement>(null);
 
-    function onConnect() {
-        setIsConnected(true);
-        setTransport(podLogsSocket.io.engine.transport.name);
 
-        podLogsSocket.io.engine.on("upgrade", (transport) => {
-            setTransport(transport.name);
+
+    const initializeConnection = async (controller: AbortController) => {
+        // Initiate the first call to connect to SSE API
+
+        setLogs('Loading...');
+
+        const signal = controller.signal;
+        const apiResponse = await fetch('/api/pod-logs', {
+            method: "POST",
+            headers: {
+                "Content-Type": "text/event-stream",
+            },
+            body: JSON.stringify({ namespace, podName, buildJobName }),
+            signal: signal,
         });
-    }
 
-    function onDisconnect() {
-        setIsConnected(false);
-        setTransport("N/A");
-    }
+        if (!apiResponse.ok) return;
+        if (!apiResponse.body) return;
+        setIsConnected(true);
 
-    const myListener = (e: string) => {
-        setLogs((prevLogs) => prevLogs + e);
+        // To decode incoming data as a string
+        const reader = apiResponse.body
+            .pipeThrough(new TextDecoderStream())
+            .getReader();
+
+        setLogs('');
+        while (true) {
+            const { value, done } = await reader.read();
+            if (done) {
+                setIsConnected(false);
+                break;
+            }
+            if (value) {
+                setLogs((prevLogs) => prevLogs + value);
+            }
+        }
     }
 
     useEffect(() => {
         if (!buildJobName && (!namespace || !podName)) {
             return;
         }
-        const streamKey = buildJobName ? buildJobName : `${namespace}_${podName}`;
-        console.log('Connecting to logs ' + streamKey);
+        const controller = new AbortController();
+        initializeConnection(controller);
 
-        if (podLogsSocket.connected) {
-            onConnect();
-        }
-
-        podLogsSocket.emit('joinPodLog', { namespace, podName, buildJobName });
-
-        podLogsSocket.on("connect", onConnect);
-        podLogsSocket.on("disconnect", onDisconnect);
-        podLogsSocket.on(streamKey, myListener);
         return () => {
-            if (!podName) {
-                return;
-            }
-            console.log('Disconnecting from logs ' + streamKey);
-            podLogsSocket.emit('leavePodLog', { streamKey: streamKey });
+            console.log('Disconnecting from logs');
             setLogs('');
-            podLogsSocket.off("connect", onConnect);
-            podLogsSocket.off("disconnect", onDisconnect);
-            podLogsSocket.off(streamKey, myListener);
+            controller.abort();
         };
     }, [namespace, podName, buildJobName]);
 
@@ -72,7 +76,9 @@ export default function LogsStreamed({
     }, [logs]);
 
     return <>
-        <Textarea ref={textAreaRef} value={logs} readOnly className="h-[400px] bg-slate-900 text-white" />
-        <div className="text-sm pl-1">Status: {isConnected ? 'Connected' : 'Disconnected'}</div>
+        <div className="space-y-4">
+            <Textarea ref={textAreaRef} value={logs} readOnly className="h-[400px] bg-slate-900 text-white" />
+            <div className="text-sm pl-1">Status: {isConnected ? 'Connected' : 'Disconnected'}</div>
+        </div>
     </>;
 }

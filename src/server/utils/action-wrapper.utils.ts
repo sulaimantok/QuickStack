@@ -28,22 +28,7 @@ export async function getAuthUserSession(): Promise<UserSession> {
     }
     return session;
 }
-/*
-export async function checkIfCurrentUserHasAccessToContract(contractId: string | null | undefined) {
-    const session = await getLandlordSession();
-    if (!contractId) {
-        return { ...session };
-    }
-    const currentLandlordIdIfExists = await rentalContractService.getCurrentLandlordIdForContract(contractId);
-    if (!currentLandlordIdIfExists) {
-        throw new ServiceException('Objekt nicht gefunden.');
-    }
-    if (currentLandlordIdIfExists !== session.landlordId) {
-        throw new ServiceException('Sie haben keine Berechtigung, dieses Objekt zu bearbeiten.');
-    }
-    return { ...session };
-}
-*/
+
 export async function saveFormAction<ReturnType, TInputData, ZodType extends ZodRawShape>(
     inputData: TInputData,
     validationModel: ZodObject<ZodType>,
@@ -70,21 +55,6 @@ export async function saveFormAction<ReturnType, TInputData, ZodType extends Zod
         }
         return await func(validatedFields.data);
     }, redirectOnSuccessPath);
-}
-
-function convertFormDataToJson(formData: FormData) {
-    const jsonObject: { [key: string]: any } = {};
-    formData.forEach((value, key) => {
-        if (key.startsWith('$ACTION')) {
-            return;
-        }
-        if (value === '') {
-            jsonObject[key] = null;
-        } else {
-            jsonObject[key] = value;
-        }
-    });
-    return jsonObject;
 }
 
 export async function simpleAction<ReturnType, ValidationCallbackType>(
@@ -127,4 +97,32 @@ export async function simpleAction<ReturnType, ValidationCallbackType>(
         status: 'success',
         data: funcResult ?? undefined
     } as ServerActionResult<ValidationCallbackType, ReturnType>;
+}
+
+
+export async function simpleRoute<ReturnType>(
+    func: () => Promise<ReturnType>) {
+    let funcResult: ReturnType;
+    try {
+        funcResult = await func();
+    } catch (ex) {
+        if (ex instanceof FormValidationException) {
+            return {
+                status: 'error',
+                message: ex.message
+            };
+        } else if (ex instanceof ServiceException) {
+            return {
+                status: 'error',
+                message: ex.message
+            };
+        } else {
+            console.error(ex)
+            return {
+                status: 'error',
+                message: 'An unknown error occurred.'
+            };
+        }
+    }
+    return funcResult;
 }

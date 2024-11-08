@@ -14,7 +14,7 @@ import React, { useEffect } from "react";
 import { set } from "date-fns";
 import { DeploymentInfoModel } from "@/model/deployment-info.model";
 import LogsStreamed from "./logs-streamed";
-import { formatDate } from "@/lib/format.utils";
+import { formatDate, formatDateTime } from "@/lib/format.utils";
 import { podLogsSocket } from "@/lib/sockets";
 
 export function BuildLogsDialog({
@@ -34,14 +34,14 @@ export function BuildLogsDialog({
       podLogsSocket.emit('leavePodLog', { streamKey: deploymentInfo.buildJobName });
       onClose();
     }}>
-      <DialogContent className="w-[70%]">
+      <DialogContent className="sm:max-w-[1300px]">
         <DialogHeader>
           <DialogTitle>Build Logs</DialogTitle>
           <DialogDescription>
-            View the build logs for the selected deployment {formatDate(deploymentInfo.createdAt)}.
+            View the build logs for the selected deployment {formatDateTime(deploymentInfo.createdAt)}.
           </DialogDescription>
         </DialogHeader>
-        <div className="grid gap-4 py-4">
+        <div >
           {!deploymentInfo.buildJobName && 'For this build is no log available'}
           {deploymentInfo.buildJobName && <LogsStreamed buildJobName={deploymentInfo.buildJobName} />}
         </div>
