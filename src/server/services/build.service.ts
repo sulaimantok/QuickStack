@@ -5,15 +5,17 @@ import { StringUtils } from "../utils/string.utils";
 import { BuildJobModel } from "@/model/build-job";
 import { ServiceException } from "@/model/service.exception.model";
 import { PodsInfoModel } from "@/model/pods-info.model";
+import namespaceService from "./namespace.service";
 
 const kanikoImage = "gcr.io/kaniko-project/executor:latest";
-export const registryURL = "registry-svc.registry-and-build.svc.cluster.local"
+export const registryURLExternal = "localhost:30100"
+export const registryURLInternal = "registry-svc.registry-and-build.svc.cluster.local:5000"
 export const buildNamespace = "registry-and-build";
 
 class BuildService {
 
     async buildApp(app: AppExtendedModel): Promise<[string, Promise<void>]> {
-
+        await this.deployRegistryIfNotExists();
         const runningJobsForApp = await this.getBuildsForApp(app.id);
         if (runningJobsForApp.some((job) => job.status === 'RUNNING')) {
             throw new ServiceException("A build job is already running for this app.");
@@ -35,9 +37,13 @@ class BuildService {
                             {
                                 name: buildName,
                                 image: kanikoImage,
-                                args: [`--dockerfile=${app.dockerfilePath}`,
-                                `--context=${app.gitUrl!.replace("https://", "git://")}#refs/heads/${app.gitBranch}`,
-                                `--destination=${this.createContainerRegistryUrlForAppId(app.id)}`]
+                                args: [
+                                    `--dockerfile=${app.dockerfilePath}`,
+                                    `--insecure`,
+                                    `--log-format=text`,
+                                    `--context=${app.gitUrl!.replace("https://", "git://")}#refs/heads/${app.gitBranch}`,
+                                    `--destination=${this.createInternalContainerRegistryUrlForAppId(app.id)}`
+                                ]
                             },
                         ],
                         restartPolicy: "Never",
@@ -60,18 +66,24 @@ class BuildService {
             ];
         }
         await k3s.batch.createNamespacedJob(buildNamespace, jobDefinition);
-        //revalidateTag(Tags.appBuilds(app.id));
 
         const buildJobPromise = this.waitForJobCompletion(jobDefinition.metadata!.name!)
 
         return [buildName, buildJobPromise];
     }
 
+    createInternalContainerRegistryUrlForAppId(appId?: string) {
+        if (!appId) {
+            return undefined;
+        }
+        return `${registryURLInternal}/${appId}:latest`;
+    }
+
     createContainerRegistryUrlForAppId(appId?: string) {
         if (!appId) {
             return undefined;
         }
-        return `${registryURL}/${appId}:latest`;
+        return `${registryURLExternal}/${appId}:latest`;
     }
 
     async deleteBuild(buildName: string) {
@@ -171,6 +183,123 @@ class BuildService {
         return 'UNKNOWN';
     }
 
+
+    async deployRegistryIfNotExists() {
+        const deployments = await k3s.apps.listNamespacedDeployment(buildNamespace);
+        if (deployments.body.items.length > 0) {
+            return;
+        }
+
+        console.log("Deploying registry because it is not deployed...");
+
+        // Create Namespace
+        console.log("Creating namespace...");
+        await namespaceService.createNamespaceIfNotExists(buildNamespace);
+
+        // Create PersistentVolumeClaim
+        console.log("Creating Registry PVC...");
+        const pvcManifest = {
+            apiVersion: 'v1',
+            kind: 'PersistentVolumeClaim',
+            metadata: {
+                name: 'registry-data-pvc',
+                namespace: buildNamespace,
+            },
+            spec: {
+                accessModes: ['ReadWriteOnce'],
+                storageClassName: 'longhorn',
+                resources: {
+                    requests: {
+                        storage: '5Gi',
+                    },
+                },
+            },
+        };
+
+        await k3s.core.createNamespacedPersistentVolumeClaim(buildNamespace, pvcManifest)
+
+        // Create Deployment
+        console.log("Creating Registry Deployment...");
+        const deploymentManifest = {
+            apiVersion: 'apps/v1',
+            kind: 'Deployment',
+            metadata: {
+                name: 'registry',
+                namespace: buildNamespace,
+            },
+            spec: {
+                replicas: 1,
+                strategy: {
+                    type: 'Recreate',
+                },
+                selector: {
+                    matchLabels: {
+                        app: 'registry',
+                    },
+                },
+                template: {
+                    metadata: {
+                        labels: {
+                            app: 'registry',
+                        },
+                    },
+                    spec: {
+                        containers: [
+                            {
+                                name: 'registry',
+                                image: 'registry:latest',
+                                volumeMounts: [
+                                    {
+                                        name: 'registry-data-pv',
+                                        mountPath: '/var/lib/registry',
+                                    },
+                                ],
+                            },
+                        ],
+                        volumes: [
+                            {
+                                name: 'registry-data-pv',
+                                persistentVolumeClaim: {
+                                    claimName: 'registry-data-pvc',
+                                },
+                            },
+                        ],
+                    },
+                },
+            },
+        };
+
+        await k3s.apps.createNamespacedDeployment(buildNamespace, deploymentManifest);
+
+        // Create Service
+        console.log("Creating Registry Service...");
+        const serviceManifest = {
+            apiVersion: 'v1',
+            kind: 'Service',
+            metadata: {
+                name: 'registry-svc',
+                namespace: buildNamespace,
+            },
+            spec: {
+                selector: {
+                    app: 'registry',
+                },
+                ports: [
+                    {
+                        nodePort: 30100,
+                        protocol: 'TCP',
+                        port: 5000,
+                        targetPort: 5000,
+                    },
+                ],
+                type: 'NodePort',
+            },
+        };
+
+        await k3s.core.createNamespacedService(buildNamespace, serviceManifest);
+
+        console.log("Registry deployed successfully.");
+    }
 }
 
 const buildService = new BuildService();

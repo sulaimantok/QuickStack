@@ -4,6 +4,7 @@ import { Tags } from "../utils/cache-tag-generator.utils";
 import { Prisma, Project } from "@prisma/client";
 import { StringUtils } from "../utils/string.utils";
 import deploymentService from "./deployment.service";
+import namespaceService from "./namespace.service";
 
 class ProjectService {
 
@@ -55,7 +56,7 @@ class ProjectService {
                     data: item as Prisma.ProjectUncheckedCreateInput
                 });
             }
-            await deploymentService.createNamespaceIfNotExists(savedItem.id);
+            await namespaceService.createNamespaceIfNotExists(savedItem.id);
         } finally {
             revalidateTag(Tags.projects());
         }

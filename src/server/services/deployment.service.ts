@@ -10,14 +10,9 @@ import { PodsInfoModel } from "@/model/pods-info.model";
 import { StringUtils } from "../utils/string.utils";
 import pvcService from "./pvc.service";
 import ingressService from "./ingress.service";
+import namespaceService from "./namespace.service";
 
 class DeploymentService {
-
-    async getNamespaces() {
-        const k3sResponse = await k3s.core.listNamespace();
-        return k3sResponse.body.items.map((item) => item.metadata?.name).filter((name) => !!name);
-    }
-
     async getDeployment(projectId: string, appId: string) {
         const allDeployments = await k3s.apps.listNamespacedDeployment(projectId);
         if (allDeployments.body.items.some((item) => item.metadata?.name === appId)) {
@@ -99,7 +94,7 @@ class DeploymentService {
 
     async createDeployment(app: AppExtendedModel, buildJobName?: string) {
         await this.validateDeployment(app);
-        await this.createNamespaceIfNotExists(app.projectId);
+        await namespaceService.createNamespaceIfNotExists(app.projectId);
         const appHasPvcChanges = await pvcService.doesAppConfigurationIncreaseAnyPvcSize(app)
         if (appHasPvcChanges) {
             await this.setReplicasForDeployment(app.projectId, app.id, 0); // update of PVCs is only possible if deployment is scaled down
@@ -185,25 +180,6 @@ class DeploymentService {
         }
         existingDeployment.spec!.replicas = replicas;
         return k3s.apps.replaceNamespacedDeployment(appId, projectId, existingDeployment);
-    }
-
-    async createNamespaceIfNotExists(namespace: string) {
-        const existingNamespaces = await this.getNamespaces();
-        if (existingNamespaces.includes(namespace)) {
-            return;
-        }
-        await k3s.core.createNamespace({
-            metadata: {
-                name: namespace
-            }
-        });
-    }
-
-    async deleteNamespace(namespace: string) {
-        const nameSpaces = await this.getNamespaces();
-        if (nameSpaces.includes(namespace)) {
-            await k3s.core.deleteNamespace(namespace);
-        }
     }
 
     async getPodsForApp(projectId: string, appId: string) {

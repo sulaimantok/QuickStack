@@ -8,6 +8,7 @@ import { ServiceException } from "@/model/service.exception.model";
 import { StringUtils } from "../utils/string.utils";
 import deploymentService from "./deployment.service";
 import buildService, { buildNamespace } from "./build.service";
+import namespaceService from "./namespace.service";
 
 class AppService {
 
@@ -15,7 +16,7 @@ class AppService {
         const app = await this.getExtendedById(appId);
         if (app.sourceType === 'GIT') {
             // first make build
-            await deploymentService.createNamespaceIfNotExists(buildNamespace);
+            await namespaceService.createNamespaceIfNotExists(buildNamespace);
             const [buildJobName, buildPromise] = await buildService.buildApp(app);
             buildPromise.then(async () => {
                 console.warn('Build job finished, deploying...');
