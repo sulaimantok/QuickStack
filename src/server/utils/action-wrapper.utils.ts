@@ -6,6 +6,7 @@ import { redirect } from "next/navigation";
 import { ServerActionResult } from "@/model/server-action-error-return.model";
 import { FormValidationException } from "@/model/form-validation-exception.model";
 import { authOptions } from "@/lib/auth-options";
+import { NextResponse } from "next/server";
 
 /**
  * THIS FUNCTION RETURNS NULL IF NO USER IS LOGGED IN
@@ -107,21 +108,21 @@ export async function simpleRoute<ReturnType>(
         funcResult = await func();
     } catch (ex) {
         if (ex instanceof FormValidationException) {
-            return {
+            return NextResponse.json({
                 status: 'error',
                 message: ex.message
-            };
+            });
         } else if (ex instanceof ServiceException) {
-            return {
+            return NextResponse.json({
                 status: 'error',
                 message: ex.message
-            };
+            });
         } else {
             console.error(ex)
-            return {
+            return NextResponse.json({
                 status: 'error',
                 message: 'An unknown error occurred.'
-            };
+            });
         }
     }
     return funcResult;
