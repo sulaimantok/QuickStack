@@ -14,7 +14,7 @@ class ProjectService {
             return;
         }
         try {
-            await deploymentService.deleteNamespace(existingItem.id);
+            await namespaceService.deleteNamespace(existingItem.id);
             await dataAccess.client.project.delete({
                 where: {
                     id

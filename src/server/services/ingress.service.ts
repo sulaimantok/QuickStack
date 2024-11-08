@@ -4,6 +4,9 @@ import { V1Ingress, V1PersistentVolumeClaim } from "@kubernetes/client-node";
 import { StringUtils } from "../utils/string.utils";
 import { AppDomain } from "@prisma/client";
 
+
+const traefikNamespace = 'kube-system';
+
 class IngressService {
 
     async getAllIngressForApp(projectId: string, appId: string) {
@@ -26,85 +29,28 @@ class IngressService {
 
         if (currentDomains.size === 0) {
             for (const ingress of existingIngresses) {
-                try {
-                    await k3s.network.deleteNamespacedIngress(ingress.metadata!.name!, app.projectId);
-                    console.log(`Alle Ingress-Konfigurationen für die App ${app.id} erfolgreich gelöscht.`);
-                } catch (error) {
-                    console.error(`Fehler beim Löschen des Ingress ${ingress.metadata!.name}:`, error);
-                }
+                await k3s.network.deleteNamespacedIngress(ingress.metadata!.name!, app.projectId);
+                console.log(`Deleted Ingress ${ingress.metadata!.name} for app ${app.id}`);
             }
         } else {
             for (const ingress of existingIngresses) {
                 const ingressDomain = ingress.spec?.rules?.[0]?.host;
 
                 if (ingressDomain && !currentDomains.has(ingressDomain)) {
-                    try {
-                        await k3s.network.deleteNamespacedIngress(ingress.metadata!.name!, app.projectId);
-                        console.log(`Ingress ${ingress.metadata!.name} für Domain ${ingressDomain} erfolgreich gelöscht.`);
-                    } catch (error) {
-                        console.error(`Fehler beim Löschen des Ingress ${ingress.metadata!.name} für Domain ${ingressDomain}:`, error);
-                    }
+                    await k3s.network.deleteNamespacedIngress(ingress.metadata!.name!, app.projectId);
+                    console.log(`Deleted Ingress ${ingress.metadata!.name} for domain ${ingressDomain}`);
                 }
             }
         }
     }
 
-    async middlewareForNamespaceAlreadyExists(namespace: string) {
-        const res = await k3s.customObjects.listNamespacedCustomObject(
-            'traefik.io', // group
-            'v1alpha1',             // version
-            namespace,              // namespace
-            'middlewares'            // plural name of the custom resource
-        );
-        console.log(res.body);
-        return (res.body as any) && (res.body as any)?.items && (res.body as any)?.items?.length > 0;
-    }
-
-    async createIfNotExistRedirectMiddlewareIngress(namespace: string) {
-        if (await this.middlewareForNamespaceAlreadyExists(namespace)) {
-            return;
-        }
-
-        const middlewareManifest = {
-            apiVersion: 'traefik.io/v1alpha1',
-            kind: 'Middleware',
-            metadata: {
-                name: 'redirect-to-https',
-                namespace,
-            },
-            spec: {
-                redirectScheme: {
-                    scheme: 'https',
-                    permanent: true,
-                }
-            },
-        };
-
-        await k3s.customObjects.createNamespacedCustomObject(
-            'traefik.io', // group
-            'v1alpha1',             // version
-            namespace,              // namespace
-            'middlewares',          // plural name of the custom resource
-            middlewareManifest      // object manifest
-        );
-
-    }
 
     async createOrUpdateIngressForApp(app: AppExtendedModel) {
 
-        await this.createIfNotExistRedirectMiddlewareIngress("kube-system");
+        await this.createTraefikRedirectMiddlewareIfNotExist();
 
         for (const domainObj of app.appDomains) {
             await this.createIngress(app, domainObj);
-            if (domainObj.useSsl && domainObj.redirectHttps) {
-                await this.createRedirectIngress(app, domainObj);
-            } else {
-                const redirectIngress = await this.getIngress(app.projectId, app.id, domainObj.id, true);
-                if (redirectIngress) {
-                    await k3s.network.deleteNamespacedIngress(redirectIngress.metadata!.name!, app.projectId);
-                    console.log(`Deleted redirect-Ingress for Domain ${domainObj.hostname}.`);
-                }
-            }
         }
 
         await this.deleteObsoleteIngresses(app);
@@ -123,9 +69,8 @@ class IngressService {
                 namespace: app.projectId,
                 annotations: {
                     ...(domain.useSsl === true && { 'cert-manager.io/cluster-issuer': 'letsencrypt-production' }),
-                    ...(domain.useSsl === true && { 'traefik.ingress.kubernetes.io/router.tls': 'true' }),
-                    ...(domain.useSsl === true && { 'traefik.ingress.kubernetes.io/router.entrypoints': 'websecure' }), // disable requests from http --> use separate ingress for redirect
-                    ...(domain.useSsl === false && { 'traefik.ingress.kubernetes.io/router.entrypoints': 'web' }), // disable requests from https
+                    ...(domain.useSsl && domain.redirectHttps && { 'traefik.ingress.kubernetes.io/router.middlewares': 'kube-system-redirect-to-https@kubernetescrd' }), // activate redirect middleware for https
+                    ...(domain.useSsl === false && { 'traefik.ingress.kubernetes.io/router.entrypoints': 'web' }), // disable requests from https --> only http
                 },
             },
             spec: {
@@ -165,65 +110,53 @@ class IngressService {
 
         if (existingIngress) {
             await k3s.network.replaceNamespacedIngress(ingressName, app.projectId, ingressDefinition);
-            console.log(`Ingress ${ingressName} für Domain ${hostname} erfolgreich aktualisiert.`);
+            console.log(`Ingress ${ingressName} for domain ${hostname} successfully updated.`);
         } else {
             await k3s.network.createNamespacedIngress(app.projectId, ingressDefinition);
-            console.log(`Ingress ${ingressName} für Domain ${hostname} erfolgreich erstellt.`);
+            console.log(`Ingress ${ingressName} for domain ${hostname} successfully created.`);
         }
     }
-    async createRedirectIngress(app: AppExtendedModel, domain: AppDomain) {
 
-        const ingressName = this.getIngressName(app.id, domain.id, true);
-        const existingRedirectIngress = await this.getIngress(app.projectId, app.id, domain.id, true);
 
-        // https://devopsx.com/traefik-ingress-redirect-http-to-https/
-        // https://aqibrahman.com/set-up-traefik-kubernetes-ingress-for-http-and-https-with-redirect-to-https
-        const ingressDefinition: V1Ingress = {
-            apiVersion: 'networking.k8s.io/v1',
-            kind: 'Ingress',
+    async checkIfTraefikRedirectMiddlewareExists() {
+        const res = await k3s.customObjects.listNamespacedCustomObject(
+            'traefik.io',            // group
+            'v1alpha1',              // version
+            traefikNamespace,        // namespace
+            'middlewares'            // plural name of the custom resource
+        );
+        return (res.body as any) && (res.body as any)?.items && (res.body as any)?.items?.length > 0;
+    }
+
+    async createTraefikRedirectMiddlewareIfNotExist() {
+        if (await this.checkIfTraefikRedirectMiddlewareExists()) {
+            return;
+        }
+
+        const middlewareManifest = {
+            apiVersion: 'traefik.io/v1alpha1',
+            kind: 'Middleware',
             metadata: {
-                name: ingressName,
-                namespace: app.projectId,
-                annotations: {
-                    'traefik.ingress.kubernetes.io/router.entrypoints': 'web',
-                    'traefik.ingress.kubernetes.io/router.middlewares': `kube-system-redirect-to-https@kubernetescrd`, // <namespace>-<middleware-name>@kubernetescrd
-                },
+                name: 'redirect-to-https',
+                traefikNamespace,
             },
             spec: {
-                ingressClassName: 'traefik',
-                rules: [
-                    {
-                        host: domain.hostname,
-                        http: {
-                            paths: [
-                                {
-                                    path: '/',
-                                    pathType: 'ImplementationSpecific',
-                                    backend: {
-                                        service: {
-                                            name: StringUtils.toServiceName(app.id),
-                                            port: {
-                                                number: domain.port,
-                                            },
-                                        },
-                                    },
-                                },
-                            ],
-                        },
-                    },
-                ],
+                redirectScheme: {
+                    scheme: 'https',
+                    permanent: true,
+                }
             },
         };
 
-        if (existingRedirectIngress) {
-            await k3s.network.replaceNamespacedIngress(ingressName, app.projectId, ingressDefinition);
-            console.log(`Updated redirect ingress ${ingressName} for domain ${domain.hostname}`);
-        } else {
-            await k3s.network.createNamespacedIngress(app.projectId, ingressDefinition);
-            console.log(`Created redirect ingress ${ingressName} for domain ${domain.hostname}`);
-        }
-    }
+        await k3s.customObjects.createNamespacedCustomObject(
+            'traefik.io',           // group
+            'v1alpha1',             // version
+            traefikNamespace,       // namespace
+            'middlewares',          // plural name of the custom resource
+            middlewareManifest      // object manifest
+        );
 
+    }
 }
 
 const ingressService = new IngressService();

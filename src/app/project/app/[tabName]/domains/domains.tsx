@@ -2,22 +2,6 @@
 
 import { SubmitButton } from "@/components/custom/submit-button";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
-import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
-import { FormUtils } from "@/lib/form.utilts";
-import { AppSourceInfoInputModel, appSourceInfoInputZodModel } from "@/model/app-source-info.model";
-import { zodResolver } from "@hookform/resolvers/zod";
-import { useForm } from "react-hook-form";
-import { useFormState } from "react-dom";
-import { ServerActionResult } from "@/model/server-action-error-return.model";
-import { Input } from "@/components/ui/input";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Label } from "@/components/ui/label";
-import { AppRateLimitsModel, appRateLimitsZodModel } from "@/model/app-rate-limits.model";
-import { App } from "@prisma/client";
-import { useEffect } from "react";
-import { toast } from "sonner";
-import { AppEnvVariablesModel, appEnvVariablesZodModel } from "@/model/env-edit.model";
-import { Textarea } from "@/components/ui/textarea";
 import { AppExtendedModel } from "@/model/app-extended.model";
 import { Table, TableBody, TableCaption, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
@@ -29,7 +13,7 @@ import { ListUtils } from "@/server/utils/list.utils";
 import { StringUtils } from "@/server/utils/string.utils";
 import { Code } from "@/components/custom/code";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
-import { QuestionMarkCircledIcon } from "@radix-ui/react-icons";
+import { OpenInNewWindowIcon, QuestionMarkCircledIcon } from "@radix-ui/react-icons";
 
 
 export default function DomainsList({ app }: {
@@ -58,7 +42,12 @@ export default function DomainsList({ app }: {
                     <TableBody>
                         {app.appDomains.map(domain => (
                             <TableRow key={domain.hostname}>
-                                <TableCell className="font-medium">{domain.hostname}</TableCell>
+                                <TableCell className="font-medium flex gap-2">
+                                    <Code>{domain.hostname}</Code>
+                                    <div className="self-center cursor-pointer" onClick={() => window.open((domain.useSsl ? 'https://' : 'http://') + domain.hostname, '_blank')}>
+                                        <OpenInNewWindowIcon />
+                                    </div>
+                                </TableCell>
                                 <TableCell className="font-medium">{domain.port}</TableCell>
                                 <TableCell className="font-medium">{domain.useSsl ? <CheckIcon /> : <XIcon />}</TableCell>
                                 <TableCell className="font-medium">{domain.useSsl && domain.redirectHttps ? <CheckIcon /> : <XIcon />}</TableCell>
