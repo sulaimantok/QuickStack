@@ -1,7 +1,7 @@
 import k3s from "@/server/adapter/kubernetes-api.adapter";
 import appService from "@/server/services/app.service";
 import deploymentService from "@/server/services/deployment.service";
-import { simpleRoute } from "@/server/utils/action-wrapper.utils";
+import { getAuthUserSession, simpleRoute } from "@/server/utils/action-wrapper.utils";
 import { Informer, V1Pod } from "@kubernetes/client-node";
 import { z } from "zod";
 import * as k8s from '@kubernetes/client-node';
@@ -32,15 +32,16 @@ export async function POST(request: Request) {
             start(controller) {
 
                 const getDeploymentStatus = async () => {
-                    console.log(`Getting Deployment Status for app ${appId}`);
                     const deploymentStatus = await deploymentService.getDeploymentStatus(app.projectId, app.id);
                     controller.enqueue(encoder.encode(deploymentStatus))
                 };
 
+                const kc = k3s.getKubeConfig();
                 informer = k8s.makeInformer(
-                    k3s.getKubeConfig(),
+                    kc,
                     `/api/v1/namespaces/${namespace}/pods`,
-                    () => k3s.core.listNamespacedPod(namespace, undefined, undefined, undefined, undefined, `app=${app.id}`)
+                    () => k3s.core.listNamespacedPod(namespace, undefined, undefined, undefined, undefined, `app=${app.id}`),
+                    `app=${app.id}`
                 );
 
                 informer.on('add', () => getDeploymentStatus());
@@ -48,16 +49,22 @@ export async function POST(request: Request) {
                 informer.on('change', () => getDeploymentStatus());
                 informer.on('delete', () => getDeploymentStatus());
                 informer.on('error', async (err: any) => {
-                    console.error(`Error while listening for Deplyoment Changes for app ${appId}: `, err);
+                    // todo there is a error because of the invalid Certificat Authority, so every time error
+                    // is thrown, we need to restart the informer --> TODO
+                    console.error(`[INFORMER ERROR] Error while listening for Deplyoment Changes for app ${appId}: `, err);
 
+                    getDeploymentStatus()
                     // Try to restart informer after 5sec
                     await new Promise(resolve => setTimeout(resolve, 5000));
                     informer.start();
                 });
-                getDeploymentStatus(); // Initial status
+
+                informer.start();
+                getDeploymentStatus();
+                console.log("[START] Starting informer for app " + appId);
             },
             cancel() {
-                console.log("Stream closed.")
+                console.log("[LEAVE] Cancelling informer for app " + appId);
                 informer?.stop();
             }
         });

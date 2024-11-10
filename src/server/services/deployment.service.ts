@@ -1,6 +1,6 @@
 import { AppExtendedModel } from "@/model/app-extended.model";
 import k3s from "../adapter/kubernetes-api.adapter";
-import { V1Deployment, V1Ingress, V1PersistentVolumeClaim, V1ReplicaSet } from "@kubernetes/client-node";
+import { V1Deployment, V1ReplicaSet } from "@kubernetes/client-node";
 import buildService from "./build.service";
 import { ListUtils } from "../utils/list.utils";
 import { DeploymentInfoModel, DeplyomentStatus } from "@/model/deployment-info.model";
