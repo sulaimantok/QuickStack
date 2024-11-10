@@ -18,7 +18,7 @@ const zodInputModel = z.object({
 export async function POST(request: Request) {
     return simpleRoute(async () => {
         const input = await request.json();
-        console.log(input)
+        
         const podInfo = zodInputModel.parse(input);
         let { namespace, podName, buildJobName } = podInfo;
         let pod;

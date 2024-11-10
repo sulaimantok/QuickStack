@@ -1,8 +1,13 @@
 import * as k8s from '@kubernetes/client-node';
 
-const getK8sCoreApiClient = () => {
+const getKubeConfig = () => {
     const kc = new k8s.KubeConfig();
     kc.loadFromFile('/workspace/kube-config.config'); // todo update --> use security role
+    return kc;
+}
+
+const getK8sCoreApiClient = () => {
+    const kc = getKubeConfig()
     const k8sCoreClient = kc.makeApiClient(k8s.CoreV1Api);
     return k8sCoreClient;
 }
@@ -10,8 +15,7 @@ const k8sCoreClient = globalThis.k8sCoreGlobal ?? getK8sCoreApiClient()
 if (process.env.NODE_ENV !== 'production') globalThis.k8sCoreGlobal = k8sCoreClient
 
 const getK8sAppsApiClient = () => {
-    const kc = new k8s.KubeConfig();
-    kc.loadFromFile('/workspace/kube-config.config'); // todo update --> use security role
+    const kc = getKubeConfig()
     const k8sCoreClient = kc.makeApiClient(k8s.AppsV1Api);
     return k8sCoreClient;
 }
@@ -19,8 +23,7 @@ const k8sAppsClient = globalThis.k8sAppsGlobal ?? getK8sAppsApiClient()
 if (process.env.NODE_ENV !== 'production') globalThis.k8sAppsGlobal = k8sAppsClient
 
 const getK8sBatchApiClient = () => {
-    const kc = new k8s.KubeConfig();
-    kc.loadFromFile('/workspace/kube-config.config'); // todo update --> use security role
+    const kc = getKubeConfig()
     const k8sJobClient = kc.makeApiClient(k8s.BatchV1Api);
     return k8sJobClient;
 }
@@ -29,8 +32,7 @@ if (process.env.NODE_ENV !== 'production') globalThis.k8sJobGlobal = k8sJobClien
 
 
 const getK8sLogApiClient = () => {
-    const kc = new k8s.KubeConfig();
-    kc.loadFromFile('/workspace/kube-config.config'); // todo update --> use security role
+    const kc = getKubeConfig()
     const logClient = new k8s.Log(kc)
     return logClient;
 }
@@ -38,8 +40,7 @@ const k8sLogClient = globalThis.k8sLogGlobal ?? getK8sLogApiClient()
 if (process.env.NODE_ENV !== 'production') globalThis.k8sLogGlobal = k8sLogClient
 
 const getK8sCustomObjectsApiClient = () => {
-    const kc = new k8s.KubeConfig();
-    kc.loadFromFile('/workspace/kube-config.config'); // todo update --> use security role
+    const kc = getKubeConfig()
     const client = kc.makeApiClient(k8s.CustomObjectsApi);
     return client;
 }
@@ -47,8 +48,7 @@ const k8sCustomObjectsClient = globalThis.k8sCustomObjectsGlobal ?? getK8sCustom
 if (process.env.NODE_ENV !== 'production') globalThis.k8sCustomObjectsGlobal = k8sCustomObjectsClient
 
 const getK8sNetworkApiClient = () => {
-    const kc = new k8s.KubeConfig();
-    kc.loadFromFile('/workspace/kube-config.config'); // todo update --> use security role
+    const kc = getKubeConfig()
     const networkClient = kc.makeApiClient(k8s.NetworkingV1Api);
     return networkClient;
 }
@@ -75,6 +75,10 @@ class K3sApiAdapter {
     log = k8sLogClient;
     network = k8sNetworkClient;
     customObjects = k8sCustomObjectsClient;
+
+    getKubeConfig = () => {
+        return getKubeConfig();
+    }
 }
 
 const k3s = new K3sApiAdapter();

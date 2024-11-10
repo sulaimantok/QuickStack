@@ -1,6 +1,6 @@
 import { AppExtendedModel } from "@/model/app-extended.model";
 import k3s from "../adapter/kubernetes-api.adapter";
-import { V1Deployment, V1Ingress, V1PersistentVolumeClaim } from "@kubernetes/client-node";
+import { V1Deployment, V1Ingress, V1PersistentVolumeClaim, V1ReplicaSet } from "@kubernetes/client-node";
 import buildService from "./build.service";
 import { ListUtils } from "../utils/list.utils";
 import { DeploymentInfoModel, DeplyomentStatus } from "@/model/deployment-info.model";
@@ -190,6 +190,14 @@ class DeploymentService {
         })).filter((item) => !!item.podName && !!item.containerName) as PodsInfoModel[];
     }
 
+    async getDeploymentStatus(projectId: string, appId: string) {
+        const deployment = await this.getDeployment(projectId, appId);
+        if (!deployment) {
+            return 'UNKNOWN';
+        }
+        return this.mapReplicasetToStatus(deployment);
+    }
+
     async getPodByName(projectId: string, podName: string) {
         const res = await k3s.core.readNamespacedPod(podName, projectId);
         return {
@@ -197,7 +205,6 @@ class DeploymentService {
             containerName: res.body.spec?.containers?.[0].name!
         } as PodsInfoModel;
     }
-
 
     /**
      * Searches for Build Jobs (only for Git Projects) and ReplicaSets (for all projects) and returns a list of DeploymentModel
@@ -245,24 +252,7 @@ class DeploymentService {
         const replicaSetsForDeployment = await k3s.apps.listNamespacedReplicaSet(projectId, undefined, undefined, undefined, undefined, `app=${appId}`);
 
         const revisions = replicaSetsForDeployment.body.items.map((rs, index) => {
-
-            let status = 'UNKNOWN' as DeplyomentStatus;
-            if (rs.status?.replicas === 0) {
-                status = 'SHUTDOWN';
-            } else if (rs.status?.replicas === rs.status?.readyReplicas) {
-                status = 'DEPLOYED';
-            } else if (rs.status?.replicas !== rs.status?.readyReplicas) {
-                status = 'DEPLOYING';
-            }
-            /*
-            Fields for Status:
-                availableReplicas: 1,
-                conditions: undefined,
-                fullyLabeledReplicas: 1,
-                observedGeneration: 3,
-                readyReplicas: 1,
-                replicas: 1
-            */
+            let status = this.mapReplicasetToStatus(rs);
             return {
                 replicasetName: rs.metadata?.name!,
                 createdAt: rs.metadata?.creationTimestamp!,
@@ -273,7 +263,28 @@ class DeploymentService {
         return ListUtils.sortByDate(revisions, (i) => i.createdAt!, true);
     }
 
-
+    private mapReplicasetToStatus(deployment: V1Deployment | V1ReplicaSet): DeplyomentStatus {
+        /*
+        Fields for Status:
+            availableReplicas: 1,
+            conditions: undefined,
+            fullyLabeledReplicas: 1,
+            observedGeneration: 3,
+            readyReplicas: 1,
+            replicas: 1
+        */
+        let status: DeplyomentStatus = 'UNKNOWN';
+        if (deployment.status?.replicas === 0) {
+            status = 'SHUTDOWN';
+        } else if (deployment.status?.replicas === deployment.status?.readyReplicas) {
+            status = 'DEPLOYED';
+        } else if (deployment.status?.replicas === 0 && deployment.status?.replicas !== deployment.status?.readyReplicas) {
+            status = 'SHUTTING_DOWN';
+        } else if (deployment.status?.replicas !== deployment.status?.readyReplicas) {
+            status = 'DEPLOYING';
+        }
+        return status;
+    }
 
 }
 

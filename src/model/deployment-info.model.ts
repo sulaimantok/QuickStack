@@ -7,6 +7,7 @@ export const deploymentStatusEnumZod = z.union([
     z.literal('DEPLOYED'),
     z.literal('DEPLOYING'),
     z.literal('SHUTDOWN'),
+    z.literal('SHUTTING_DOWN'),
 ]);
 
 export const deploymentInfoZodModel = z.object({
