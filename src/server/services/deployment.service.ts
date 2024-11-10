@@ -274,6 +274,9 @@ class DeploymentService {
             replicas: 1
         */
         let status: DeplyomentStatus = 'UNKNOWN';
+        if (deployment.status?.replicas === undefined) {
+            return 'SHUTDOWN';
+        }
         if (deployment.status?.replicas === 0) {
             status = 'SHUTDOWN';
         } else if (deployment.status?.replicas === deployment.status?.readyReplicas) {
