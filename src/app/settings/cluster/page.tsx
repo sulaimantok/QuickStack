@@ -11,6 +11,10 @@ export default async function ClusterInfoPage() {
     const nodeInfo = await clusterService.getNodeInfo();
     return (
         <div className="flex-1 space-y-4 p-8 pt-6">
+             <PageTitle
+                title={'Cluster'}
+                subtitle={`View all Nodes of your current QuickStack cluster.`}>
+            </PageTitle>
             <NodeInfo nodeInfos={nodeInfo} />
         </div>
     )

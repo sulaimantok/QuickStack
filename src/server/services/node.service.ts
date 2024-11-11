@@ -14,7 +14,10 @@ class ClusterService {
                 cpuCapacity: node.status?.capacity?.cpu!,
                 ramCapacity: node.status?.capacity?.memory!,
                 ip: node.status?.addresses?.filter((address) => address.type === 'InternalIP')[0].address!,
-                diskCapacity: node.status?.capacity?.ephemeralStorage!,
+                kernelVersion: node.status?.nodeInfo?.kernelVersion!,
+                containerRuntimeVersion: node.status?.nodeInfo?.containerRuntimeVersion!,
+                kubeProxyVersion: node.status?.nodeInfo?.kubeProxyVersion!,
+                kubeletVersion: node.status?.nodeInfo?.kubeletVersion!,
             }
         });
     }

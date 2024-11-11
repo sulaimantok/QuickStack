@@ -38,7 +38,7 @@ export default function SettingsNav() {
                 <Link href="/settings/server"> <button className={pathname === '/settings/server' ? selectedCss : notSelectedCss}><Settings /> QuickStack Settings</button></Link>
             </div>
             <div>
-                <Link href="/settings/cluster-info"> <button className={pathname === '/settings/cluster-info' ? selectedCss : notSelectedCss}><Server /> Cluster Info</button></Link>
+                <Link href="/settings/cluster"> <button className={pathname === '/settings/cluster' ? selectedCss : notSelectedCss}><Server /> Cluster</button></Link>
             </div>
         </div>
     );

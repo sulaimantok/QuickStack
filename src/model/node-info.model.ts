@@ -9,7 +9,10 @@ export const nodeInfoZodModel = z.object({
   cpuCapacity: z.string(),
   ramCapacity: z.string(),
   ip: z.string(),
-  diskCapacity: z.string(),
+  containerRuntimeVersion: z.string(),
+  kernelVersion: z.string(),
+  kubeProxyVersion: z.string(),
+  kubeletVersion: z.string(),
 })
 
 export type NodeInfoModel = z.infer<typeof nodeInfoZodModel>;
