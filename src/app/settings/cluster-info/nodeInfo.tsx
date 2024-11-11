@@ -19,22 +19,24 @@ export default async function NodeInfo({ nodeInfos }: { nodeInfos: NodeInfoModel
         <Card>
             <CardHeader>
                 <CardTitle>Cluster Info</CardTitle>
-                <CardDescription>View the components fo yout</CardDescription>
+                <CardDescription>Overview of all nodes and capacities in the cluster.</CardDescription>
             </CardHeader>
-            <CardContent className="flex gap-4">
+            <CardContent className="grid grid-cols-1 md:grid-cols-3 gap-4">
 
                 {nodeInfos.map((nodeInfo, index) => (
                     <div key={index} className="space-y-4 rounded-lg border p-4">
-                        <h3 className="font-semibold text-xl text-center">Node {index + 1}</h3>
+                        <h3 className="font-semibold text-xl text-center">Node {index + 1}
+                            <span className={nodeInfo.status ? 'text-green-400' : 'text-red-400'}> ({nodeInfo.status ? 'online' : 'offline'})</span>
+                        </h3>
                         <div className="space-y-2">
                             <div>
                                 <span className="font-semibold">Name:</span> {nodeInfo.name}
                             </div>
                             <div>
-                                <span className="font-semibold">IP:</span>
+                                <span className="font-semibold">IP:</span> {nodeInfo.ip}
                             </div>
                             <div>
-                                <span className="font-semibold">CPU:</span> {nodeInfo.cpuCapacity}
+                                <span className="font-semibold">CPU Cores:</span> {nodeInfo.cpuCapacity}
                             </div>
                             <div>
                                 <span className="font-semibold">Memory:</span> {nodeInfo.ramCapacity}

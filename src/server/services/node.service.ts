@@ -13,6 +13,8 @@ class ClusterService {
                 architecture: node.status?.nodeInfo?.architecture!,
                 cpuCapacity: node.status?.capacity?.cpu!,
                 ramCapacity: node.status?.capacity?.memory!,
+                ip: node.status?.addresses?.filter((address) => address.type === 'InternalIP')[0].address!,
+                diskCapacity: node.status?.capacity?.ephemeralStorage!,
             }
         });
     }
