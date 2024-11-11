@@ -8,8 +8,6 @@ import {
     BreadcrumbList,
 } from "@/components/ui/breadcrumb"
 import PageTitle from "@/components/custom/page-title";
-import ProfilePasswordChange from "./profile-password-change";
-import ToTpSettings from "./totp-settings";
 import userService from "@/server/services/user.service";
 
 export default async function ProjectPage() {
@@ -18,19 +16,10 @@ export default async function ProjectPage() {
     const data = await userService.getUserByEmail(session.email);
     return (
         <div className="flex-1 space-y-4 p-8 pt-6">
-            <Breadcrumb>
-                <BreadcrumbList>
-                    <BreadcrumbItem>
-                        <BreadcrumbLink href="/profile">Profile</BreadcrumbLink>
-                    </BreadcrumbItem>
-                </BreadcrumbList>
-            </Breadcrumb>
             <PageTitle
-                title={'Profile'}
-                subtitle={`View or edit your Profile information and configure your authentication.`}>
+                title={'Server Settings'}
+                subtitle={`View or edit Server Settings`}>
             </PageTitle>
-            <ProfilePasswordChange />
-            <ToTpSettings totpEnabled={data.twoFaEnabled} />
         </div>
     )
 }
