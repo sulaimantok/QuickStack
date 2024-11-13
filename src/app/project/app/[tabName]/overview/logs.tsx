@@ -51,8 +51,6 @@ export default function Logs({
         }
     }, [appPods]);
 
-
-
     return <>
         <Card>
             <CardHeader>
@@ -62,8 +60,8 @@ export default function Logs({
             <CardContent className="space-y-4">
                 {!appPods && <FullLoadingSpinner />}
                 {appPods && appPods.length === 0 && <div>No running pods found for this app.</div>}
-                {selectedPod && appPods && <Select className="w-full" value={selectedPod} onValueChange={(val) => setSelectedPod(val)}>
-                    <SelectTrigger >
+                {selectedPod && appPods && <Select value={selectedPod} onValueChange={(val) => setSelectedPod(val)}>
+                    <SelectTrigger className="w-full" >
                         <SelectValue placeholder="Pod wählen" />
                     </SelectTrigger>
                     <SelectContent>

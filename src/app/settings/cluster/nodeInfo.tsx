@@ -11,7 +11,7 @@ export default async function NodeInfo({ nodeInfos }: { nodeInfos: NodeInfoModel
         <Card>
             <CardHeader>
                 <CardTitle>Nodes</CardTitle>
-                <CardDescription>Overview of all Nodes in your CLuster</CardDescription>
+                <CardDescription>Overview of all Nodes in your Cluster</CardDescription>
             </CardHeader>
             <CardContent>
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
