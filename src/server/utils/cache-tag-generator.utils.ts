@@ -19,4 +19,8 @@ export class Tags {
     static appBuilds(appId: string) {
         return `app-build-${appId}`;
     }
+
+    static nodeInfos() {
+        return `node-infos`;
+    }
 }
