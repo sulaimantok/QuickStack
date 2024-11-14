@@ -6,13 +6,19 @@ import { BuildJobModel } from "@/model/build-job";
 import { ServiceException } from "@/model/service.exception.model";
 import { PodsInfoModel } from "@/model/pods-info.model";
 import namespaceService from "./namespace.service";
+import { Constants } from "../utils/constants";
 
 const kanikoImage = "gcr.io/kaniko-project/executor:latest";
-export const registryURLExternal = "localhost:30100"
-export const registryURLInternal = "registry-svc.registry-and-build.svc.cluster.local:5000"
-export const buildNamespace = "registry-and-build";
+const REGISTRY_NODE_PORT = 30100;
+const REGISTRY_CONTAINER_PORT = 5000;
+const REGISTRY_SVC_NAME = 'registry-svc';
+export const BUILD_NAMESPACE = "registry-and-build";
+export const REGISTRY_URL_EXTERNAL = `localhost:${REGISTRY_NODE_PORT}`;
+export const REGISTRY_URL_INTERNAL = `${REGISTRY_SVC_NAME}.${BUILD_NAMESPACE}.svc.cluster.local:${REGISTRY_CONTAINER_PORT}`
+
 
 class BuildService {
+
 
     async buildApp(app: AppExtendedModel): Promise<[string, Promise<void>]> {
         await this.deployRegistryIfNotExists();
@@ -27,7 +33,11 @@ class BuildService {
             kind: "Job",
             metadata: {
                 name: buildName,
-                namespace: buildNamespace,
+                namespace: BUILD_NAMESPACE,
+                annotations: {
+                    [Constants.QS_ANNOTATION_APP_ID]: app.id,
+                    [Constants.QS_ANNOTATION_PROJECT_ID]: app.projectId,
+                }
             },
             spec: {
                 ttlSecondsAfterFinished: 2592000, // 30 days
@@ -65,7 +75,7 @@ class BuildService {
                 }
             ];
         }
-        await k3s.batch.createNamespacedJob(buildNamespace, jobDefinition);
+        await k3s.batch.createNamespacedJob(BUILD_NAMESPACE, jobDefinition);
 
         const buildJobPromise = this.waitForJobCompletion(jobDefinition.metadata!.name!)
 
@@ -76,23 +86,23 @@ class BuildService {
         if (!appId) {
             return undefined;
         }
-        return `${registryURLInternal}/${appId}:latest`;
+        return `${REGISTRY_URL_INTERNAL}/${appId}:latest`;
     }
 
     createContainerRegistryUrlForAppId(appId?: string) {
         if (!appId) {
             return undefined;
         }
-        return `${registryURLExternal}/${appId}:latest`;
+        return `${REGISTRY_URL_EXTERNAL}/${appId}:latest`;
     }
 
     async deleteBuild(buildName: string) {
-        await k3s.batch.deleteNamespacedJob(buildName, buildNamespace);
+        await k3s.batch.deleteNamespacedJob(buildName, BUILD_NAMESPACE);
     }
 
     async getBuildsForApp(appId: string) {
         const jobNamePrefix = StringUtils.toJobName(appId);
-        const jobs = await k3s.batch.listNamespacedJob(buildNamespace);
+        const jobs = await k3s.batch.listNamespacedJob(BUILD_NAMESPACE);
         const jobsOfBuild = jobs.body.items.filter((job) => job.metadata?.name?.startsWith(jobNamePrefix));
         const builds = jobsOfBuild.map((job) => {
             return {
@@ -112,7 +122,7 @@ class BuildService {
 
 
     async getPodForJob(jobName: string) {
-        const res = await k3s.core.listNamespacedPod(buildNamespace, undefined, undefined, undefined, undefined, `job-name=${jobName}`);
+        const res = await k3s.core.listNamespacedPod(BUILD_NAMESPACE, undefined, undefined, undefined, undefined, `job-name=${jobName}`);
         const jobs = res.body.items;
         if (jobs.length === 0) {
             throw new ServiceException(`No pod found for job ${jobName}`);
@@ -157,7 +167,7 @@ class BuildService {
 
     async getJobStatus(buildName: string): Promise<'UNKNOWN' | 'RUNNING' | 'FAILED' | 'SUCCEEDED'> {
         try {
-            const response = await k3s.batch.readNamespacedJobStatus(buildName, buildNamespace);
+            const response = await k3s.batch.readNamespacedJobStatus(buildName, BUILD_NAMESPACE);
             const status = response.body.status;
             return this.getJobStatusString(status);
         } catch (err) {
@@ -185,7 +195,7 @@ class BuildService {
 
 
     async deployRegistryIfNotExists() {
-        const deployments = await k3s.apps.listNamespacedDeployment(buildNamespace);
+        const deployments = await k3s.apps.listNamespacedDeployment(BUILD_NAMESPACE);
         if (deployments.body.items.length > 0) {
             return;
         }
@@ -194,7 +204,7 @@ class BuildService {
 
         // Create Namespace
         console.log("Creating namespace...");
-        await namespaceService.createNamespaceIfNotExists(buildNamespace);
+        await namespaceService.createNamespaceIfNotExists(BUILD_NAMESPACE);
 
         // Create PersistentVolumeClaim
         console.log("Creating Registry PVC...");
@@ -203,7 +213,7 @@ class BuildService {
             kind: 'PersistentVolumeClaim',
             metadata: {
                 name: 'registry-data-pvc',
-                namespace: buildNamespace,
+                namespace: BUILD_NAMESPACE,
             },
             spec: {
                 accessModes: ['ReadWriteOnce'],
@@ -216,7 +226,7 @@ class BuildService {
             },
         };
 
-        await k3s.core.createNamespacedPersistentVolumeClaim(buildNamespace, pvcManifest)
+        await k3s.core.createNamespacedPersistentVolumeClaim(BUILD_NAMESPACE, pvcManifest)
 
         // Create Deployment
         console.log("Creating Registry Deployment...");
@@ -225,7 +235,7 @@ class BuildService {
             kind: 'Deployment',
             metadata: {
                 name: 'registry',
-                namespace: buildNamespace,
+                namespace: BUILD_NAMESPACE,
             },
             spec: {
                 replicas: 1,
@@ -269,7 +279,7 @@ class BuildService {
             },
         };
 
-        await k3s.apps.createNamespacedDeployment(buildNamespace, deploymentManifest);
+        await k3s.apps.createNamespacedDeployment(BUILD_NAMESPACE, deploymentManifest);
 
         // Create Service
         console.log("Creating Registry Service...");
@@ -277,8 +287,8 @@ class BuildService {
             apiVersion: 'v1',
             kind: 'Service',
             metadata: {
-                name: 'registry-svc',
-                namespace: buildNamespace,
+                name: REGISTRY_SVC_NAME,
+                namespace: BUILD_NAMESPACE,
             },
             spec: {
                 selector: {
@@ -286,17 +296,17 @@ class BuildService {
                 },
                 ports: [
                     {
-                        nodePort: 30100,
+                        nodePort: REGISTRY_NODE_PORT,
                         protocol: 'TCP',
-                        port: 5000,
-                        targetPort: 5000,
+                        port: REGISTRY_CONTAINER_PORT,
+                        targetPort: REGISTRY_CONTAINER_PORT,
                     },
                 ],
                 type: 'NodePort',
             },
         };
 
-        await k3s.core.createNamespacedService(buildNamespace, serviceManifest);
+        await k3s.core.createNamespacedService(BUILD_NAMESPACE, serviceManifest);
 
         console.log("Registry deployed successfully.");
     }

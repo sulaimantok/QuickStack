@@ -10,6 +10,7 @@ import { PodsInfoModel } from "@/model/pods-info.model";
 import { StringUtils } from "../utils/string.utils";
 import pvcService from "./pvc.service";
 import ingressService from "./ingress.service";
+import { Constants } from "../utils/constants";
 
 class NamespaceService {
 
@@ -25,7 +26,10 @@ class NamespaceService {
         }
         await k3s.core.createNamespace({
             metadata: {
-                name: namespace
+                name: namespace,
+                annotations: {
+                    [Constants.QS_ANNOTATION_PROJECT_ID]: namespace
+                }
             }
         });
     }

@@ -2,6 +2,8 @@ import * as crypto from 'crypto';
 
 export class StringUtils {
 
+    private static readonly MAX_OBJECT_NAME_LENGTH = 30; // in Kubernetes, the maximum length of an object name is 63 characters
+
     static toSnakeCase(str: string): string {
         if (!str) {
             return str;
@@ -24,10 +26,12 @@ export class StringUtils {
     }
 
     static toProjectId(str: string): string {
+        str = str.substring(0, StringUtils.MAX_OBJECT_NAME_LENGTH).trim();
         return `proj-${StringUtils.toObjectId(str)}`;
     }
 
     static toAppId(str: string): string {
+        str = str.substring(0, StringUtils.MAX_OBJECT_NAME_LENGTH).trim();
         return `app-${StringUtils.toObjectId(str)}`;
     }
 
@@ -36,11 +40,20 @@ export class StringUtils {
     }
 
     static addRandomSuffix(str: string): string {
+        // added suffix is 8 characters long
         const randomString = crypto.randomBytes(4).toString('hex');
         return `${str}-${randomString}`;
     }
 
     static toServiceName(appId: string) {
         return `svc-${appId}`;
+    }
+
+    static toPvcName(volumeId: string) {
+        return `pvc-${volumeId}`;
+    }
+
+    static getIngressName(domainId: string) {
+        return `ingress-${domainId}`;
     }
 }

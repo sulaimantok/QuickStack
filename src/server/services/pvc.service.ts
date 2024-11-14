@@ -3,6 +3,8 @@ import k3s from "../adapter/kubernetes-api.adapter";
 import { V1PersistentVolumeClaim } from "@kubernetes/client-node";
 import { ServiceException } from "@/model/service.exception.model";
 import { AppVolume } from "@prisma/client";
+import { StringUtils } from "../utils/string.utils";
+import { Constants } from "../utils/constants";
 
 class PvcService {
 
@@ -10,7 +12,7 @@ class PvcService {
         const existingPvcs = await this.getAllPvcForApp(app.projectId, app.id);
 
         for (const appVolume of app.appVolumes) {
-            const pvcName = `pvc-${app.id}-${appVolume.id}`;
+            const pvcName = StringUtils.toPvcName(appVolume.id);
             const existingPvc = existingPvcs.find(pvc => pvc.metadata?.name === pvcName);
             if (existingPvc && existingPvc.spec!.resources!.requests!.storage !== `${appVolume.size}Mi`) {
                 return true;
@@ -22,7 +24,7 @@ class PvcService {
 
     async getAllPvcForApp(projectId: string, appId: string) {
         const res = await k3s.core.listNamespacedPersistentVolumeClaim(projectId);
-        return res.body.items.filter((item) => item.metadata?.annotations?.['qs-app-id'] === appId);
+        return res.body.items.filter((item) => item.metadata?.annotations?.[Constants.QS_ANNOTATION_APP_ID] === appId);
     }
 
     async deleteUnusedPvcOfApp(app: AppExtendedModel) {
@@ -42,7 +44,7 @@ class PvcService {
         const existingPvcs = await this.getAllPvcForApp(app.projectId, app.id);
 
         for (const appVolume of app.appVolumes) {
-            const pvcName = `pvc-${app.id}-${appVolume.id}`;
+            const pvcName = StringUtils.toPvcName(appVolume.id);
 
             const pvcDefinition: V1PersistentVolumeClaim = {
                 apiVersion: 'v1',
@@ -51,7 +53,8 @@ class PvcService {
                     name: pvcName,
                     namespace: app.projectId,
                     annotations: {
-                        'qs-app-id': app.id,
+                        [Constants.QS_ANNOTATION_APP_ID]: app.id,
+                        [Constants.QS_ANNOTATION_PROJECT_ID]: app.projectId,
                         'qs-app-volume-id': appVolume.id,
                     }
                 },
@@ -92,16 +95,16 @@ class PvcService {
         const volumes = app.appVolumes
             .filter(pvcObj => pvcObj.appId === app.id)
             .map(pvcObj => ({
-                name: `pvc-${app.id}-${pvcObj.id}`,
+                name: StringUtils.toPvcName(pvcObj.id),
                 persistentVolumeClaim: {
-                    claimName: `pvc-${app.id}-${pvcObj.id}`,
+                    claimName: StringUtils.toPvcName(pvcObj.id)
                 },
             }));
 
         const volumeMounts = app.appVolumes
             .filter(pvcObj => pvcObj.appId === app.id)
             .map(pvcObj => ({
-                name: `pvc-${app.id}-${pvcObj.id}`,
+                name: StringUtils.toPvcName(pvcObj.id),
                 mountPath: pvcObj.containerMountPath,
             }));
 

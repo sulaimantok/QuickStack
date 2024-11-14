@@ -26,14 +26,22 @@ export async function POST(request: Request) {
         // https://github.com/kubernetes-client/javascript/blob/master/examples/typescript/watch/watch-example.ts
 
         let informer: Informer<V1Pod>;
-        const encoder = new TextEncoder()
+        const encoder = new TextEncoder();
+        let shouldStopStreaming = false;
 
         const customReadable = new ReadableStream({
             start(controller) {
 
                 const getDeploymentStatus = async () => {
                     const deploymentStatus = await deploymentService.getDeploymentStatus(app.projectId, app.id);
-                    controller.enqueue(encoder.encode(deploymentStatus))
+                    try {
+                        controller.enqueue(encoder.encode(deploymentStatus))
+                    } catch (e) {
+                        console.error(`[ENQUEUE ERROR] Error while enqueueing Deployment Status for app ${appId}: `, e);
+                        shouldStopStreaming = true;
+                        informer?.stop();
+                        controller.close();
+                    }
                 };
 
                 const kc = k3s.getKubeConfig();
@@ -46,17 +54,16 @@ export async function POST(request: Request) {
 
                 informer.on('add', () => getDeploymentStatus());
                 informer.on('update', () => getDeploymentStatus());
-                informer.on('change', () => getDeploymentStatus());
+                //informer.on('change', () => getDeploymentStatus());
                 informer.on('delete', () => getDeploymentStatus());
-                informer.on('error', async (err: any) => {
+                informer.on('error', (err: any) => {
                     // todo there is a error because of the invalid Certificat Authority, so every time error
                     // is thrown, we need to restart the informer --> TODO
                     console.error(`[INFORMER ERROR] Error while listening for Deplyoment Changes for app ${appId}: `, err);
-
+                    // todo fix this^^
                     getDeploymentStatus()
                     // Try to restart informer after 5sec
-                    await new Promise(resolve => setTimeout(resolve, 5000));
-                    informer.start();
+                    //if (!shouldStopStreaming) setTimeout(() => informer.start(), 5000);
                 });
 
                 informer.start();

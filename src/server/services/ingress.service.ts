@@ -1,8 +1,9 @@
 import { AppExtendedModel } from "@/model/app-extended.model";
 import k3s from "../adapter/kubernetes-api.adapter";
-import { V1Ingress, V1PersistentVolumeClaim } from "@kubernetes/client-node";
+import { V1Ingress } from "@kubernetes/client-node";
 import { StringUtils } from "../utils/string.utils";
 import { AppDomain } from "@prisma/client";
+import { Constants } from "../utils/constants";
 
 
 const traefikNamespace = 'kube-system';
@@ -11,17 +12,14 @@ class IngressService {
 
     async getAllIngressForApp(projectId: string, appId: string) {
         const res = await k3s.network.listNamespacedIngress(projectId);
-        return res.body.items.filter((item) => item.metadata?.name?.startsWith(`ingress-${appId}`));
+        return res.body.items.filter((item) => item.metadata?.annotations?.[Constants.QS_ANNOTATION_APP_ID] === appId);
     }
 
-    async getIngress(projectId: string, appId: string, domainId: string, redirectIngress = false) {
+    async getIngress(projectId: string, domainId: string, ) {
         const res = await k3s.network.listNamespacedIngress(projectId);
-        return res.body.items.find((item) => item.metadata?.name === this.getIngressName(appId, domainId, redirectIngress));
+        return res.body.items.find((item) => item.metadata?.name === StringUtils.getIngressName(domainId));
     }
 
-    getIngressName(appId: string, domainId: string, redirectIngress = false) {
-        return `ingress-${appId}-${domainId}` + (redirectIngress ? '-redirect' : '');
-    }
 
     async deleteObsoleteIngresses(app: AppExtendedModel) {
         const currentDomains = new Set(app.appDomains.map(domainObj => domainObj.hostname));
@@ -58,8 +56,8 @@ class IngressService {
 
     async createIngress(app: AppExtendedModel, domain: AppDomain) {
         const hostname = domain.hostname;
-        const ingressName = this.getIngressName(app.id, domain.id);
-        const existingIngress = await this.getIngress(app.projectId, app.id, domain.id);
+        const ingressName = StringUtils.getIngressName(domain.id);
+        const existingIngress = await this.getIngress(app.projectId, domain.id);
 
         const ingressDefinition: V1Ingress = {
             apiVersion: 'networking.k8s.io/v1',
@@ -68,6 +66,8 @@ class IngressService {
                 name: ingressName,
                 namespace: app.projectId,
                 annotations: {
+                    [Constants.QS_ANNOTATION_APP_ID]: app.id,
+                    [Constants.QS_ANNOTATION_PROJECT_ID]: app.projectId,
                     ...(domain.useSsl === true && { 'cert-manager.io/cluster-issuer': 'letsencrypt-production' }),
                     ...(domain.useSsl && domain.redirectHttps && { 'traefik.ingress.kubernetes.io/router.middlewares': 'kube-system-redirect-to-https@kubernetescrd' }), // activate redirect middleware for https
                     ...(domain.useSsl === false && { 'traefik.ingress.kubernetes.io/router.entrypoints': 'web' }), // disable requests from https --> only http
@@ -86,7 +86,6 @@ class IngressService {
                                     backend: {
                                         service: {
                                             name: StringUtils.toServiceName(app.id),
-
                                             port: {
                                                 number: domain.port,
                                             },
@@ -101,7 +100,7 @@ class IngressService {
                     tls: [
                         {
                             hosts: [hostname],
-                            secretName: `secret-tls-${app.id}-${domain.id}`,
+                            secretName: `secret-tls-${domain.id}`,
                         },
                     ],
                 }),

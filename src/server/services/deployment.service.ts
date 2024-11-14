@@ -11,11 +11,13 @@ import { StringUtils } from "../utils/string.utils";
 import pvcService from "./pvc.service";
 import ingressService from "./ingress.service";
 import namespaceService from "./namespace.service";
+import { Constants } from "../utils/constants";
 
 class DeploymentService {
+
     async getDeployment(projectId: string, appId: string) {
         const allDeployments = await k3s.apps.listNamespacedDeployment(projectId);
-        if (allDeployments.body.items.some((item) => item.metadata?.name === appId)) {
+        if (allDeployments.body?.items?.some((item) => item.metadata?.name === appId)) {
             const res = await k3s.apps.readNamespacedDeployment(appId, projectId);
             return res.body;
         }
@@ -102,11 +104,7 @@ class DeploymentService {
         }
         const { volumes, volumeMounts } = await pvcService.createOrUpdatePvc(app);
 
-        const envVars = app.envVars ? app.envVars.split('\n').filter(x => !!x).map(env => {
-            const [name] = env.split('=');
-            const value = env.replace(`${name}=`, '');
-            return { name, value };
-        }) : [];
+        const envVars = this.parseEnvVariables(app);
 
         const existingDeployment = await this.getDeployment(app.projectId, app.id);
         const body: V1Deployment = {
@@ -126,6 +124,8 @@ class DeploymentService {
                             app: app.id
                         },
                         annotations: {
+                            [Constants.QS_ANNOTATION_APP_ID]: app.id,
+                            [Constants.QS_ANNOTATION_PROJECT_ID]: app.projectId,
                             deploymentTimestamp: new Date().getTime() + "",
                             "kubernetes.io/change-cause": `Deployment ${new Date().toISOString()}`
                         }
@@ -171,6 +171,14 @@ class DeploymentService {
         await pvcService.deleteUnusedPvcOfApp(app);
         await this.createOrUpdateService(app);
         await ingressService.createOrUpdateIngressForApp(app);
+    }
+
+    private parseEnvVariables(app: { id: string; name: string; projectId: string; sourceType: string; dockerfilePath: string; replicas: number; envVars: string; defaultPort: number; createdAt: Date; updatedAt: Date; project: { id: string; name: string; createdAt: Date; updatedAt: Date; }; appDomains: { id: string; createdAt: Date; updatedAt: Date; hostname: string; port: number; useSsl: boolean; redirectHttps: boolean; appId: string; }[]; appVolumes: { id: string; createdAt: Date; updatedAt: Date; appId: string; containerMountPath: string; size: number; accessMode: string; }[]; containerImageSource?: string | null | undefined; gitUrl?: string | null | undefined; gitBranch?: string | null | undefined; gitUsername?: string | null | undefined; gitToken?: string | null | undefined; memoryReservation?: number | null | undefined; memoryLimit?: number | null | undefined; cpuReservation?: number | null | undefined; cpuLimit?: number | null | undefined; }) {
+        return app.envVars ? app.envVars.split('\n').filter(x => !!x).map(env => {
+            const [name] = env.split('=');
+            const value = env.replace(`${name}=`, '');
+            return { name, value };
+        }) : [];
     }
 
     async setReplicasForDeployment(projectId: string, appId: string, replicas: number) {

@@ -1,4 +1,4 @@
-import buildService, { buildNamespace } from "@/server/services/build.service";
+import buildService, { BUILD_NAMESPACE } from "@/server/services/build.service";
 import deploymentService from "@/server/services/deployment.service";
 import { z } from "zod";
 import stream from "stream";
@@ -18,7 +18,7 @@ const zodInputModel = z.object({
 export async function POST(request: Request) {
     return simpleRoute(async () => {
         const input = await request.json();
-        
+
         const podInfo = zodInputModel.parse(input);
         let { namespace, podName, buildJobName } = podInfo;
         let pod;
@@ -28,7 +28,7 @@ export async function POST(request: Request) {
             streamKey = `${namespace}_${podName}`;
 
         } else if (buildJobName) {
-            namespace = buildNamespace;
+            namespace = BUILD_NAMESPACE;
             pod = await buildService.getPodForJob(buildJobName);
             streamKey = `${buildJobName}`;
 
@@ -49,7 +49,7 @@ export async function POST(request: Request) {
                     console.log(`[CONNECT] Client joined log stream for ${streamKey}`);
                     controller.enqueue(encoder.encode('Connected\n'));
 
-                    if (namespace !== buildNamespace) {
+                    if (namespace !== BUILD_NAMESPACE) {
                         // container logs and not build logs
                         await podService.waitUntilPodIsRunningFailedOrSucceded(namespace, pod.podName); // has timeout onfigured
                     }
@@ -57,7 +57,7 @@ export async function POST(request: Request) {
 
                     k3sStreamRequest = await k3s.log.log(namespace, pod.podName, pod.containerName, logStream, {
                         follow: true,
-                        tailLines: namespace === buildNamespace ? undefined : 100,
+                        tailLines: namespace === BUILD_NAMESPACE ? undefined : 100,
                         timestamps: true,
                         pretty: false,
                         previous: false
