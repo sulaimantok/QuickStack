@@ -2,7 +2,7 @@ import { AppExtendedModel } from "@/model/app-extended.model";
 import k3s from "../adapter/kubernetes-api.adapter";
 import { V1Ingress } from "@kubernetes/client-node";
 import { StringUtils } from "../utils/string.utils";
-import { AppDomain } from "@prisma/client";
+import { App, AppDomain } from "@prisma/client";
 import { Constants } from "../utils/constants";
 
 
@@ -21,7 +21,7 @@ class IngressService {
     }
 
 
-    async deleteObsoleteIngresses(app: AppExtendedModel) {
+    async deleteUnusedIngressesOfApp(app: AppExtendedModel) {
         const currentDomains = new Set(app.appDomains.map(domainObj => domainObj.hostname));
         const existingIngresses = await this.getAllIngressForApp(app.projectId, app.id);
 
@@ -42,6 +42,14 @@ class IngressService {
         }
     }
 
+    async deleteAllIngressForApp(projectId: string, appId: string) {
+        const existingIngresses = await this.getAllIngressForApp(projectId, appId);
+        for (const ingress of existingIngresses) {
+            await k3s.network.deleteNamespacedIngress(ingress.metadata!.name!, projectId);
+            console.log(`Deleted Ingress ${ingress.metadata!.name} for app ${appId}`);
+        }
+    }
+
 
     async createOrUpdateIngressForApp(app: AppExtendedModel) {
 
@@ -51,7 +59,7 @@ class IngressService {
             await this.createIngress(app, domainObj);
         }
 
-        await this.deleteObsoleteIngresses(app);
+        await this.deleteUnusedIngressesOfApp(app);
     }
 
     async createIngress(app: AppExtendedModel, domain: AppDomain) {

@@ -24,7 +24,7 @@ export async function POST(request: Request) {
         let pod;
         let streamKey;
         if (namespace && podName) {
-            pod = await deploymentService.getPodByName(namespace, podName);
+            pod = await podService.getPodInfoByName(namespace, podName);
             streamKey = `${namespace}_${podName}`;
 
         } else if (buildJobName) {
@@ -36,7 +36,6 @@ export async function POST(request: Request) {
             console.error('Invalid pod info for streaming logs', podInfo);
             return new Response("Invalid pod info", { status: 400 });
         }
-        console.log('pod', pod)
 
         let k3sStreamRequest: any | undefined;
         let logStream: stream.PassThrough | undefined;

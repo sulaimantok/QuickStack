@@ -40,6 +40,15 @@ class PvcService {
         }
     }
 
+    async deleteAllPvcOfApp(projectId: string, appId: string) {
+        const existingPvc = await this.getAllPvcForApp(projectId, appId);
+
+        for (const pvc of existingPvc) {
+            await k3s.core.deleteNamespacedPersistentVolumeClaim(pvc.metadata!.name!, projectId);
+            console.log(`Deleted PVC ${pvc.metadata!.name!} for app ${appId}`);
+        }
+    }
+
     async createOrUpdatePvc(app: AppExtendedModel) {
         const existingPvcs = await this.getAllPvcForApp(app.projectId, app.id);
 

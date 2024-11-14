@@ -96,8 +96,27 @@ class BuildService {
         return `${REGISTRY_URL_EXTERNAL}/${appId}:latest`;
     }
 
+
+    async deleteAllBuildsOfApp(appId: string) {
+        const jobNamePrefix = StringUtils.toJobName(appId);
+        const jobs = await k3s.batch.listNamespacedJob(BUILD_NAMESPACE);
+        const jobsOfBuild = jobs.body.items.filter((job) => job.metadata?.name?.startsWith(jobNamePrefix));
+        for (const job of jobsOfBuild) {
+            await this.deleteBuild(job.metadata?.name!);
+        }
+    }
+
+    async deleteAllBuildsOfProject(projectId: string) {
+        const jobs = await k3s.batch.listNamespacedJob(BUILD_NAMESPACE);
+        const jobsOfProject = jobs.body.items.filter((job) => job.metadata?.annotations?.[Constants.QS_ANNOTATION_PROJECT_ID] === projectId);
+        for (const job of jobsOfProject) {
+            await this.deleteBuild(job.metadata?.name!);
+        }
+    }
+
     async deleteBuild(buildName: string) {
         await k3s.batch.deleteNamespacedJob(buildName, BUILD_NAMESPACE);
+        console.log(`Deleted build job ${buildName}`);
     }
 
     async getBuildsForApp(appId: string) {

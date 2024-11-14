@@ -5,19 +5,21 @@ import { Prisma, Project } from "@prisma/client";
 import { StringUtils } from "../utils/string.utils";
 import deploymentService from "./deployment.service";
 import namespaceService from "./namespace.service";
+import buildService from "./build.service";
 
 class ProjectService {
 
-    async deleteById(id: string) {
-        const existingItem = await this.getById(id);
+    async deleteById(projectid: string) {
+        const existingItem = await this.getById(projectid);
         if (!existingItem) {
             return;
         }
         try {
+            await buildService.deleteAllBuildsOfProject(existingItem.id);
             await namespaceService.deleteNamespace(existingItem.id);
             await dataAccess.client.project.delete({
                 where: {
-                    id
+                    id: projectid
                 }
             });
         } finally {

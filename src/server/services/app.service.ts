@@ -9,6 +9,9 @@ import { StringUtils } from "../utils/string.utils";
 import deploymentService from "./deployment.service";
 import buildService, { BUILD_NAMESPACE } from "./build.service";
 import namespaceService from "./namespace.service";
+import ingressService from "./ingress.service";
+import pvcService from "./pvc.service";
+import svcService from "./svc.service";
 
 class AppService {
 
@@ -29,21 +32,24 @@ class AppService {
     }
 
     async deleteById(id: string) {
-        const existingItem = await this.getById(id);
-        if (!existingItem) {
+        const existingApp = await this.getById(id);
+        if (!existingApp) {
             return;
         }
         try {
-            await deploymentService.deleteService(existingItem.projectId, existingItem.id);
-            await deploymentService.deleteDeployment(existingItem.projectId, existingItem.id);
+            await svcService.deleteService(existingApp.projectId, existingApp.id);
+            await deploymentService.deleteDeployment(existingApp.projectId, existingApp.id);
+            await ingressService.deleteAllIngressForApp(existingApp.projectId, existingApp.id);
+            await pvcService.deleteAllPvcOfApp(existingApp.projectId, existingApp.id);
+            await buildService.deleteAllBuildsOfApp(existingApp.id);
             await dataAccess.client.app.delete({
                 where: {
                     id
                 }
             });
         } finally {
-            revalidateTag(Tags.apps(existingItem.projectId));
-            revalidateTag(Tags.app(existingItem.id));
+            revalidateTag(Tags.apps(existingApp.projectId));
+            revalidateTag(Tags.app(existingApp.id));
         }
     }
 

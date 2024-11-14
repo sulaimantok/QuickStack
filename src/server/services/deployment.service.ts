@@ -12,6 +12,7 @@ import pvcService from "./pvc.service";
 import ingressService from "./ingress.service";
 import namespaceService from "./namespace.service";
 import { Constants } from "../utils/constants";
+import svcService from "./svc.service";
 
 class DeploymentService {
 
@@ -28,64 +29,9 @@ class DeploymentService {
         if (!existingDeployment) {
             return;
         }
-        return k3s.apps.deleteNamespacedDeployment(appId, projectId);
-    }
-
-    async deleteService(projectId: string, appId: string) {
-        const existingService = await this.getService(projectId, appId);
-        if (!existingService) {
-            return;
-        }
-        return k3s.core.deleteNamespacedService(StringUtils.toServiceName(appId), projectId);
-    }
-
-
-    async getService(projectId: string, appId: string) {
-        const allServices = await k3s.core.listNamespacedService(projectId);
-        if (allServices.body.items.some((item) => item.metadata?.name === StringUtils.toServiceName(appId))) {
-            const res = await k3s.core.readNamespacedService(StringUtils.toServiceName(appId), projectId);
-            return res.body;
-        }
-    }
-
-    async createOrUpdateService(app: AppExtendedModel) {
-        const existingService = await this.getService(app.projectId, app.id);
-        // port configuration with removed duplicates
-        const ports: {
-            name: string;
-            port: number;
-            targetPort: number;
-        }[] = [
-            ...app.appDomains.map((domain) => ({
-                name: `custom-${domain.id}`,
-                port: domain.port,
-                targetPort: domain.port
-            })),
-            {
-                name: 'default',
-                port: app.defaultPort,
-                targetPort: app.defaultPort
-            }
-        ].filter((port, index, self) =>
-            index === self.findIndex((t) => (t.port === port.port && t.targetPort === port.targetPort)));
-
-        const body = {
-            metadata: {
-                name: StringUtils.toServiceName(app.id)
-            },
-            spec: {
-                selector: {
-                    app: app.id
-                },
-                ports: ports
-            }
-        };
-        if (existingService) {
-            await k3s.core.replaceNamespacedService(StringUtils.toServiceName(app.id), app.projectId, body);
-        } else {
-            await k3s.core.createNamespacedService(app.projectId, body);
-        }
-
+        const returnVal = await k3s.apps.deleteNamespacedDeployment(appId, projectId);
+        console.log(`Deleted Deployment ${appId} in namespace ${projectId}`);
+        return returnVal;
     }
 
     async validateDeployment(app: AppExtendedModel) {
@@ -169,7 +115,7 @@ class DeploymentService {
             const res = await k3s.apps.createNamespacedDeployment(app.projectId, body);
         }
         await pvcService.deleteUnusedPvcOfApp(app);
-        await this.createOrUpdateService(app);
+        await svcService.createOrUpdateService(app);
         await ingressService.createOrUpdateIngressForApp(app);
     }
 
@@ -190,13 +136,6 @@ class DeploymentService {
         return k3s.apps.replaceNamespacedDeployment(appId, projectId, existingDeployment);
     }
 
-    async getPodsForApp(projectId: string, appId: string) {
-        const res = await k3s.core.listNamespacedPod(projectId, undefined, undefined, undefined, undefined, `app=${appId}`);
-        return res.body.items.map((item) => ({
-            podName: item.metadata?.name!,
-            containerName: item.spec?.containers?.[0].name!
-        })).filter((item) => !!item.podName && !!item.containerName) as PodsInfoModel[];
-    }
 
     async getDeploymentStatus(projectId: string, appId: string) {
         const deployment = await this.getDeployment(projectId, appId);
@@ -204,14 +143,6 @@ class DeploymentService {
             return 'UNKNOWN';
         }
         return this.mapReplicasetToStatus(deployment);
-    }
-
-    async getPodByName(projectId: string, podName: string) {
-        const res = await k3s.core.readNamespacedPod(podName, projectId);
-        return {
-            podName: res.body.metadata?.name!,
-            containerName: res.body.spec?.containers?.[0].name!
-        } as PodsInfoModel;
     }
 
     /**
