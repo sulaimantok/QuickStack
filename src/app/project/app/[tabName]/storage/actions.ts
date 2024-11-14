@@ -6,6 +6,7 @@ import appService from "@/server/services/app.service";
 import { getAuthUserSession, saveFormAction, simpleAction } from "@/server/utils/action-wrapper.utils";
 import { z } from "zod";
 import { ServiceException } from "@/model/service.exception.model";
+import pvcStatusService from "@/server/services/pvc.status.service";
 
 const actionAppVolumeEditZodModel = appVolumeEditZodModel.merge(z.object({
     appId: z.string(),
@@ -31,4 +32,10 @@ export const deleteVolume = async (volumeID: string) =>
         await getAuthUserSession();
         await appService.deleteVolumeById(volumeID);
         return new SuccessActionResult(undefined, 'Successfully deleted volume');
+    });
+
+export const getPvcUsage = async (pvcName: string, pvcNamespace: string) =>
+    simpleAction(async () => {
+        await getAuthUserSession();
+        return await pvcStatusService.getPvcUsageByName(pvcName, pvcNamespace);
     });
