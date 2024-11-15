@@ -18,6 +18,7 @@ import DeploymentStatusBadge from "./deployment-status-badge";
 import { io } from "socket.io-client";
 import { podLogsSocket } from "@/lib/sockets";
 import { BuildLogsDialog } from "./build-logs-overlay";
+import ShortCommitHash from "@/components/custom/short-commit-hash";
 
 export default function BuildsTab({
     app
@@ -86,7 +87,7 @@ export default function BuildsTab({
                         ['buildJobName', 'Build Job Name', false],
                         ['status', 'Status', true, (item) => <DeploymentStatusBadge>{item.status}</DeploymentStatusBadge>],
                         ["startTime", "Started At", true, (item) => formatDateTime(item.createdAt)],
-                        ['gitCommit', 'Git Commit', true],
+                        ['gitCommit', 'Git Commit', true, (item) => <ShortCommitHash>{item.gitCommit}</ShortCommitHash>],
                     ]}
                         data={appBuilds}
                         hideSearchBar={true}
