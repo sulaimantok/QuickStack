@@ -15,15 +15,14 @@ import svcService from "./svc.service";
 
 class AppService {
 
-    async buildAndDeploy(appId: string) {
+    async buildAndDeploy(appId: string, forceBuild: boolean = false) {
         const app = await this.getExtendedById(appId);
         if (app.sourceType === 'GIT') {
             // first make build
-            await namespaceService.createNamespaceIfNotExists(BUILD_NAMESPACE);
-            const [buildJobName, buildPromise] = await buildService.buildApp(app);
+            const [buildJobName, gitCommitHash, buildPromise] = await buildService.buildApp(app, forceBuild);
             buildPromise.then(async () => {
                 console.warn('Build job finished, deploying...');
-                await deploymentService.createDeployment(app, buildJobName);
+                await deploymentService.createDeployment(app, buildJobName, gitCommitHash);
             });
         } else {
             // only deploy

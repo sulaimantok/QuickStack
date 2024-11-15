@@ -83,8 +83,10 @@ export default function BuildsTab({
                     <SimpleDataTable columns={[
                         ['replicasetName', 'Deployment Name', false],
                         ['buildJobName', 'Build Job Name', false],
+                        ['buildJobName', 'Build Job Name', false],
                         ['status', 'Status', true, (item) => <DeploymentStatusBadge>{item.status}</DeploymentStatusBadge>],
                         ["startTime", "Started At", true, (item) => formatDateTime(item.createdAt)],
+                        ['gitCommit', 'Git Commit', true],
                     ]}
                         data={appBuilds}
                         hideSearchBar={true}

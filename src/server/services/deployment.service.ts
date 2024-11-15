@@ -40,7 +40,7 @@ class DeploymentService {
         }
     }
 
-    async createDeployment(app: AppExtendedModel, buildJobName?: string) {
+    async createDeployment(app: AppExtendedModel, buildJobName?: string, gitCommitHash?: string) {
         await this.validateDeployment(app);
         await namespaceService.createNamespaceIfNotExists(app.projectId);
         const appHasPvcChanges = await pvcService.doesAppConfigurationIncreaseAnyPvcSize(app)
@@ -93,6 +93,10 @@ class DeploymentService {
         };
         if (buildJobName) {
             body.spec!.template!.metadata!.annotations!.buildJobName = buildJobName; // add buildJobName to deployment
+        }
+
+        if (gitCommitHash) {
+            body.spec!.template!.metadata!.annotations![Constants.QS_ANNOTATION_GIT_COMMIT] = gitCommitHash; // add gitCommitHash to deployment
         }
 
         if (!appHasPvcChanges && app.appVolumes.length === 0 || app.appVolumes.every(vol => vol.accessMode === 'ReadWriteMany')) {
@@ -163,7 +167,8 @@ class DeploymentService {
                     replicasetName: undefined,
                     createdAt: build.startTime!,
                     buildJobName: build.name!,
-                    status: this.mapBuildStatusToDeploymentStatus(build.status)
+                    status: this.mapBuildStatusToDeploymentStatus(build.status),
+                    gitCommit: build.gitCommit,
                 }
             });
         replicasetRevisions.push(...runningOrFailedBuilds);
@@ -196,6 +201,7 @@ class DeploymentService {
                 replicasetName: rs.metadata?.name!,
                 createdAt: rs.metadata?.creationTimestamp!,
                 buildJobName: rs.spec?.template?.metadata?.annotations?.buildJobName!,
+                gitCommit: rs.spec?.template?.metadata?.annotations?.[Constants.QS_ANNOTATION_GIT_COMMIT],
                 status: status
             }
         });

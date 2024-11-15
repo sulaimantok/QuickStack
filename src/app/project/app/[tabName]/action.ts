@@ -6,10 +6,10 @@ import deploymentService from "@/server/services/deployment.service";
 import { getAuthUserSession, simpleAction } from "@/server/utils/action-wrapper.utils";
 
 
-export const deploy = async (appId: string) =>
+export const deploy = async (appId: string, forceBuild = false) =>
     simpleAction(async () => {
         await getAuthUserSession();
-        await appService.buildAndDeploy(appId);
+        await appService.buildAndDeploy(appId, forceBuild);
         return new SuccessActionResult(undefined, 'Successfully started deployment.');
     });
 

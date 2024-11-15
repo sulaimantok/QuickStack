@@ -14,7 +14,8 @@ export const deploymentInfoZodModel = z.object({
     replicasetName: z.string().optional(),
     buildJobName: z.string().optional(),
     createdAt: z.date(),
-    status: deploymentStatusEnumZod
+    status: deploymentStatusEnumZod,
+    gitCommit: z.string().optional(),
 });
 
 export type DeploymentInfoModel = z.infer<typeof deploymentInfoZodModel>;

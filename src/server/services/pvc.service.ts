@@ -9,6 +9,8 @@ import { MemoryCalcUtils } from "../utils/memory-caluclation.utils";
 
 class PvcService {
 
+    static readonly SHARED_PVC_NAME = 'qs-shared-pvc';
+
     async doesAppConfigurationIncreaseAnyPvcSize(app: AppExtendedModel) {
         const existingPvcs = await this.getAllPvcForApp(app.projectId, app.id);
 

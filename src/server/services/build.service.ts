@@ -7,6 +7,9 @@ import { ServiceException } from "@/model/service.exception.model";
 import { PodsInfoModel } from "@/model/pods-info.model";
 import namespaceService from "./namespace.service";
 import { Constants } from "../utils/constants";
+import gitService from "./git.service";
+import deploymentService from "./deployment.service";
+import deploymentLogService from "./deployment-logs.service";
 
 const kanikoImage = "gcr.io/kaniko-project/executor:latest";
 const REGISTRY_NODE_PORT = 30100;
@@ -20,12 +23,27 @@ export const REGISTRY_URL_INTERNAL = `${REGISTRY_SVC_NAME}.${BUILD_NAMESPACE}.sv
 class BuildService {
 
 
-    async buildApp(app: AppExtendedModel): Promise<[string, Promise<void>]> {
+    async buildApp(app: AppExtendedModel, forceBuild: boolean = false): Promise<[string, string, Promise<void>]> {
+        await namespaceService.createNamespaceIfNotExists(BUILD_NAMESPACE);
         await this.deployRegistryIfNotExists();
-        const runningJobsForApp = await this.getBuildsForApp(app.id);
-        if (runningJobsForApp.some((job) => job.status === 'RUNNING')) {
+        const buildsForApp = await this.getBuildsForApp(app.id);
+        if (buildsForApp.some((job) => job.status === 'RUNNING')) {
             throw new ServiceException("A build job is already running for this app.");
         }
+
+        // Check if last build is already up to date with data in git repo
+        const latestSuccessfulBuld = buildsForApp.find(x => x.status === 'SUCCEEDED');
+        const latestRemoteGitHash = await gitService.getLatestRemoteCommitHash(app);
+        if (!forceBuild && latestSuccessfulBuld?.gitCommit && latestRemoteGitHash &&
+            latestSuccessfulBuld?.gitCommit === latestRemoteGitHash) {
+            console.log(`Last build is already up to date with data in git repo for app ${app.id}`);
+            // todo check if the container is still in registry
+            return [latestSuccessfulBuld.name, latestRemoteGitHash, Promise.resolve()];
+        }
+        return await this.createAndStartBuildJob(app, latestRemoteGitHash);
+    }
+
+    private async createAndStartBuildJob(app: AppExtendedModel, latestRemoteGitHash: string): Promise<[string, string, Promise<void>]> {
 
         const buildName = StringUtils.addRandomSuffix(StringUtils.toJobName(app.id));
         const jobDefinition: V1Job = {
@@ -37,6 +55,7 @@ class BuildService {
                 annotations: {
                     [Constants.QS_ANNOTATION_APP_ID]: app.id,
                     [Constants.QS_ANNOTATION_PROJECT_ID]: app.projectId,
+                    [Constants.QS_ANNOTATION_GIT_COMMIT]: latestRemoteGitHash,
                 }
             },
             spec: {
@@ -51,7 +70,7 @@ class BuildService {
                                     `--dockerfile=${app.dockerfilePath}`,
                                     `--insecure`,
                                     `--log-format=text`,
-                                    `--context=${app.gitUrl!.replace("https://", "git://")}#refs/heads/${app.gitBranch}`,
+                                    `--context=${app.gitUrl!.replace("https://", "git://")}#refs/heads/${app.gitBranch}`, // todo change to shared folder
                                     `--destination=${this.createInternalContainerRegistryUrlForAppId(app.id)}`
                                 ]
                             },
@@ -79,7 +98,7 @@ class BuildService {
 
         const buildJobPromise = this.waitForJobCompletion(jobDefinition.metadata!.name!)
 
-        return [buildName, buildJobPromise];
+        return [buildName, latestRemoteGitHash, buildJobPromise];
     }
 
     createInternalContainerRegistryUrlForAppId(appId?: string) {
@@ -128,6 +147,7 @@ class BuildService {
                 name: job.metadata?.name,
                 startTime: job.status?.startTime,
                 status: this.getJobStatusString(job.status),
+                gitCommit: job.metadata?.annotations?.[Constants.QS_ANNOTATION_GIT_COMMIT],
             } as BuildJobModel;
         });
         builds.sort((a, b) => {

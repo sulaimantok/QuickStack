@@ -1,3 +1,4 @@
+import { GitCommit } from "lucide-react";
 import { z } from "zod";
 
 export const buildJobStatusEnumZod = z.union([z.literal('UNKNOWN'), z.literal('RUNNING'), z.literal('FAILED'), z.literal('SUCCEEDED')]);
@@ -5,7 +6,8 @@ export const buildJobStatusEnumZod = z.union([z.literal('UNKNOWN'), z.literal('R
 export const buildJobSchemaZod = z.object({
     name: z.string(),
     startTime: z.date(),
-    status:  buildJobStatusEnumZod
+    status:  buildJobStatusEnumZod,
+    gitCommit: z.string(),
 });
 
 export type BuildJobModel = z.infer<typeof buildJobSchemaZod>;
