@@ -2,7 +2,11 @@ import * as k8s from '@kubernetes/client-node';
 
 const getKubeConfig = () => {
     const kc = new k8s.KubeConfig();
-    kc.loadFromFile('/workspace/kube-config.config'); // todo update --> use security role
+    if (process.env.NODE_ENV === 'production') {
+        kc.loadFromCluster();
+    } else {
+        kc.loadFromFile('/workspace/kube-config.config');
+    }
     return kc;
 }
 
