@@ -42,3 +42,4 @@ kube-config.config_clusteradmin
 kube-config.config_old
 kube-config.config_restricted
 internal
+shared
