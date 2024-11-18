@@ -106,63 +106,54 @@ rm cluster-issuer.yaml
 sudo kubectl get nodes
 
 # deploy QuickStack
-cat <<EOF > quick-stack.yaml
+cat <<EOF > quickstack-setup-job.yaml
 apiVersion: v1
-kind: PersistentVolumeClaim
-metadata:
-  name: quickstack-internal-pvc
-  namespace: quickstack
-spec:
-  accessModes:
-    - ReadWriteOnce
-  storageClassName: longhorn
-  resources:
-    requests:
-      storage: 1Gi
----
-apiVersion: apps/v1
-kind: Deployment
+kind: Namespace
 metadata:
   name: quickstack
-  namespace: quickstack
-spec:
-  replicas: 1
-  selector:
-    matchLabels:
-      app: quickstack
-  template:
-    metadata:
-      labels:
-        app: quickstack
-    spec:
-      strategy:
-        type: Recreate
-      containers:
-        - name: quickstack-container
-          image: quickstack/quickstack:latest
-          imagePullPolicy: "Always"
-          volumeMounts:
-            - name: quickstack-internal-pvc
-              mountPath: /mnt/internal
-      volumes:
-        - name: quickstack-internal-pvc
-          persistentVolumeClaim:
-            claimName: quickstack-internal-pvc
 ---
 apiVersion: v1
-kind: Service
+kind: ServiceAccount
 metadata:
-  name: quickstack-svc
+  name: qs-service-account
+  namespace: quickstack
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: qs-role-binding
+subjects:
+  - kind: ServiceAccount
+    name: qs-service-account
+    namespace: quickstack
+roleRef:
+  kind: ClusterRole
+  name: cluster-admin
+  apiGroup: rbac.authorization.k8s.io
+---
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: quickstack-setup-job
   namespace: quickstack
 spec:
-  selector:
-    app: quickstack
-  ports:
-    - nodePort: 3000
-      protocol: TCP
-      port: 3000
-      targetPort: 3000
+  template:
+    spec:
+      serviceAccountName: qs-service-account
+      containers:
+      - name: quickstack-container
+        image: quickstack/quickstack:latest
+        env:
+        - name: START_MODE
+          value: "setup"
+        imagePullPolicy: Always
+      restartPolicy: Never
+  backoffLimit: 0
 EOF
+sudo kubectl apply -f quickstack-setup-job.yaml
+rm quickstack-setup-job.yaml
+wait_until_all_pods_running
+sudo kubectl logs -f job/quickstack-setup-job
 
 # evaluate url to add node to cluster
 joinTokenForOtherNodes=$(sudo cat /var/lib/rancher/k3s/server/node-token)

@@ -10,6 +10,12 @@ import { CommandExecutorUtils } from './server/utils/command-executor.utils'
 const port = parseInt(process.env.PORT || '3000', 10)
 const dev = process.env.NODE_ENV !== 'production'
 
+console.log(`NODE_ENV=${process.env.NODE_ENV}`);
+if (process.env.NODE_ENV === 'production') {
+    console.log(`KUBERNETES_SERVICE_HOST=${process.env.KUBERNETES_SERVICE_HOST}`);
+    console.log(`KUBERNETES_SERVICE_PORT=${process.env.KUBERNETES_SERVICE_PORT}`);
+}
+
 async function setupQuickStack() {
     console.log('Setting up QuickStack...');
     await initService.initializeQuickStack();

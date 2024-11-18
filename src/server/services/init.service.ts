@@ -7,6 +7,7 @@ class InitService {
 
     private readonly QUICKSTACK_NAMESPACE = 'quickstack';
     private readonly QUICKSTACK_DEPLOYMENT_NAME = 'quickstack';
+    private readonly QUICKSTACK_SERVICEACCOUNT_NAME = 'qs-service-account';
 
 
     async initializeQuickStack() {
@@ -96,6 +97,7 @@ class InitService {
                         }
                     },
                     spec: {
+                        serviceAccountName: this.QUICKSTACK_SERVICEACCOUNT_NAME,
                         containers: [
                             {
                                 name: this.QUICKSTACK_DEPLOYMENT_NAME,
