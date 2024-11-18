@@ -33,7 +33,7 @@ generator zod {
 
 datasource db {
   provider = "sqlite"
-  url      = "file:../db/data.db"
+  url      = "file:../storage/db/data.db"
 }
 
 // *** The following code is for the default NextAuth.js schema

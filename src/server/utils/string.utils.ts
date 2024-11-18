@@ -49,7 +49,7 @@ export class StringUtils {
         return `svc-${appId}`;
     }
 
-    static toPvcName(volumeId: string) {
+    static toPvcName(volumeId: string): `pvc-${string}` {
         return `pvc-${volumeId}`;
     }
 
