@@ -5,8 +5,9 @@
   "scripts": {
     "dev": "next dev",
     "dev-live": "bun src/server.ts",
-    "build": "next build",
+    "build": "next build && tsc --project tsconfig.server.json",
     "start": "next start",
+    "start-prod": "cross-env NODE_ENV=production node dist/server.js",
     "prisma-generate": "bunx prisma generate && bun ./fix-wrong-zod-imports.js",
     "prisma-generate-build": "npx prisma generate && node ./fix-wrong-zod-imports.js",
     "prisma-migrate": "bunx prisma migrate dev --name migration",
@@ -38,6 +39,7 @@
     "class-variance-authority": "^0.7.0",
     "clsx": "^2.1.1",
     "cmdk": "1.0.0",
+    "cross-env": "^7.0.3",
     "date-fns": "^4.1.0",
     "date-fns-tz": "^3.2.0",
     "lucide-react": "^0.453.0",

@@ -105,6 +105,65 @@ rm cluster-issuer.yaml
 
 sudo kubectl get nodes
 
+# deploy QuickStack
+cat <<EOF > quick-stack.yaml
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: quickstack-internal-pvc
+  namespace: quickstack
+spec:
+  accessModes:
+    - ReadWriteOnce
+  storageClassName: longhorn
+  resources:
+    requests:
+      storage: 1Gi
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: quickstack
+  namespace: quickstack
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: quickstack
+  template:
+    metadata:
+      labels:
+        app: quickstack
+    spec:
+      strategy:
+        type: Recreate
+      containers:
+        - name: quickstack-container
+          image: quickstack/quickstack:latest
+          imagePullPolicy: "Always"
+          volumeMounts:
+            - name: quickstack-internal-pvc
+              mountPath: /mnt/internal
+      volumes:
+        - name: quickstack-internal-pvc
+          persistentVolumeClaim:
+            claimName: quickstack-internal-pvc
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: quickstack-svc
+  namespace: quickstack
+spec:
+  selector:
+    app: quickstack
+  ports:
+    - nodePort: 3000
+      protocol: TCP
+      port: 3000
+      targetPort: 3000
+EOF
+
 # evaluate url to add node to cluster
 joinTokenForOtherNodes=$(sudo cat /var/lib/rancher/k3s/server/node-token)
 echo "To add a worker node to the cluster, run the following command on the worker node:"
