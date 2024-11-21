@@ -14,6 +14,7 @@ console.log(`NODE_ENV=${process.env.NODE_ENV}`);
 if (process.env.NODE_ENV === 'production') {
     console.log(`KUBERNETES_SERVICE_HOST=${process.env.KUBERNETES_SERVICE_HOST}`);
     console.log(`KUBERNETES_SERVICE_PORT=${process.env.KUBERNETES_SERVICE_PORT}`);
+    console.log(process.env);
 }
 
 async function setupQuickStack() {
