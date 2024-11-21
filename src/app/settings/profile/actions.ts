@@ -4,7 +4,7 @@ import { ServiceException } from "@/model/service.exception.model";
 import { ProfilePasswordChangeModel, profilePasswordChangeZodModel } from "@/model/update-password.model";
 import userService from "@/server/services/user.service";
 import { getAuthUserSession, saveFormAction, simpleAction } from "@/server/utils/action-wrapper.utils";
-import { TotpModel, totpZodModel } from "@/model/update-password.model copy";
+import { TotpModel, totpZodModel } from "@/model/totp.model";
 import { SuccessActionResult } from "@/model/server-action-error-return.model";
 
 export const changePassword = async (prevState: any, inputData: ProfilePasswordChangeModel) =>

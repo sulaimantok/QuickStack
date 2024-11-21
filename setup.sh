@@ -137,6 +137,7 @@ metadata:
   name: quickstack-setup-job
   namespace: quickstack
 spec:
+  ttlSecondsAfterFinished: 3600
   template:
     spec:
       serviceAccountName: qs-service-account

@@ -12,6 +12,10 @@ export class Tags {
         return `apps-${projectId}`;
     }
 
+    static parameter() {
+        return `parameter`;
+    }
+
     static app(appId: string) {
         return `app-${appId}`;
     }

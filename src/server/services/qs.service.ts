@@ -1,13 +1,16 @@
 import k3s from "../adapter/kubernetes-api.adapter";
-import { V1Deployment, V1Service } from "@kubernetes/client-node";
+import { V1Deployment, V1Ingress, V1Service } from "@kubernetes/client-node";
 import namespaceService from "./namespace.service";
 import { StringUtils } from "../utils/string.utils";
 import crypto from "crypto";
+import paramService, { ParamService } from "./param.service";
+import { ServiceException } from "@/model/service.exception.model";
 
-class InitService {
+class QuickStackService {
 
     private readonly QUICKSTACK_NAMESPACE = 'quickstack';
     private readonly QUICKSTACK_DEPLOYMENT_NAME = 'quickstack';
+    private readonly QUICKSTACK_PORT_NUMBER = 3000;
     private readonly QUICKSTACK_SERVICEACCOUNT_NAME = 'qs-service-account';
 
 
@@ -18,6 +21,102 @@ class InitService {
         await this.createDeployment(nextAuthSecret);
         await this.createOrUpdateService(true);
         console.log('QuickStack successfully initialized');
+    }
+
+    async createOrUpdateIngress(hostname: string) {
+        const ingressName = StringUtils.getIngressName(this.QUICKSTACK_NAMESPACE);
+        const existingIngresses = await k3s.network.listNamespacedIngress(this.QUICKSTACK_NAMESPACE);
+        const existingIngress = existingIngresses.body.items.find((item) => item.metadata?.name === ingressName);
+
+        const ingressDefinition: V1Ingress = {
+            apiVersion: 'networking.k8s.io/v1',
+            kind: 'Ingress',
+            metadata: {
+                name: ingressName,
+                namespace: this.QUICKSTACK_NAMESPACE,
+                annotations: {
+                    'cert-manager.io/cluster-issuer': 'letsencrypt-production',
+                    'traefik.ingress.kubernetes.io/router.middlewares': 'kube-system-redirect-to-https@kubernetescrd'  // activate redirect middleware for https
+                },
+            },
+            spec: {
+                ingressClassName: 'traefik',
+                rules: [
+                    {
+                        host: hostname,
+                        http: {
+                            paths: [
+                                {
+                                    path: '/',
+                                    pathType: 'Prefix',
+                                    backend: {
+                                        service: {
+                                            name: StringUtils.toServiceName(this.QUICKSTACK_DEPLOYMENT_NAME),
+                                            port: {
+                                                number: this.QUICKSTACK_PORT_NUMBER,
+                                            },
+                                        },
+                                    },
+                                },
+                            ],
+                        },
+                    },
+                ],
+                tls: [
+                    {
+                        hosts: [hostname],
+                        secretName: `secret-tls-${hostname}`,
+                    },
+                ],
+            },
+        };
+
+        if (existingIngress) {
+            await k3s.network.replaceNamespacedIngress(ingressName, this.QUICKSTACK_NAMESPACE, ingressDefinition);
+            console.log(`Ingress QuickStack for domain ${hostname} successfully updated.`);
+        } else {
+            await k3s.network.createNamespacedIngress(this.QUICKSTACK_NAMESPACE, ingressDefinition);
+            console.log(`Ingress QuickStack for domain ${hostname} successfully created.`);
+        }
+    }
+
+    async createOrUpdateCertIssuer(letsencryptMail: string) {
+        const issuerName = 'letsencrypt-production';
+        const issuerDefinition = {
+            apiVersion: 'cert-manager.io/v1',
+            kind: 'ClusterIssuer',
+            metadata: {
+                name: issuerName,
+                namespace: 'default'
+            },
+            spec: {
+                acme: {
+                    email: letsencryptMail,
+                    server: 'https://acme-v02.api.letsencrypt.org/directory',
+                    privateKeySecretRef: {
+                        name: 'letsencrypt-production'
+                    },
+                    solvers: [
+                        {
+                            http01: {
+                                ingress: {
+                                    class: 'traefik'
+                                }
+                            }
+                        }
+                    ]
+                }
+            }
+        };
+        // todo
+       /* const allIssuers = await k3s.network.clus();
+        const existingIssuer = allIssuers.body.items.find(i => i.metadata!.name === issuerName);
+        if (existingIssuer) {
+            await k3s.certManager.replaceClusterIssuer(issuerName, issuerDefinition);
+            console.log('Cert Issuer updated');
+        } else {
+            await k3s.certManager.createClusterIssuer(issuerDefinition);
+            console.log('Cert Issuer created');*/
     }
 
     async createOrUpdateService(openNodePort = false) {
@@ -36,8 +135,8 @@ class InitService {
                 ports: [
                     {
                         protocol: 'TCP',
-                        port: 3000,
-                        targetPort: 3000,
+                        port: this.QUICKSTACK_PORT_NUMBER,
+                        targetPort: this.QUICKSTACK_PORT_NUMBER,
                         nodePort: openNodePort ? 30000 : undefined,
                     }
                 ],
@@ -51,8 +150,6 @@ class InitService {
             console.warn('Service already exists, deleting and recreating it');
             await k3s.core.deleteNamespacedService(serviceName, this.QUICKSTACK_NAMESPACE);
             console.log('Existing service deleted');
-            //await k3s.core.replaceNamespacedService(serviceName, this.QUICKSTACK_NAMESPACE, body);
-            // console.log('Service created');
         } else {
             console.warn('Service does not exist, creating');
         }
@@ -175,5 +272,5 @@ class InitService {
     }
 }
 
-const initService = new InitService();
-export default initService;
+const quickStackService = new QuickStackService();
+export default quickStackService;

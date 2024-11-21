@@ -15,11 +15,10 @@ class IngressService {
         return res.body.items.filter((item) => item.metadata?.annotations?.[Constants.QS_ANNOTATION_APP_ID] === appId);
     }
 
-    async getIngress(projectId: string, domainId: string, ) {
+    async getIngress(projectId: string, domainId: string) {
         const res = await k3s.network.listNamespacedIngress(projectId);
         return res.body.items.find((item) => item.metadata?.name === StringUtils.getIngressName(domainId));
     }
-
 
     async deleteUnusedIngressesOfApp(app: AppExtendedModel) {
         const currentDomains = new Set(app.appDomains.map(domainObj => domainObj.hostname));

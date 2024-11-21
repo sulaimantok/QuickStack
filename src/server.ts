@@ -2,7 +2,7 @@ import { createServer } from 'http'
 import { parse } from 'url'
 import next from 'next'
 import socketIoServer from './socket-io.server'
-import initService from './server/services/init.service'
+import quickStackService from './server/services/qs.service'
 import { CommandExecutorUtils } from './server/utils/command-executor.utils'
 import k3s from './server/adapter/kubernetes-api.adapter'
 
@@ -19,7 +19,7 @@ if (process.env.NODE_ENV === 'production') {
 
 async function setupQuickStack() {
     console.log('Setting up QuickStack...');
-    await initService.initializeQuickStack();
+    await quickStackService.initializeQuickStack();
 }
 
 async function initializeNextJs() {

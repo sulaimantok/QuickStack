@@ -13,7 +13,7 @@ import { toast } from "sonner";
 import { createNewTotpToken, verifyTotpToken } from "./actions";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import React from "react";
-import { TotpModel, totpZodModel } from "@/model/update-password.model copy";
+import { TotpModel, totpZodModel } from "@/model/totp.model";
 import { Toast } from "@/lib/toast.utils";
 import FullLoadingSpinner from "@/components/ui/full-loading-spinnter";
 

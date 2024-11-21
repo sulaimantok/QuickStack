@@ -1,22 +1,15 @@
 import { SimpleDataTable } from "@/components/custom/simple-data-table";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import LoadingSpinner from "@/components/ui/loading-spinner";
 import { formatDateTime } from "@/lib/format.utils";
 import { AppExtendedModel } from "@/model/app-extended.model";
-import { BuildJobModel } from "@/model/build-job";
 import { useEffect, useState } from "react";
 import { deleteBuild, getDeploymentsAndBuildsForApp } from "./actions";
-import { set } from "date-fns";
 import FullLoadingSpinner from "@/components/ui/full-loading-spinnter";
-import { Item } from "@radix-ui/react-dropdown-menu";
-import BuildStatusBadge from "./build-status-badge";
 import { Button } from "@/components/ui/button";
 import { useConfirmDialog } from "@/lib/zustand.states";
 import { Toast } from "@/lib/toast.utils";
 import { DeploymentInfoModel } from "@/model/deployment-info.model";
 import DeploymentStatusBadge from "./deployment-status-badge";
-import { io } from "socket.io-client";
-import { podLogsSocket } from "@/lib/sockets";
 import { BuildLogsDialog } from "./build-logs-overlay";
 import ShortCommitHash from "@/components/custom/short-commit-hash";
 
