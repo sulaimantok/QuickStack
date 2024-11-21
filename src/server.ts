@@ -4,6 +4,7 @@ import next from 'next'
 import socketIoServer from './socket-io.server'
 import initService from './server/services/init.service'
 import { CommandExecutorUtils } from './server/utils/command-executor.utils'
+import k3s from './server/adapter/kubernetes-api.adapter'
 
 // Source: https://nextjs.org/docs/app/building-your-application/configuring/custom-server
 
@@ -15,6 +16,7 @@ if (process.env.NODE_ENV === 'production') {
     console.log(`KUBERNETES_SERVICE_HOST=${process.env.KUBERNETES_SERVICE_HOST}`);
     console.log(`KUBERNETES_SERVICE_PORT=${process.env.KUBERNETES_SERVICE_PORT}`);
     console.log(process.env);
+    console.log(k3s.getKubeConfig());
 }
 
 async function setupQuickStack() {
