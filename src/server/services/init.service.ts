@@ -2,6 +2,7 @@ import k3s from "../adapter/kubernetes-api.adapter";
 import { V1Deployment, V1Service } from "@kubernetes/client-node";
 import namespaceService from "./namespace.service";
 import { StringUtils } from "../utils/string.utils";
+import crypto from "crypto";
 
 class InitService {
 
@@ -12,9 +13,9 @@ class InitService {
 
     async initializeQuickStack() {
         await namespaceService.createNamespaceIfNotExists(this.QUICKSTACK_NAMESPACE)
-        await this.deleteExistingDeployment();
+        const nextAuthSecret = await this.deleteExistingDeployment();
         await this.createOrUpdatePvc();
-        await this.createDeployment();
+        await this.createDeployment(nextAuthSecret);
         await this.createOrUpdateService(true);
         console.log('QuickStack successfully initialized');
     }
@@ -101,7 +102,8 @@ class InitService {
     }
 
 
-    private async createDeployment() {
+    private async createDeployment(existingNextAuthSecret?: string) {
+        const generatedNextAuthSecret = crypto.randomBytes(32).toString('base64');
         const body: V1Deployment = {
             metadata: {
                 name: this.QUICKSTACK_DEPLOYMENT_NAME,
@@ -121,11 +123,22 @@ class InitService {
                     },
                     spec: {
                         serviceAccountName: this.QUICKSTACK_SERVICEACCOUNT_NAME,
+                        securityContext: {
+                            runAsUser: 1001,
+                            runAsGroup: 1001,
+                            fsGroup: 1001
+                        },
                         containers: [
                             {
                                 name: this.QUICKSTACK_DEPLOYMENT_NAME,
                                 image: 'quickstack/quickstack:latest',
                                 imagePullPolicy: 'Always',
+                                env: [
+                                    {
+                                        name: 'NEXTAUTH_SECRET',
+                                        value: existingNextAuthSecret || generatedNextAuthSecret
+                                    }
+                                ],
                                 volumeMounts: [{
                                     name: 'quickstack-volume',
                                     mountPath: '/app/storage'
@@ -146,6 +159,9 @@ class InitService {
         console.log('Deployment created');
     }
 
+    /**
+     * @returns: the existing NEXTAUTH_SECRET if the deployment already exists
+     */
     private async deleteExistingDeployment() {
         const allDeployments = await k3s.apps.listNamespacedDeployment(this.QUICKSTACK_NAMESPACE);
         const existingDeployments = allDeployments.body.items.find(d => d.metadata!.name === this.QUICKSTACK_DEPLOYMENT_NAME);
@@ -155,6 +171,7 @@ class InitService {
             await k3s.apps.deleteNamespacedDeployment(this.QUICKSTACK_DEPLOYMENT_NAME, this.QUICKSTACK_NAMESPACE);
             console.log('Existing deployment deleted');
         }
+        return existingDeployments?.spec?.template?.spec?.containers?.[0].env?.find(e => e.name === 'NEXTAUTH_SECRET')?.value;
     }
 }
 
