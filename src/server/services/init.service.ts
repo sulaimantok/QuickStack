@@ -22,29 +22,42 @@ class InitService {
     async createOrUpdateService(openNodePort = false) {
         const serviceName = StringUtils.toServiceName(this.QUICKSTACK_DEPLOYMENT_NAME);
         const body: V1Service = {
+            apiVersion: 'v1',
+            kind: 'Service',
             metadata: {
-                name: StringUtils.toServiceName(this.QUICKSTACK_DEPLOYMENT_NAME)
+                name: serviceName,
+                namespace: this.QUICKSTACK_NAMESPACE,
             },
             spec: {
                 selector: {
                     app: this.QUICKSTACK_DEPLOYMENT_NAME
                 },
-                ports: [{
-                    protocol: 'TCP',
-                    port: 3000,
-                    targetPort: 3000,
-                    nodePort: openNodePort ? 3000 : undefined,
-                }]
+                ports: [
+                    {
+                        protocol: 'TCP',
+                        port: 3000,
+                        targetPort: 3000,
+                        nodePort: openNodePort ? 30000 : undefined,
+                    }
+                ],
+                type: openNodePort ? 'NodePort' : undefined
             }
         };
-        const existingService = await k3s.core.readNamespacedService(serviceName, this.QUICKSTACK_NAMESPACE);
-        if (existingService.body) {
-            console.warn('Service already exists, updating');
-            return k3s.core.replaceNamespacedService(serviceName, this.QUICKSTACK_NAMESPACE, body);
+
+        const allServices = await k3s.core.listNamespacedService(this.QUICKSTACK_NAMESPACE);
+        const existingService = allServices.body.items.find(s => s.metadata!.name === serviceName);
+        if (existingService) {
+            console.warn('Service already exists, deleting and recreating it');
+            await k3s.core.deleteNamespacedService(serviceName, this.QUICKSTACK_NAMESPACE);
+            console.log('Existing service deleted');
+            //await k3s.core.replaceNamespacedService(serviceName, this.QUICKSTACK_NAMESPACE, body);
+            // console.log('Service created');
         } else {
             console.warn('Service does not exist, creating');
-            return k3s.core.createNamespacedService(this.QUICKSTACK_NAMESPACE, body);
         }
+        await k3s.core.createNamespacedService(this.QUICKSTACK_NAMESPACE, body);
+        console.log('Service created');
+
     }
 
 
@@ -67,13 +80,23 @@ class InitService {
                 }
             }
         };
-        const existingPvc = await k3s.core.readNamespacedPersistentVolumeClaim(pvcName, this.QUICKSTACK_NAMESPACE);
-        if (existingPvc.body) {
-            console.warn('PVC already exists, updating');
-            await k3s.core.replaceNamespacedPersistentVolumeClaim(pvcName, this.QUICKSTACK_NAMESPACE, pvc);
+        const allPvcs = await k3s.core.listNamespacedPersistentVolumeClaim(this.QUICKSTACK_NAMESPACE);
+        const existingPvc = allPvcs.body.items.find(p => p.metadata!.name === pvcName);
+        if (existingPvc) {
+            if (existingPvc.spec!.resources!.requests!.storage === pvc.spec!.resources!.requests!.storage) {
+                console.log(`PVC already exists with the same size, no changes`);
+                return;
+            }
+            console.warn('PVC already exists, updating size');
+            // Only the Size of PVC can be updated, so we need to delete and recreate the PVC
+            // update PVC size
+            existingPvc.spec!.resources!.requests!.storage = pvc.spec!.resources!.requests!.storage;
+            await k3s.core.replaceNamespacedPersistentVolumeClaim(pvcName, this.QUICKSTACK_NAMESPACE, existingPvc);
+            console.log('PVC updated');
         } else {
             console.warn('PVC does not exist, creating');
             await k3s.core.createNamespacedPersistentVolumeClaim(this.QUICKSTACK_NAMESPACE, pvc);
+            console.log('PVC created');
         }
     }
 
@@ -124,11 +147,13 @@ class InitService {
     }
 
     private async deleteExistingDeployment() {
-        const existingDeployments = await k3s.apps.readNamespacedDeployment(this.QUICKSTACK_DEPLOYMENT_NAME, this.QUICKSTACK_NAMESPACE);
-        const quickStackAlreadyDeployed = !!existingDeployments.body;
+        const allDeployments = await k3s.apps.listNamespacedDeployment(this.QUICKSTACK_NAMESPACE);
+        const existingDeployments = allDeployments.body.items.find(d => d.metadata!.name === this.QUICKSTACK_DEPLOYMENT_NAME);
+        const quickStackAlreadyDeployed = !!existingDeployments;
         if (quickStackAlreadyDeployed) {
             console.warn('QuickStack already deployed, deleting existing deployment (data wont be lost)');
             await k3s.apps.deleteNamespacedDeployment(this.QUICKSTACK_DEPLOYMENT_NAME, this.QUICKSTACK_NAMESPACE);
+            console.log('Existing deployment deleted');
         }
     }
 }

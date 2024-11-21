@@ -25,17 +25,17 @@ export class StringUtils {
             .toLowerCase();                         // Convert to lowercase
     }
 
-    static toProjectId(str: string): string {
+    static toProjectId(str: string): `proj-${string}` {
         str = str.substring(0, StringUtils.MAX_OBJECT_NAME_LENGTH).trim();
         return `proj-${StringUtils.toObjectId(str)}`;
     }
 
-    static toAppId(str: string): string {
+    static toAppId(str: string): `app-${string}` {
         str = str.substring(0, StringUtils.MAX_OBJECT_NAME_LENGTH).trim();
         return `app-${StringUtils.toObjectId(str)}`;
     }
 
-    static toJobName(appId: string) {
+    static toJobName(appId: string): `build-${string}` {
         return `build-${appId}`;
     }
 
@@ -45,7 +45,7 @@ export class StringUtils {
         return `${str}-${randomString}`;
     }
 
-    static toServiceName(appId: string) {
+    static toServiceName(appId: string): `svc-${string}` {
         return `svc-${appId}`;
     }
 
@@ -53,7 +53,7 @@ export class StringUtils {
         return `pvc-${volumeId}`;
     }
 
-    static getIngressName(domainId: string) {
+    static getIngressName(domainId: string): `ingress-${string}` {
         return `ingress-${domainId}`;
     }
 }
