@@ -7,6 +7,8 @@ const getKubeConfig = () => {
     } else {
         kc.loadFromFile('/workspace/kube-config.config');
     }
+    console.log(kc)
+    console.log(kc.exportConfig())
     return kc;
 }
 
