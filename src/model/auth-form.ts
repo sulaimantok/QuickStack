@@ -7,7 +7,7 @@ export const authFormInputSchemaZod = z.object({
 export type AuthFormInputSchema = z.infer<typeof authFormInputSchemaZod>;
 
 export const registgerFormInputSchemaZod = authFormInputSchemaZod.merge(z.object({
-    qsHostname: z.string().url().optional(),
+    qsHostname: z.string().trim().optional(),
 }));
 export type RegisterFormInputSchema = z.infer<typeof registgerFormInputSchemaZod>;
 

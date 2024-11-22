@@ -3,6 +3,7 @@
 import { AuthFormInputSchema, authFormInputSchemaZod, RegisterFormInputSchema, registgerFormInputSchemaZod } from "@/model/auth-form";
 import { SuccessActionResult } from "@/model/server-action-error-return.model";
 import { ServiceException } from "@/model/service.exception.model";
+import paramService, { ParamService } from "@/server/services/param.service";
 import quickStackService from "@/server/services/qs.service";
 import userService from "@/server/services/user.service";
 import { saveFormAction } from "@/server/utils/action-wrapper.utils";
@@ -18,6 +19,10 @@ export const registerUser = async (prevState: any, inputData: RegisterFormInputS
         await quickStackService.createOrUpdateCertIssuer(validatedData.email);
         if (validatedData.qsHostname) {
             const url = new URL(validatedData.qsHostname.includes('://') ? validatedData.qsHostname : `https://${validatedData.qsHostname}`);
+            await paramService.save({
+                name: ParamService.QS_SERVER_HOSTNAME,
+                value: url.hostname
+            });
             await quickStackService.createOrUpdateIngress(url.hostname);
             return new SuccessActionResult(undefined, 'QuickStack is now available at: ' + url.href);
         }
