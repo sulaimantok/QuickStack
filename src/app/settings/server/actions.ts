@@ -1,10 +1,11 @@
 'use server'
 
-import { getAuthUserSession, saveFormAction } from "@/server/utils/action-wrapper.utils";
+import { getAuthUserSession, saveFormAction, simpleAction } from "@/server/utils/action-wrapper.utils";
 import paramService, { ParamService } from "@/server/services/param.service";
 import { QsIngressSettingsModel, qsIngressSettingsZodModel } from "@/model/qs-settings.model";
 import { QsLetsEncryptSettingsModel, qsLetsEncryptSettingsZodModel } from "@/model/qs-letsencrypt-settings.model";
 import quickStackService from "@/server/services/qs.service";
+import { ServerActionResult } from "@/model/server-action-error-return.model";
 
 export const updateIngressSettings = async (prevState: any, inputData: QsIngressSettingsModel) =>
   saveFormAction(inputData, qsIngressSettingsZodModel, async (validatedData) => {
@@ -38,4 +39,11 @@ export const updateLetsEncryptSettings = async (prevState: any, inputData: QsLet
     });
 
     await quickStackService.createOrUpdateCertIssuer(validatedData.letsEncryptMail);
+  });
+
+export const getConfiguredHostname: () => Promise<ServerActionResult<unknown, string | undefined>> = async () =>
+  simpleAction(async () => {
+    await getAuthUserSession();
+
+    return await paramService.getString(ParamService.QS_SERVER_HOSTNAME);
   });
