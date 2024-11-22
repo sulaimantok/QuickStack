@@ -52,7 +52,7 @@ wait_until_all_pods_running
 # THIS MUST BE INSTALLED ON ALL NODES --> https://longhorn.io/docs/1.7.2/deploy/install/#installing-nfsv4-client
 # !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 echo "Installing nfs-common..."
-kubectl apply -f https://raw.githubusercontent.com/longhorn/longhorn/v1.7.2/deploy/prerequisite/longhorn-nfs-installation.yaml
+sudo kubectl apply -f https://raw.githubusercontent.com/longhorn/longhorn/v1.7.2/deploy/prerequisite/longhorn-nfs-installation.yaml
 wait_until_all_pods_running
 
 # Installation of Cert-Manager
@@ -110,7 +110,7 @@ EOF
 sudo kubectl apply -f quickstack-setup-job.yaml
 rm quickstack-setup-job.yaml
 wait_until_all_pods_running
-sudo kubectl logs -f job/quickstack-setup-job
+sudo kubectl logs -f job/quickstack-setup-job -n quickstack
 
 # evaluate url to add node to cluster
 joinTokenForOtherNodes=$(sudo cat /var/lib/rancher/k3s/server/node-token)
