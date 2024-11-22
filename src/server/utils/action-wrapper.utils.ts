@@ -25,7 +25,8 @@ export async function getUserSession(): Promise<UserSession | null> {
 export async function getAuthUserSession(): Promise<UserSession> {
     const session = await getUserSession();
     if (!session) {
-        throw new ServiceException('User is not authenticated.');
+        console.error('User is not authenticated.');
+        redirect('/auth');
     }
     return session;
 }

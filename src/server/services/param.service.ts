@@ -110,7 +110,7 @@ export class ParamService {
                         name: item.name as string
                     },
                     data: {
-
+                        value: item.value
                     }
                 });
             } else {

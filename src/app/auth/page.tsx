@@ -2,7 +2,7 @@
 
 import userService from "@/server/services/user.service";
 import UserRegistrationForm from "./register-from";
-import UserLoginForm from "./login-from";
+import UserLoginForm from "./login-form";
 import { getUserSession } from "@/server/utils/action-wrapper.utils";
 import { redirect } from "next/navigation";
 

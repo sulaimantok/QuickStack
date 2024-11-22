@@ -46,6 +46,7 @@ export default function UserLoginForm() {
                     username: data.email,
                     password: data.password,
                     redirect: true,
+                    callbackUrl: "/",
                 });
             } else {
                 setAuthInput(data); // 2fa window will be shown

@@ -10,9 +10,11 @@ export const updateIngressSettings = async (prevState: any, inputData: QsIngress
   saveFormAction(inputData, qsIngressSettingsZodModel, async (validatedData) => {
     await getAuthUserSession();
 
+    const url = new URL(validatedData.serverUrl.includes('://') ? validatedData.serverUrl : `https://${validatedData.serverUrl}`);
+
     await paramService.save({
       name: ParamService.QS_SERVER_HOSTNAME,
-      value: validatedData.serverUrl
+      value: url.hostname
     });
 
     await paramService.save({
@@ -22,6 +24,8 @@ export const updateIngressSettings = async (prevState: any, inputData: QsIngress
 
     await quickStackService.createOrUpdateService(!validatedData.disableNodePortAccess);
     await quickStackService.createOrUpdateIngress(validatedData.serverUrl);
+    await quickStackService.createOrUpdateDeployment(url.hostname);
+
   });
 
 export const updateLetsEncryptSettings = async (prevState: any, inputData: QsLetsEncryptSettingsModel) =>

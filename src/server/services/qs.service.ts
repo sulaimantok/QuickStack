@@ -18,7 +18,7 @@ class QuickStackService {
         await namespaceService.createNamespaceIfNotExists(this.QUICKSTACK_NAMESPACE)
         const nextAuthSecret = await this.deleteExistingDeployment();
         await this.createOrUpdatePvc();
-        await this.createDeployment(nextAuthSecret);
+        await this.createOrUpdateDeployment(undefined, nextAuthSecret);
         await this.createOrUpdateService(true);
         console.log('QuickStack successfully initialized');
     }
@@ -109,14 +109,14 @@ class QuickStackService {
             }
         };
         // todo
-       /* const allIssuers = await k3s.network.clus();
-        const existingIssuer = allIssuers.body.items.find(i => i.metadata!.name === issuerName);
-        if (existingIssuer) {
-            await k3s.certManager.replaceClusterIssuer(issuerName, issuerDefinition);
-            console.log('Cert Issuer updated');
-        } else {
-            await k3s.certManager.createClusterIssuer(issuerDefinition);
-            console.log('Cert Issuer created');*/
+        /* const allIssuers = await k3s.network.clus();
+         const existingIssuer = allIssuers.body.items.find(i => i.metadata!.name === issuerName);
+         if (existingIssuer) {
+             await k3s.certManager.replaceClusterIssuer(issuerName, issuerDefinition);
+             console.log('Cert Issuer updated');
+         } else {
+             await k3s.certManager.createClusterIssuer(issuerDefinition);
+             console.log('Cert Issuer created');*/
     }
 
     async createOrUpdateService(openNodePort = false) {
@@ -155,7 +155,6 @@ class QuickStackService {
         }
         await k3s.core.createNamespacedService(this.QUICKSTACK_NAMESPACE, body);
         console.log('Service created');
-
     }
 
 
@@ -199,14 +198,18 @@ class QuickStackService {
     }
 
 
-    private async createDeployment(existingNextAuthSecret?: string) {
+    async createOrUpdateDeployment(nextAuthHostname?: string, inputNextAuthSecret?: string) {
         const generatedNextAuthSecret = crypto.randomBytes(32).toString('base64');
+        const existingDeployment = await this.getExistingDeployment();
         const body: V1Deployment = {
             metadata: {
                 name: this.QUICKSTACK_DEPLOYMENT_NAME,
             },
             spec: {
                 replicas: 1,
+                strategy: {
+                    type: 'Recreate',
+                },
                 selector: {
                     matchLabels: {
                         app: this.QUICKSTACK_DEPLOYMENT_NAME
@@ -233,8 +236,12 @@ class QuickStackService {
                                 env: [
                                     {
                                         name: 'NEXTAUTH_SECRET',
-                                        value: existingNextAuthSecret || generatedNextAuthSecret
-                                    }
+                                        value: inputNextAuthSecret || existingDeployment.nextAuthSecret || generatedNextAuthSecret
+                                    },
+                                    ...nextAuthHostname ? [{
+                                        name: 'NEXTAUTH_URL',
+                                        value: `https://${nextAuthHostname}`
+                                    }] : []
                                 ],
                                 volumeMounts: [{
                                     name: 'quickstack-volume',
@@ -252,23 +259,34 @@ class QuickStackService {
                 }
             }
         };
-        await k3s.apps.createNamespacedDeployment(this.QUICKSTACK_NAMESPACE, body);
-        console.log('Deployment created');
+        if (existingDeployment.existingDeployments) {
+            await k3s.apps.replaceNamespacedDeployment(this.QUICKSTACK_DEPLOYMENT_NAME, this.QUICKSTACK_NAMESPACE, body);
+            console.log('Deployment updated');
+        } else {
+            await k3s.apps.createNamespacedDeployment(this.QUICKSTACK_NAMESPACE, body);
+            console.log('Deployment created');
+        }
     }
 
     /**
      * @returns: the existing NEXTAUTH_SECRET if the deployment already exists
      */
     private async deleteExistingDeployment() {
-        const allDeployments = await k3s.apps.listNamespacedDeployment(this.QUICKSTACK_NAMESPACE);
-        const existingDeployments = allDeployments.body.items.find(d => d.metadata!.name === this.QUICKSTACK_DEPLOYMENT_NAME);
+        const { existingDeployments, nextAuthSecret } = await this.getExistingDeployment();
         const quickStackAlreadyDeployed = !!existingDeployments;
         if (quickStackAlreadyDeployed) {
             console.warn('QuickStack already deployed, deleting existing deployment (data wont be lost)');
             await k3s.apps.deleteNamespacedDeployment(this.QUICKSTACK_DEPLOYMENT_NAME, this.QUICKSTACK_NAMESPACE);
             console.log('Existing deployment deleted');
         }
-        return existingDeployments?.spec?.template?.spec?.containers?.[0].env?.find(e => e.name === 'NEXTAUTH_SECRET')?.value;
+        return nextAuthSecret;
+    }
+
+    async getExistingDeployment() {
+        const allDeployments = await k3s.apps.listNamespacedDeployment(this.QUICKSTACK_NAMESPACE);
+        const existingDeployments = allDeployments.body.items.find(d => d.metadata!.name === this.QUICKSTACK_DEPLOYMENT_NAME);
+        const nextAuthSecret = existingDeployments?.spec?.template?.spec?.containers?.[0].env?.find(e => e.name === 'NEXTAUTH_SECRET')?.value;
+        return { existingDeployments, nextAuthSecret };
     }
 }
 
