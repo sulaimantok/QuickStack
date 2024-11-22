@@ -123,7 +123,6 @@ class IngressService {
         }
     }
 
-
     async checkIfTraefikRedirectMiddlewareExists() {
         const res = await k3s.customObjects.listNamespacedCustomObject(
             'traefik.io',            // group
@@ -144,7 +143,7 @@ class IngressService {
             kind: 'Middleware',
             metadata: {
                 name: 'redirect-to-https',
-                traefikNamespace,
+                namespace: traefikNamespace,
             },
             spec: {
                 redirectScheme: {
@@ -161,7 +160,6 @@ class IngressService {
             'middlewares',          // plural name of the custom resource
             middlewareManifest      // object manifest
         );
-
     }
 }
 

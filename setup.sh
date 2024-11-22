@@ -61,50 +61,6 @@ echo "Waiting for Cert-Manager to start..."
 wait_until_all_pods_running
 sudo kubectl -n cert-manager get pod
 
-# add Cluster Issuer
-cat <<EOF > cluster-issuer.yaml
-# Staging ClusterIssuer
-apiVersion: cert-manager.io/v1
-kind: ClusterIssuer
-metadata:
-  name: letsencrypt-staging
-  namespace: default
-spec:
-  acme:
-    server: https://acme-staging-v02.api.letsencrypt.org/directory
-    email: test@ost.ch
-    privateKeySecretRef:
-      name: letsencrypt-staging
-    solvers:
-    - selector: {}
-      http01:
-        ingress:
-          class: traefik
----
-# Production ClusterIssuer
-apiVersion: cert-manager.io/v1
-kind: ClusterIssuer
-metadata:
-  name: letsencrypt-production
-  namespace: default
-spec:
-  acme:
-    server: https://acme-v02.api.letsencrypt.org/directory
-    email: test@ost.ch
-    privateKeySecretRef:
-      name: letsencrypt-production
-    solvers:
-    - selector: {}
-      http01:
-        ingress:
-          class: traefik
-EOF
-sudo kubectl apply -f cluster-issuer.yaml
-sudo kubectl get clusterissuer -o wide
-rm cluster-issuer.yaml
-
-sudo kubectl get nodes
-
 # deploy QuickStack
 cat <<EOF > quickstack-setup-job.yaml
 apiVersion: v1

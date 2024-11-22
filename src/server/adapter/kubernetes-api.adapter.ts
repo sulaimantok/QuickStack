@@ -71,13 +71,13 @@ declare const globalThis: {
 */
 
 class K3sApiAdapter {
+
     core: k8s.CoreV1Api;
     apps: k8s.AppsV1Api;
     batch: k8s.BatchV1Api;
     log: k8s.Log;
     network: k8s.NetworkingV1Api;
     customObjects: k8s.CustomObjectsApi;
-
 
     constructor() {
         this.core = this.getK8sCoreApiClient();
@@ -115,7 +115,6 @@ class K3sApiAdapter {
         const k8sJobClient = kc.makeApiClient(k8s.BatchV1Api);
         return k8sJobClient;
     }
-
 
     getK8sLogApiClient = () => {
         const kc = this.getKubeConfig()

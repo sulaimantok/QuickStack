@@ -52,7 +52,7 @@ export default function UserLoginForm() {
                 setAuthInput(data); // 2fa window will be shown
             }
         } catch (e) {
-            console.log(e);
+            console.error(e);
             setErrorMessages((e as any).message);
         } finally {
             setLoading(false);

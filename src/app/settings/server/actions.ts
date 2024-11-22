@@ -38,6 +38,4 @@ export const updateLetsEncryptSettings = async (prevState: any, inputData: QsLet
     });
 
     await quickStackService.createOrUpdateCertIssuer(validatedData.letsEncryptMail);
-    // todo update or deploy the cert issuer
-
   });

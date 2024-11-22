@@ -3,8 +3,6 @@ import { V1Deployment, V1Ingress, V1Service } from "@kubernetes/client-node";
 import namespaceService from "./namespace.service";
 import { StringUtils } from "../utils/string.utils";
 import crypto from "crypto";
-import paramService, { ParamService } from "./param.service";
-import { ServiceException } from "@/model/service.exception.model";
 
 class QuickStackService {
 
@@ -12,6 +10,7 @@ class QuickStackService {
     private readonly QUICKSTACK_DEPLOYMENT_NAME = 'quickstack';
     private readonly QUICKSTACK_PORT_NUMBER = 3000;
     private readonly QUICKSTACK_SERVICEACCOUNT_NAME = 'qs-service-account';
+    private readonly CLUSTER_ISSUER_NAME = 'letsencrypt-production';
 
 
     async initializeQuickStack() {
@@ -35,7 +34,7 @@ class QuickStackService {
                 name: ingressName,
                 namespace: this.QUICKSTACK_NAMESPACE,
                 annotations: {
-                    'cert-manager.io/cluster-issuer': 'letsencrypt-production',
+                    'cert-manager.io/cluster-issuer': this.CLUSTER_ISSUER_NAME,
                     'traefik.ingress.kubernetes.io/router.middlewares': 'kube-system-redirect-to-https@kubernetescrd'  // activate redirect middleware for https
                 },
             },
@@ -81,26 +80,28 @@ class QuickStackService {
     }
 
     async createOrUpdateCertIssuer(letsencryptMail: string) {
-        const issuerName = 'letsencrypt-production';
-        const issuerDefinition = {
+        const now = new Date();
+        const clusterIssuerBody = {
             apiVersion: 'cert-manager.io/v1',
             kind: 'ClusterIssuer',
             metadata: {
-                name: issuerName,
-                namespace: 'default'
+                name: this.CLUSTER_ISSUER_NAME,
+                namespace: 'default',
+                //resourceVersion: now.getTime().toString(),
             },
             spec: {
                 acme: {
                     email: letsencryptMail,
                     server: 'https://acme-v02.api.letsencrypt.org/directory',
                     privateKeySecretRef: {
-                        name: 'letsencrypt-production'
+                        name: this.CLUSTER_ISSUER_NAME,
                     },
                     solvers: [
                         {
+                            selector: {},
                             http01: {
                                 ingress: {
-                                    class: 'traefik'
+                                    class: "traefik"
                                 }
                             }
                         }
@@ -108,15 +109,45 @@ class QuickStackService {
                 }
             }
         };
-        // todo
-        /* const allIssuers = await k3s.network.clus();
-         const existingIssuer = allIssuers.body.items.find(i => i.metadata!.name === issuerName);
-         if (existingIssuer) {
-             await k3s.certManager.replaceClusterIssuer(issuerName, issuerDefinition);
-             console.log('Cert Issuer updated');
-         } else {
-             await k3s.certManager.createClusterIssuer(issuerDefinition);
-             console.log('Cert Issuer created');*/
+
+
+        if (await this.checkIfClusterIssuerExists()) {
+            // update
+            await k3s.customObjects.patchClusterCustomObject(
+                'cert-manager.io',          // group
+                'v1',                       // version
+                'clusterissuers',           // plural name of the custom resource
+                this.CLUSTER_ISSUER_NAME,   // name of the custom resource
+                clusterIssuerBody,           // object manifest
+                undefined, undefined, undefined, {
+                    headers: { 'Content-Type': 'application/merge-patch+json' },
+                }
+            );
+        } else {
+            // create
+            await k3s.customObjects.createClusterCustomObject(
+                'cert-manager.io',      // group
+                'v1',                   // version
+                'clusterissuers',       // plural name of the custom resource
+                clusterIssuerBody       // object manifest
+            );
+        }
+    }
+
+
+    async checkIfClusterIssuerExists() {
+        const res = await k3s.customObjects.listClusterCustomObject(
+            'cert-manager.io',      // group
+            'v1',              // namespace
+            'clusterissuers',       // plural name of the custom resource
+        );
+        if ((res.body as any) && (res.body as any)?.items && (res.body as any)?.items?.length > 0) {
+            const existingLetsecryptProduction = (res.body as any).items.find((item: any) => item.metadata.name === this.CLUSTER_ISSUER_NAME);
+            if (existingLetsecryptProduction) {
+                return true;
+            }
+        }
+        return false;
     }
 
     async createOrUpdateService(openNodePort = false) {
@@ -157,7 +188,6 @@ class QuickStackService {
         console.log('Service created');
     }
 
-
     private async createOrUpdatePvc() {
         const pvcName = StringUtils.toPvcName(this.QUICKSTACK_DEPLOYMENT_NAME);
         const pvc = {
@@ -196,7 +226,6 @@ class QuickStackService {
             console.log('PVC created');
         }
     }
-
 
     async createOrUpdateDeployment(nextAuthHostname?: string, inputNextAuthSecret?: string) {
         const generatedNextAuthSecret = crypto.randomBytes(32).toString('base64');
