@@ -5,11 +5,13 @@ export class ListUtils {
     }
 
     static sortByDate<T>(array: T[], dateSelector: (item: T) => Date, descending = false): T[] {
-        return array.toSorted((a, b) => {
+        const newArray = array.slice();
+        newArray.sort((a, b) => {
             const dateA = dateSelector(a);
             const dateB = dateSelector(b);
             return descending ? dateB.getTime() - dateA.getTime() : dateA.getTime() - dateB.getTime();
         });
+        return newArray;
     }
 
     static distinctBy<T, TKey>(array: T[], keySelector: (item: T) => TKey): T[] {
