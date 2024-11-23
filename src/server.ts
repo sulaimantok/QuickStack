@@ -10,7 +10,6 @@ import { Constants } from './server/utils/constants'
 
 // Source: https://nextjs.org/docs/app/building-your-application/configuring/custom-server
 
-FancyConsoleUtils.printQuickStack();
 
 const port = parseInt(process.env.PORT || '3000', 10)
 const dev = process.env.NODE_ENV !== 'production'
@@ -28,6 +27,7 @@ async function setupQuickStack() {
 
 async function initializeNextJs() {
 
+    FancyConsoleUtils.printQuickStack();
     if (process.env.NODE_ENV === 'production') {
         // update database
         console.log('Running db migration...');
