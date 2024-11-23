@@ -4,10 +4,13 @@ import next from 'next'
 import socketIoServer from './socket-io.server'
 import quickStackService from './server/services/qs.service'
 import { CommandExecutorUtils } from './server/utils/command-executor.utils'
-import { ParamService } from './server/services/param.service'
 import dataAccess from './server/adapter/db.client'
+import { FancyConsoleUtils } from './server/utils/fancy-console.utils'
+import { Constants } from './server/utils/constants'
 
 // Source: https://nextjs.org/docs/app/building-your-application/configuring/custom-server
+
+FancyConsoleUtils.printQuickStack();
 
 const port = parseInt(process.env.PORT || '3000', 10)
 const dev = process.env.NODE_ENV !== 'production'
@@ -34,10 +37,10 @@ async function initializeNextJs() {
             console.log('Saving K3S_JOIN_TOKEN to database...');
             await dataAccess.client.parameter.upsert({
                 where: {
-                    name: ParamService.K3S_JOIN_TOKEN
+                    name: Constants.K3S_JOIN_TOKEN
                 },
                 create: {
-                    name: ParamService.K3S_JOIN_TOKEN,
+                    name: Constants.K3S_JOIN_TOKEN,
                     value: process.env.K3S_JOIN_TOKEN
                 },
                 update: {

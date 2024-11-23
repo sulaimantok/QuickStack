@@ -2,13 +2,14 @@ import { revalidateTag, unstable_cache } from "next/cache";
 import dataAccess from "../adapter/db.client";
 import { Tags } from "../utils/cache-tag-generator.utils";
 import { Parameter, Prisma } from "@prisma/client";
+import { Constants } from "../utils/constants";
 
 export class ParamService {
 
     static readonly QS_SERVER_HOSTNAME = 'qsServerHostname';
     static readonly DISABLE_NODEPORT_ACCESS = 'disableNodePortAccess';
     static readonly LETS_ENCRYPT_MAIL = 'letsEncryptMail';
-    static readonly K3S_JOIN_TOKEN = 'k3sJoinToken';
+    static readonly K3S_JOIN_TOKEN = Constants.K3S_JOIN_TOKEN;
 
     async get(name: string) {
         return await unstable_cache(async (name: string) => await dataAccess.client.parameter.findFirstOrThrow({

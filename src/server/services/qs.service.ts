@@ -3,6 +3,7 @@ import { V1Deployment, V1Ingress, V1Service } from "@kubernetes/client-node";
 import namespaceService from "./namespace.service";
 import { StringUtils } from "../utils/string.utils";
 import crypto from "crypto";
+import { FancyConsoleUtils } from "../utils/fancy-console.utils";
 
 class QuickStackService {
 
@@ -22,7 +23,9 @@ class QuickStackService {
         console.log('QuickStack successfully initialized');
         console.log('');
         console.log('------------------------------------------------');
+        FancyConsoleUtils.printQuickStack();
         console.log('You can now access QuickStack UI on the following URL: http://SERVER-IP:30000');
+        console.log('')
         console.log('Hint: Ensure that the port 30000 is open in your firewall.');
         console.log('------------------------------------------------');
         console.log('');
