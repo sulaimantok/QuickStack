@@ -32,7 +32,7 @@ export default function RootLayout({
         <NavBar />
         <main className="flex w-full flex-col items-center">
           <div className="w-full max-w-8xl px-4 lg:px-8">
-            <div className="p-4 hidden flex-col md:flex">
+            <div className="p-4 flex-col md:flex">
               <Suspense fallback={<FullLoadingSpinner />}>
                 {children}
               </Suspense>

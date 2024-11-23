@@ -120,8 +120,8 @@ class QuickStackService {
                 this.CLUSTER_ISSUER_NAME,   // name of the custom resource
                 clusterIssuerBody,           // object manifest
                 undefined, undefined, undefined, {
-                    headers: { 'Content-Type': 'application/merge-patch+json' },
-                }
+                headers: { 'Content-Type': 'application/merge-patch+json' },
+            }
             );
         } else {
             // create
@@ -270,6 +270,10 @@ class QuickStackService {
                                     ...nextAuthHostname ? [{
                                         name: 'NEXTAUTH_URL',
                                         value: `https://${nextAuthHostname}`
+                                    }] : [],
+                                    ...process.env.K3S_JOIN_TOKEN ? [{
+                                        name: 'K3S_JOIN_TOKEN',
+                                        value: process.env.K3S_JOIN_TOKEN
                                     }] : []
                                 ],
                                 volumeMounts: [{

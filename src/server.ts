@@ -4,7 +4,7 @@ import next from 'next'
 import socketIoServer from './socket-io.server'
 import quickStackService from './server/services/qs.service'
 import { CommandExecutorUtils } from './server/utils/command-executor.utils'
-import k3s from './server/adapter/kubernetes-api.adapter'
+import paramService, { ParamService } from './server/services/param.service'
 
 // Source: https://nextjs.org/docs/app/building-your-application/configuring/custom-server
 
@@ -28,6 +28,14 @@ async function initializeNextJs() {
         // update database
         console.log('Running db migration...');
         await CommandExecutorUtils.runCommand('npx prisma migrate deploy');
+
+        if (process.env.K3S_JOIN_TOKEN && process.env.K3S_JOIN_TOKEN.trim()) {
+            console.log('Saving K3S_JOIN_TOKEN to database...');
+            await paramService.save({
+                name: ParamService.K3S_JOIN_TOKEN,
+                value: process.env.K3S_JOIN_TOKEN
+            })
+        }
     }
 
     const app = next({ dev })

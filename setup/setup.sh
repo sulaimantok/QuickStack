@@ -61,6 +61,8 @@ echo "Waiting for Cert-Manager to start..."
 wait_until_all_pods_running
 sudo kubectl -n cert-manager get pod
 
+joinTokenForOtherNodes=$(sudo cat /var/lib/rancher/k3s/server/node-token)
+
 # deploy QuickStack
 cat <<EOF > quickstack-setup-job.yaml
 apiVersion: v1
@@ -103,6 +105,8 @@ spec:
         env:
         - name: START_MODE
           value: "setup"
+        - name: K3S_JOIN_TOKEN
+          value: "$joinTokenForOtherNodes"
         imagePullPolicy: Always
       restartPolicy: Never
   backoffLimit: 0
@@ -113,8 +117,7 @@ wait_until_all_pods_running
 sudo kubectl logs -f job/quickstack-setup-job -n quickstack
 
 # evaluate url to add node to cluster
-joinTokenForOtherNodes=$(sudo cat /var/lib/rancher/k3s/server/node-token)
 echo "To add a worker node to the cluster, run the following command on the worker node:"
 echo "------------------------------------------------------------"
-echo "curl -sfL https://get.k3s.io | K3S_URL=https://<IP-ADDRESS-OR-HOSTNAME-OF-MASTERNODE>:6443 K3S_TOKEN=$joinTokenForOtherNodes sh -"
+echo "curl -sfL https://get.quickstack.dev/setup-worker.sh | K3S_URL=https://<IP-ADDRESS-OR-HOSTNAME-OF-MASTERNODE>:6443 JOIN_TOKEN=$joinTokenForOtherNodes sh -"
 echo "------------------------------------------------------------"

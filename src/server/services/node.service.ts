@@ -37,7 +37,6 @@ class ClusterService {
             revalidate: 10,
             tags: [Tags.nodeInfos()]
         })();
-
     }
 
     async setNodeStatus(nodeName: string, schedulable: boolean) {
