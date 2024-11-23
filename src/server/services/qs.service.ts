@@ -20,6 +20,12 @@ class QuickStackService {
         await this.createOrUpdateDeployment(undefined, nextAuthSecret);
         await this.createOrUpdateService(true);
         console.log('QuickStack successfully initialized');
+        console.log('');
+        console.log('------------------------------------------------');
+        console.log('You can now access QuickStack UI on the following URL: http://SERVER-IP:30000');
+        console.log('Hint: Ensure that the port 30000 is open in your firewall.');
+        console.log('------------------------------------------------');
+        console.log('');
     }
 
     async createOrUpdateIngress(hostname: string) {

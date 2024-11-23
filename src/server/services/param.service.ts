@@ -17,7 +17,8 @@ export class ParamService {
             }
         }),
             [Tags.parameter()], {
-            tags: [Tags.parameter()]
+            tags: [Tags.parameter()],
+            revalidate: 3600
         })(name);
     }
 
@@ -28,7 +29,8 @@ export class ParamService {
             }
         }),
             [Tags.parameter()], {
-            tags: [Tags.parameter()]
+            tags: [Tags.parameter()],
+            revalidate: 3600
         })(name);
     }
 
@@ -96,7 +98,8 @@ export class ParamService {
     async getAllParams() {
         return await unstable_cache(async () => await dataAccess.client.parameter.findMany(),
             [Tags.parameter()], {
-            tags: [Tags.parameter()]
+            tags: [Tags.parameter()],
+            revalidate: 3600
         })();
     }
 
