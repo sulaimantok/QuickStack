@@ -11,24 +11,32 @@ export class ParamService {
     static readonly LETS_ENCRYPT_MAIL = 'letsEncryptMail';
     static readonly K3S_JOIN_TOKEN = Constants.K3S_JOIN_TOKEN;
 
-    async get(name: string) {
-        return await unstable_cache(async (name: string) => await dataAccess.client.parameter.findFirstOrThrow({
+    async getUncached(name: string) {
+        return await dataAccess.client.parameter.findFirstOrThrow({
             where: {
                 name
             }
-        }),
+        });
+    }
+
+    async get(name: string) {
+        return await unstable_cache(async (name: string) => await this.getUncached(name),
             [Tags.parameter()], {
             tags: [Tags.parameter()],
             revalidate: 3600
         })(name);
     }
 
-    async getOrUndefined(name: string) {
-        return await unstable_cache(async (name: string) => await dataAccess.client.parameter.findUnique({
+    async getOrUndefinedUncached(name: string) {
+        return await dataAccess.client.parameter.findUnique({
             where: {
                 name
             }
-        }),
+        });
+    }
+
+    async getOrUndefined(name: string) {
+        return await unstable_cache(async (name: string) => await this.getOrUndefinedUncached(name),
             [Tags.parameter()], {
             tags: [Tags.parameter()],
             revalidate: 3600
@@ -108,21 +116,15 @@ export class ParamService {
     async save(item: Prisma.ParameterUncheckedCreateInput | Prisma.ParameterUncheckedUpdateInput) {
         let savedItem: Parameter;
         try {
-            const existingParam = await this.getOrUndefined(item.name as string);
-            if (existingParam) {
-                savedItem = await dataAccess.client.parameter.update({
-                    where: {
-                        name: item.name as string
-                    },
-                    data: {
-                        value: item.value
-                    }
-                });
-            } else {
-                savedItem = await dataAccess.client.parameter.create({
-                    data: item as Prisma.ParameterUncheckedCreateInput
-                });
-            }
+            savedItem = await dataAccess.client.parameter.upsert({
+                where: {
+                    name: item.name as string
+                },
+                create: item as Prisma.ParameterUncheckedCreateInput,
+                update: {
+                    value: item.value
+                } as Prisma.ParameterUncheckedUpdateInput
+            });
         } finally {
             revalidateTag(Tags.parameter());
         }
