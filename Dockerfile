@@ -37,9 +37,11 @@ ENV NODE_ENV production
 RUN addgroup --system --gid 1001 nodejs
 RUN adduser --system --uid 1001 nextjs
 
-
 RUN mkdir storage
 RUN chown nextjs:nodejs storage
+
+RUN mkdir tmp-storage
+RUN chown nextjs:nodejs tmp-storage
 
 # Automatically leverage output traces to reduce image size
 # https://nextjs.org/docs/advanced-features/output-file-tracing

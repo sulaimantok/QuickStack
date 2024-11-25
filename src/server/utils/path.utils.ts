@@ -2,10 +2,15 @@ import path from 'path';
 
 export class PathUtils {
 
-    static internalDataRoot = process.env.NODE_ENV === 'production' ? '/mnt/internal' : '/workspace/internal';
+    static internalDataRoot = process.env.NODE_ENV === 'production' ? '/app/storage' : '/workspace/internal';
+    static tempDataRoot = process.env.NODE_ENV === 'production' ? '/app/tmp-storage' : '/workspace/internal';
 
     static get gitRootPath() {
-        return path.join(this.internalDataRoot, 'git');
+        return path.join(this.tempDataRoot, 'git');
+    }
+
+    static gitRootPathForApp(appId: string): string {
+        return path.join(PathUtils.gitRootPath, this.convertIdToFolderFriendlyName(appId));
     }
 
     static get deploymentLogsPath() {
@@ -16,11 +21,8 @@ export class PathUtils {
         return path.join(this.deploymentLogsPath, `${deploymentId}.log`);
     }
 
-    static gitRootPathForApp(appId: string): string {
-        return path.join(PathUtils.gitRootPath, this.convertIdToFolderFreindlyName(appId));
-    }
-
-    private static convertIdToFolderFreindlyName(id: string): string {
-        return id.replace(/-/g, '_');
+    private static convertIdToFolderFriendlyName(id: string): string {
+        // remove all special characters
+        return id.replace(/[^a-zA-Z0-9]/g, '_');
     }
 }
