@@ -74,6 +74,7 @@ async function initializeNextJs() {
 if (process.env.NODE_ENV === 'production' && process.env.START_MODE === 'setup') {
     setupQuickStack();
 } else {
-    initializeNextJs();
+    setupQuickStack();
+    //initializeNextJs();
 }
 

@@ -2,8 +2,8 @@ import path from 'path';
 
 export class PathUtils {
 
-    static internalDataRoot = process.env.NODE_ENV === 'production' ? '/app/storage' : '/workspace/internal';
-    static tempDataRoot = process.env.NODE_ENV === 'production' ? '/app/tmp-storage' : '/workspace/internal';
+    static internalDataRoot = process.env.NODE_ENV === 'production' ? '/app/storage' : '/workspace/storage/internal';
+    static tempDataRoot = process.env.NODE_ENV === 'production' ? '/app/tmp-storage' : '/workspace/storage/tmp';
 
     static get gitRootPath() {
         return path.join(this.tempDataRoot, 'git');
