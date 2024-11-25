@@ -29,7 +29,6 @@ class PodService {
         return res.body;
     }
 
-
     async getPodInfoByName(projectId: string, podName: string) {
         const res = await k3s.core.readNamespacedPod(podName, projectId);
         return {
@@ -37,7 +36,6 @@ class PodService {
             containerName: res.body.spec?.containers?.[0].name!
         } as PodsInfoModel;
     }
-
 
     async getPodsForApp(projectId: string, appId: string) {
         const res = await k3s.core.listNamespacedPod(projectId, undefined, undefined, undefined, undefined, `app=${appId}`);

@@ -9,9 +9,9 @@
         ],
         "target": "ES2023",
         "isolatedModules": false,
-        "noEmit": false
+        "noEmit": false,
     },
     "include": [
-        "src/server.ts"
+        "src/server.ts",
     ]
 }
