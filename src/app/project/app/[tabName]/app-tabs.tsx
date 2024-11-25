@@ -8,6 +8,7 @@ import EnvEdit from "./environment/env-edit";
 import { App } from "@prisma/client";
 import DomainsList from "./domains/domains";
 import StorageList from "./storage/storages";
+import MonitoringList from "./monitoring/monitoring";
 import { AppExtendedModel } from "@/model/app-extended.model";
 import { BuildJobModel } from "@/model/build-job";
 import BuildsTab from "./overview/deployments";
@@ -35,6 +36,7 @@ export default function AppTabs({
                 <TabsTrigger value="environment">Environment</TabsTrigger>
                 <TabsTrigger value="domains">Domains</TabsTrigger>
                 <TabsTrigger value="storage">Storage</TabsTrigger>
+                <TabsTrigger value="monitoring">Monitoring</TabsTrigger>
             </TabsList>
             <TabsContent value="overview" className="grid grid-cols-1 3xl:grid-cols-2 gap-4">
                 <Logs app={app} />
@@ -53,6 +55,9 @@ export default function AppTabs({
             </TabsContent>
             <TabsContent value="storage" className="space-y-4">
                 <StorageList app={app} />
+            </TabsContent>
+            <TabsContent value="monitoring" className="space-y-4">
+                <MonitoringList app={app} />
             </TabsContent>
         </Tabs>
     )
