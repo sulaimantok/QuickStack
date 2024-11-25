@@ -12,6 +12,7 @@ import userService from "@/server/services/user.service";
 import paramService, { ParamService } from "@/server/services/param.service";
 import QuickStackIngressSettings from "./qs-ingress-settings";
 import QuickStackLetsEncryptSettings from "./qs-letsencrypt-settings";
+import QuickStackMaintenanceSettings from "./qs-maintenance-settings";
 
 export default async function ProjectPage() {
 
@@ -28,6 +29,7 @@ export default async function ProjectPage() {
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div><QuickStackIngressSettings disableNodePortAccess={disableNodePortAccess!} serverUrl={serverUrl!} /></div>
                 <div> <QuickStackLetsEncryptSettings letsEncryptMail={letsEncryptMail!} /></div>
+                <div><QuickStackMaintenanceSettings /></div>
             </div>
         </div>
     )

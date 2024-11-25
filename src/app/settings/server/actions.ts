@@ -5,7 +5,7 @@ import paramService, { ParamService } from "@/server/services/param.service";
 import { QsIngressSettingsModel, qsIngressSettingsZodModel } from "@/model/qs-settings.model";
 import { QsLetsEncryptSettingsModel, qsLetsEncryptSettingsZodModel } from "@/model/qs-letsencrypt-settings.model";
 import quickStackService from "@/server/services/qs.service";
-import { ServerActionResult } from "@/model/server-action-error-return.model";
+import { ServerActionResult, SuccessActionResult } from "@/model/server-action-error-return.model";
 
 export const updateIngressSettings = async (prevState: any, inputData: QsIngressSettingsModel) =>
   saveFormAction(inputData, qsIngressSettingsZodModel, async (validatedData) => {
@@ -46,4 +46,11 @@ export const getConfiguredHostname: () => Promise<ServerActionResult<unknown, st
     await getAuthUserSession();
 
     return await paramService.getString(ParamService.QS_SERVER_HOSTNAME);
+  });
+
+export const updateQuickstack = async () =>
+  simpleAction(async () => {
+    await getAuthUserSession();
+    await quickStackService.updateQuickStack();
+    return new SuccessActionResult(undefined, 'QuickStack will be updated, refresh the page in a few seconds.');
   });

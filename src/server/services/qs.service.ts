@@ -15,6 +15,10 @@ class QuickStackService {
     private readonly QUICKSTACK_SERVICEACCOUNT_NAME = 'qs-service-account';
     private readonly CLUSTER_ISSUER_NAME = 'letsencrypt-production';
 
+    async updateQuickStack() {
+        const existingDeployment = await this.getExistingDeployment();
+        await this.createOrUpdateDeployment(existingDeployment.nextAuthHostname, existingDeployment.nextAuthSecret);
+    }
 
     async initializeQuickStack() {
         await namespaceService.createNamespaceIfNotExists(this.QUICKSTACK_NAMESPACE)
@@ -254,7 +258,7 @@ class QuickStackService {
         }
     }
 
-    async createOrUpdateDeployment(nextAuthHostname?: string, inputNextAuthSecret?: string) {
+    async createOrUpdateDeployment(nextAuthHostname?: string, inputNextAuthSecret?: string, imageTag = 'latest') {
         const generatedNextAuthSecret = crypto.randomBytes(32).toString('base64');
         const existingDeployment = await this.getExistingDeployment();
         const body: V1Deployment = {
@@ -275,6 +279,9 @@ class QuickStackService {
                     metadata: {
                         labels: {
                             app: this.QUICKSTACK_DEPLOYMENT_NAME
+                        },
+                        annotations: {
+                            deploymentTimestamp: new Date().getTime() + "",
                         }
                     },
                     spec: {
@@ -287,7 +294,7 @@ class QuickStackService {
                         containers: [
                             {
                                 name: this.QUICKSTACK_DEPLOYMENT_NAME,
-                                image: 'quickstack/quickstack:latest',
+                                image: `quickstack/quickstack:${imageTag}`,
                                 imagePullPolicy: 'Always',
                                 env: [
                                     {
@@ -346,7 +353,8 @@ class QuickStackService {
         const allDeployments = await k3s.apps.listNamespacedDeployment(this.QUICKSTACK_NAMESPACE);
         const existingDeployments = allDeployments.body.items.find(d => d.metadata!.name === this.QUICKSTACK_DEPLOYMENT_NAME);
         const nextAuthSecret = existingDeployments?.spec?.template?.spec?.containers?.[0].env?.find(e => e.name === 'NEXTAUTH_SECRET')?.value;
-        return { existingDeployments, nextAuthSecret };
+        const nextAuthHostname = existingDeployments?.spec?.template?.spec?.containers?.[0].env?.find(e => e.name === 'NEXTAUTH_URL')?.value;
+        return { existingDeployments, nextAuthSecret, nextAuthHostname };
     }
 }
 
