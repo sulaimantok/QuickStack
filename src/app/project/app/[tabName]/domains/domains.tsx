@@ -19,7 +19,6 @@ import { OpenInNewWindowIcon, QuestionMarkCircledIcon } from "@radix-ui/react-ic
 export default function DomainsList({ app }: {
     app: AppExtendedModel
 }) {
-
     return <>
         <Card>
             <CardHeader>

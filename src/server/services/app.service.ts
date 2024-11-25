@@ -120,11 +120,13 @@ class AppService {
                 hostname: domainToBeSaved.hostname as string,
             }
         });
-        if (domainToBeSaved.id && domainToBeSaved.id !== existingDomainWithSameHostname?.id) {
-            throw new ServiceException("Hostname is already in use by this or another app.");
-        }
         try {
             if (domainToBeSaved.id) {
+                if (domainToBeSaved.hostname === existingDomainWithSameHostname?.hostname &&
+                    domainToBeSaved.id &&
+                    domainToBeSaved.id !== existingDomainWithSameHostname?.id) {
+                    throw new ServiceException("Hostname is already in use by this or another app.");
+                }
                 savedItem = await dataAccess.client.appDomain.update({
                     where: {
                         id: domainToBeSaved.id as string
@@ -132,6 +134,9 @@ class AppService {
                     data: domainToBeSaved
                 });
             } else {
+                if (existingDomainWithSameHostname) {
+                    throw new ServiceException("Hostname is already in use by this or another app.");
+                }
                 savedItem = await dataAccess.client.appDomain.create({
                     data: domainToBeSaved as Prisma.AppDomainUncheckedCreateInput
                 });

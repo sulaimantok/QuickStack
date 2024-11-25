@@ -29,7 +29,6 @@ export default function DialogEditDialog({ children, domain, appId }: { children
 
     const [isOpen, setIsOpen] = useState<boolean>(false);
 
-
     const form = useForm<AppDomainEditModel>({
         resolver: zodResolver(appDomainEditZodModel),
         defaultValues: {
@@ -48,13 +47,21 @@ export default function DialogEditDialog({ children, domain, appId }: { children
     useEffect(() => {
         if (state.status === 'success') {
             form.reset();
-            toast.success('Domain saved successfully');
+            toast.success('Domain saved successfully. ', {
+                description: "Klick \"deploy\" to apply the changes to your app.",
+            });
             setIsOpen(false);
         }
         FormUtils.mapValidationErrorsToForm<typeof appDomainEditZodModel>(state, form);
     }, [state]);
 
     const values = form.watch();
+
+    useEffect(() => {
+        if (!isOpen) {
+            form.reset();
+        }
+    }, [isOpen]);
 
     return (
         <>

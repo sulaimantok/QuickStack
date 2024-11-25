@@ -35,7 +35,7 @@ class DeploymentService {
     }
 
     async validateDeployment(app: AppExtendedModel) {
-        if (app.replicas > 1 && app.appVolumes.every(vol => vol.accessMode === 'ReadWriteOnce')) {
+        if (app.replicas > 1 && app.appVolumes.length > 0 && app.appVolumes.every(vol => vol.accessMode === 'ReadWriteOnce')) {
             throw new ServiceException("Deployment with more than one replica is not possible if access mode of one volume is ReadWriteOnce.");
         }
     }

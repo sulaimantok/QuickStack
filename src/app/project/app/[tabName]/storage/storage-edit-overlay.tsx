@@ -67,12 +67,19 @@ export default function DialogEditDialog({ children, volume, appId }: { children
   useEffect(() => {
     if (state.status === 'success') {
       form.reset();
-      toast.success('Volume saved successfully');
+      toast.success('Volume saved successfully', {
+        description: "Klick \"deploy\" to apply the changes to your app.",
+      });
       setIsOpen(false);
     }
     FormUtils.mapValidationErrorsToForm<typeof appVolumeEditZodModel>(state, form);
   }, [state]);
 
+  useEffect(() => {
+    if (!isOpen) {
+      form.reset();
+    }
+  }, [isOpen]);
 
   return (
     <>
