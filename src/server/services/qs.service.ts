@@ -4,6 +4,7 @@ import namespaceService from "./namespace.service";
 import { StringUtils } from "../utils/string.utils";
 import crypto from "crypto";
 import { FancyConsoleUtils } from "../utils/fancy-console.utils";
+import setupPodService from "./setup-services/setup-pod.service";
 
 class QuickStackService {
 
@@ -24,7 +25,7 @@ class QuickStackService {
         await this.createOrUpdatePvc();
         await this.createOrUpdateDeployment(undefined, nextAuthSecret);
         await this.createOrUpdateService(true);
-        //await this.waitUntilQuickstackIsRunning();
+        await this.waitUntilQuickstackIsRunning();
         console.log('QuickStack successfully initialized');
         console.log('');
         console.log('------------------------------------------------');
@@ -37,20 +38,23 @@ class QuickStackService {
         console.log('------------------------------------------------');
         console.log('');
     }
-/*
-    TODO enable again: error in setup process because of error: Cannot find module '@/model/service.exception.model'
+
     async waitUntilQuickstackIsRunning() {
         console.log('Waiting for QuickStack to be running...');
         await new Promise((resolve) => setTimeout(resolve, 5000));
-        const pods = await podService.getPodsForApp(this.QUICKSTACK_NAMESPACE, this.QUICKSTACK_DEPLOYMENT_NAME);
+        const pods = await setupPodService.getPodsForApp(this.QUICKSTACK_NAMESPACE, this.QUICKSTACK_DEPLOYMENT_NAME);
         const quickStackPod = pods.find(p => p);
         if (!quickStackPod) {
             console.error('[ERROR] QuickStack pod was not found');
             return;
         }
-        await podService.waitUntilPodIsRunningFailedOrSucceded(this.QUICKSTACK_NAMESPACE, quickStackPod.podName);
-        console.log('QuickStack is now running');
-    }*/
+        await setupPodService.waitUntilPodIsRunningFailedOrSucceded(this.QUICKSTACK_NAMESPACE, quickStackPod.podName);
+        if (setupPodService) {
+            console.log('QuickStack is now running');
+        } else {
+            console.warn('Could not verify if QuickStack is running, please check manually.');
+        }
+    }
 
     async createOrUpdateIngress(hostname: string) {
         const ingressName = StringUtils.getIngressName(this.QUICKSTACK_NAMESPACE);
