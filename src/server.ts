@@ -70,7 +70,6 @@ async function initializeNextJs() {
     });
 }
 
-setupQuickStack();
 if (process.env.NODE_ENV === 'production' && process.env.START_MODE === 'setup') {
     setupQuickStack();
 } else {
