@@ -19,6 +19,7 @@ import LoadingSpinner from "@/components/ui/loading-spinner"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
 import TwoFaAuthForm from "./two-fa-auth"
+import { redirect } from "next/navigation"
 
 export default function UserLoginForm() {
     const form = useForm<AuthFormInputSchema>({
@@ -28,6 +29,14 @@ export default function UserLoginForm() {
     const [errorMessages, setErrorMessages] = useState<string | undefined>(undefined);
     const [loading, setLoading] = useState<boolean>(false);
     const [authInput, setAuthInput] = useState<AuthFormInputSchema | undefined>(undefined);
+
+    function redirectToProjects() {
+        const currentUrl = window.location.href
+        const url = new URL(currentUrl)
+        url.pathname = '/'
+        url.search = ''
+        window.open(url.toString(), '_self')
+    }
 
     const login = async (data: AuthFormInputSchema) => {
         setLoading(true);
@@ -45,9 +54,9 @@ export default function UserLoginForm() {
                 await signIn("credentials", {
                     username: data.email,
                     password: data.password,
-                    redirect: true,
-                    callbackUrl: "/",
+                    redirect: false,
                 });
+                redirectToProjects()
             } else {
                 setAuthInput(data); // 2fa window will be shown
             }

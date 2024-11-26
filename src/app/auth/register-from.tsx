@@ -49,7 +49,7 @@ export default function UserRegistrationForm() {
         <Card className="w-[350px] mx-auto">
             <CardHeader>
                 <CardTitle>Registration</CardTitle>
-                <CardDescription>Enter your credentials to register for the service.</CardDescription>
+                <CardDescription>Enter your credentials to register for QuickStack.</CardDescription>
             </CardHeader>
             <Form {...form}>
                 <form action={(e) => form.handleSubmit((data) => formAction(data))()}
