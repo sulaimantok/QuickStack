@@ -10,6 +10,7 @@ import { Constants } from "../utils/constants";
 import gitService from "./git.service";
 import deploymentService from "./deployment.service";
 import deploymentLogService from "./deployment-logs.service";
+import podService from "./pod.service";
 
 const kanikoImage = "gcr.io/kaniko-project/executor:latest";
 const REGISTRY_NODE_PORT = 30100;
@@ -346,6 +347,12 @@ class BuildService {
         };
 
         await k3s.core.createNamespacedService(BUILD_NAMESPACE, serviceManifest);
+
+        console.log("Waiting for registry to be deployed...");
+        const pods = await podService.getPodsForApp(BUILD_NAMESPACE, 'registry');
+        if (pods.length === 1) {
+            await podService.waitUntilPodIsRunningFailedOrSucceded(BUILD_NAMESPACE, pods[0].podName)
+        }
 
         console.log("Registry deployed successfully.");
     }
