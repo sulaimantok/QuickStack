@@ -2,10 +2,10 @@ const fs = require('fs');
 const path = require('path');
 
 // Define the directory to search in
-const DIRECTORY = './src/model/generated-zod/';
+const DIRECTORY = './src/shared/model/generated-zod/';
 
 // Define the string to search for and the replacement string
-const SEARCH_STRING = 'import * as imports from "../../../prisma/null"';
+const SEARCH_STRING = 'import * as imports from "../../../../prisma/null"';
 const REPLACEMENT_STRING = '';
 
 // Function to recursively find all .ts files in the directory

@@ -26,24 +26,5 @@ export class Toast {
                 }
             });
         });
-        /*
-try {
-
-
-
-    const result = await action();
-    if (result && result.message && result.status === 'error') {
-        toast.error('Fehler: ' + result.message);
-    }
-    if (result && result.status === 'error') {
-        toast.error('Ein unbekannter Fehler ist aufgetreten');
-    }
-    if (result && result.message && result.status === 'success') {
-        toast.success(result.message);
-    }
-    return result;
-} catch (ex) {
-    toast.error('Ein unbekannter Fehler ist aufgetreten');
-}*/
     }
 }
