@@ -4,24 +4,24 @@ export const appSourceInfoInputZodModel = z.object({
   sourceType: z.enum(["GIT", "CONTAINER"]),
   containerImageSource: z.string().nullish(),
 
-  gitUrl: z.string().nullish(),
-  gitBranch: z.string().nullish(),
-  gitUsername: z.string().nullish(),
-  gitToken: z.string().nullish(),
-  dockerfilePath: z.string().nullish(),
+  gitUrl: z.string().trim().nullish(),
+  gitBranch: z.string().trim().nullish(),
+  gitUsername: z.string().trim().nullish(),
+  gitToken: z.string().trim().nullish(),
+  dockerfilePath: z.string().trim().nullish(),
 });
 export type AppSourceInfoInputModel = z.infer<typeof appSourceInfoInputZodModel>;
 
 export const appSourceInfoGitZodModel = z.object({
-  gitUrl: z.string(),
-  gitBranch: z.string(),
-  gitUsername: z.string().nullish(),
-  gitToken: z.string().nullish(),
-  dockerfilePath: z.string(),
+  gitUrl: z.string().trim(),
+  gitBranch: z.string().trim(),
+  gitUsername: z.string().trim().nullish(),
+  gitToken: z.string().trim().nullish(),
+  dockerfilePath: z.string().trim(),
 });
 export type AppSourceInfoGitModel = z.infer<typeof appSourceInfoGitZodModel>;
 
 export const appSourceInfoContainerZodModel = z.object({
-  containerImageSource: z.string(),
+  containerImageSource: z.string().trim(),
 });
 export type AppSourceInfoContainerModel = z.infer<typeof appSourceInfoContainerZodModel>;

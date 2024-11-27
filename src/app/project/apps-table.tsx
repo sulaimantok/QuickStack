@@ -32,7 +32,7 @@ export default function AppTable({ data }: { data: App[] }) {
             ["updatedAt", "Updated At", false, (item) => formatDateTime(item.updatedAt)],
         ]}
             data={data}
-            onItemClickLink={(item) => `/project/app?appId=${item.id}`}
+            onItemClickLink={(item) => `/project/app/${item.id}`}
             actionCol={(item) =>
                 <>
                     <div className="flex">
@@ -46,7 +46,7 @@ export default function AppTable({ data }: { data: App[] }) {
                             </DropdownMenuTrigger>
                             <DropdownMenuContent align="end">
                                 <DropdownMenuLabel>Actions</DropdownMenuLabel>
-                                <Link href={`/project/app?appId=${item.id}`}>
+                                <Link href={`/project/app/${item.id}`}>
                                     <DropdownMenuItem>
                                         <span>Show App Details</span>
                                     </DropdownMenuItem>

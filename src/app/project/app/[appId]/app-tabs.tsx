@@ -25,7 +25,7 @@ export default function AppTabs({
     const router = useRouter();
 
     const openTab = (tabName: string) => {
-        router.push(`/project/app/${tabName}?appId=${app.id}`);
+        router.push(`/project/app/${app.id}?tabName=${tabName}`);
     }
 
     return (
