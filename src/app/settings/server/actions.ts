@@ -25,8 +25,6 @@ export const updateIngressSettings = async (prevState: any, inputData: QsIngress
 
     await quickStackService.createOrUpdateService(!validatedData.disableNodePortAccess);
     await quickStackService.createOrUpdateIngress(validatedData.serverUrl);
-    await quickStackService.createOrUpdateDeployment(url.hostname);
-
   });
 
 export const updateLetsEncryptSettings = async (prevState: any, inputData: QsLetsEncryptSettingsModel) =>

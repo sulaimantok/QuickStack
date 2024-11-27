@@ -16,14 +16,14 @@ class QuickStackService {
 
     async updateQuickStack() {
         const existingDeployment = await this.getExistingDeployment();
-        await this.createOrUpdateDeployment(existingDeployment.nextAuthHostname, existingDeployment.nextAuthSecret);
+        await this.createOrUpdateDeployment(existingDeployment.nextAuthSecret);
     }
 
     async initializeQuickStack() {
         await namespaceService.createNamespaceIfNotExists(this.QUICKSTACK_NAMESPACE)
         const nextAuthSecret = await this.deleteExistingDeployment();
         await this.createOrUpdatePvc();
-        await this.createOrUpdateDeployment(undefined, nextAuthSecret);
+        await this.createOrUpdateDeployment(nextAuthSecret);
         await this.createOrUpdateService(true);
         await this.waitUntilQuickstackIsRunning();
         console.log('QuickStack successfully initialized');
@@ -261,7 +261,7 @@ class QuickStackService {
         }
     }
 
-    async createOrUpdateDeployment(nextAuthHostname?: string, inputNextAuthSecret?: string, imageTag = 'latest') {
+    async createOrUpdateDeployment(inputNextAuthSecret?: string, imageTag = 'latest') {
         const generatedNextAuthSecret = crypto.randomBytes(32).toString('base64');
         const existingDeployment = await this.getExistingDeployment();
         const body: V1Deployment = {
@@ -304,10 +304,6 @@ class QuickStackService {
                                         name: 'NEXTAUTH_SECRET',
                                         value: inputNextAuthSecret || existingDeployment.nextAuthSecret || generatedNextAuthSecret
                                     },
-                                    ...nextAuthHostname ? [{
-                                        name: 'NEXTAUTH_URL',
-                                        value: `https://${nextAuthHostname}`
-                                    }] : [],
                                     ...process.env.K3S_JOIN_TOKEN ? [{
                                         name: 'K3S_JOIN_TOKEN',
                                         value: process.env.K3S_JOIN_TOKEN

@@ -43,8 +43,10 @@ export function NavBar() {
                                     <DropdownMenuSeparator />
                                     <DropdownMenuItem className="text-red-500"
                                         onClick={() => signOut({
-                                            callbackUrl: "/auth",
-                                            redirect: true
+                                            callbackUrl: undefined,
+                                            redirect: false
+                                        }).then(() => {
+                                            window.open("/auth", "_self");
                                         })}>
                                         Logout
                                     </DropdownMenuItem>

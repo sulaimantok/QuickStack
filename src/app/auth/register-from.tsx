@@ -34,14 +34,7 @@ export default function UserRegistrationForm() {
     useEffect(() => {
         if (state.status === 'success') {
             toast.success(state.message ?? 'Registration successful. You can now login.');
-            const formValues = form.getValues();
-            signIn("credentials", {
-                username: formValues.email,
-                password: formValues.password,
-                redirect: false,
-            }).then(() => {
-                redirect('/');
-            });
+            window.location.reload();
         }
     }, [state]);
 

@@ -24,7 +24,7 @@ export const registerUser = async (prevState: any, inputData: RegisterFormInputS
                 value: url.hostname
             });
             await quickStackService.createOrUpdateIngress(url.hostname);
-            return new SuccessActionResult(undefined, 'QuickStack is now available at: ' + url.href);
+            return new SuccessActionResult(undefined, 'In a couple seconds QuickStack is available at: ' + url.href);
         }
         return new SuccessActionResult(undefined, 'Successfully registered user');
     });
