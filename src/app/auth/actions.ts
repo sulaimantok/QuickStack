@@ -1,8 +1,8 @@
 'use server'
 
-import { AuthFormInputSchema, authFormInputSchemaZod, RegisterFormInputSchema, registgerFormInputSchemaZod } from "@/model/auth-form";
-import { SuccessActionResult } from "@/model/server-action-error-return.model";
-import { ServiceException } from "@/model/service.exception.model";
+import { AuthFormInputSchema, authFormInputSchemaZod, RegisterFormInputSchema, registgerFormInputSchemaZod } from "@/shared/model/auth-form";
+import { SuccessActionResult } from "@/shared/model/server-action-error-return.model";
+import { ServiceException } from "@/shared/model/service.exception.model";
 import paramService, { ParamService } from "@/server/services/param.service";
 import quickStackService from "@/server/services/qs.service";
 import userService from "@/server/services/user.service";

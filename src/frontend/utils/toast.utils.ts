@@ -1,4 +1,4 @@
-import { ServerActionResult } from "@/model/server-action-error-return.model";
+import { ServerActionResult } from "@/shared/model/server-action-error-return.model";
 import { toast } from "sonner";
 
 export class Toast {

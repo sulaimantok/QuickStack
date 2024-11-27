@@ -1,11 +1,11 @@
 'use server'
 
-import { ServiceException } from "@/model/service.exception.model";
-import { ProfilePasswordChangeModel, profilePasswordChangeZodModel } from "@/model/update-password.model";
+import { ServiceException } from "@/shared/model/service.exception.model";
+import { ProfilePasswordChangeModel, profilePasswordChangeZodModel } from "@/shared/model/update-password.model";
 import userService from "@/server/services/user.service";
 import { getAuthUserSession, saveFormAction, simpleAction } from "@/server/utils/action-wrapper.utils";
-import { TotpModel, totpZodModel } from "@/model/totp.model";
-import { SuccessActionResult } from "@/model/server-action-error-return.model";
+import { TotpModel, totpZodModel } from "@/shared/model/totp.model";
+import { SuccessActionResult } from "@/shared/model/server-action-error-return.model";
 
 export const changePassword = async (prevState: any, inputData: ProfilePasswordChangeModel) =>
   saveFormAction(inputData, profilePasswordChangeZodModel, async (validatedData) => {

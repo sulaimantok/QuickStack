@@ -4,13 +4,13 @@ import { Button } from "@/components/ui/button";
 
 import Link from "next/link";
 import { SimpleDataTable } from "@/components/custom/simple-data-table";
-import { formatDateTime } from "@/lib/format.utils";
+import { formatDateTime } from "@/frontend/utils/format.utils";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { MoreHorizontal } from "lucide-react";
-import { Toast } from "@/lib/toast.utils";
+import { Toast } from "@/frontend/utils/toast.utils";
 import { App } from "@prisma/client";
 import { deleteApp } from "./actions";
-import { useConfirmDialog } from "@/lib/zustand.states";
+import { useConfirmDialog } from "@/frontend/states/zustand.states";
 
 
 

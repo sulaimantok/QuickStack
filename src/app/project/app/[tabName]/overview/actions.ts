@@ -1,9 +1,9 @@
 'use server'
 
-import { BuildJobModel } from "@/model/build-job";
-import { DeploymentInfoModel } from "@/model/deployment-info.model";
-import { PodsInfoModel } from "@/model/pods-info.model";
-import { ServerActionResult, SuccessActionResult } from "@/model/server-action-error-return.model";
+import { BuildJobModel } from "@/shared/model/build-job";
+import { DeploymentInfoModel } from "@/shared/model/deployment-info.model";
+import { PodsInfoModel } from "@/shared/model/pods-info.model";
+import { ServerActionResult, SuccessActionResult } from "@/shared/model/server-action-error-return.model";
 import appService from "@/server/services/app.service";
 import buildService from "@/server/services/build.service";
 import deploymentService from "@/server/services/deployment.service";

@@ -1,10 +1,10 @@
-import { AppExtendedModel } from "@/model/app-extended.model";
+import { AppExtendedModel } from "@/shared/model/app-extended.model";
 import k3s from "../adapter/kubernetes-api.adapter";
 import { V1PersistentVolumeClaim } from "@kubernetes/client-node";
-import { ServiceException } from "@/model/service.exception.model";
+import { ServiceException } from "@/shared/model/service.exception.model";
 import { AppVolume } from "@prisma/client";
-import { StringUtils } from "../utils/string.utils";
-import { Constants } from "../utils/constants";
+import { KubeObjectNameUtils } from "../utils/kube-object-name.utils";
+import { Constants } from "../../shared/utils/constants";
 import { MemoryCalcUtils } from "../utils/memory-caluclation.utils";
 
 class PvcService {
@@ -15,7 +15,7 @@ class PvcService {
         const existingPvcs = await this.getAllPvcForApp(app.projectId, app.id);
 
         for (const appVolume of app.appVolumes) {
-            const pvcName = StringUtils.toPvcName(appVolume.id);
+            const pvcName = KubeObjectNameUtils.toPvcName(appVolume.id);
             const existingPvc = existingPvcs.find(pvc => pvc.metadata?.name === pvcName);
             if (existingPvc && existingPvc.spec!.resources!.requests!.storage !== MemoryCalcUtils.formatSize(appVolume.size)) {
                 return true;
@@ -56,7 +56,7 @@ class PvcService {
         const existingPvcs = await this.getAllPvcForApp(app.projectId, app.id);
 
         for (const appVolume of app.appVolumes) {
-            const pvcName = StringUtils.toPvcName(appVolume.id);
+            const pvcName = KubeObjectNameUtils.toPvcName(appVolume.id);
 
             const pvcDefinition: V1PersistentVolumeClaim = {
                 apiVersion: 'v1',
@@ -107,16 +107,16 @@ class PvcService {
         const volumes = app.appVolumes
             .filter(pvcObj => pvcObj.appId === app.id)
             .map(pvcObj => ({
-                name: StringUtils.toPvcName(pvcObj.id),
+                name: KubeObjectNameUtils.toPvcName(pvcObj.id),
                 persistentVolumeClaim: {
-                    claimName: StringUtils.toPvcName(pvcObj.id)
+                    claimName: KubeObjectNameUtils.toPvcName(pvcObj.id)
                 },
             }));
 
         const volumeMounts = app.appVolumes
             .filter(pvcObj => pvcObj.appId === app.id)
             .map(pvcObj => ({
-                name: StringUtils.toPvcName(pvcObj.id),
+                name: KubeObjectNameUtils.toPvcName(pvcObj.id),
                 mountPath: pvcObj.containerMountPath,
             }));
 

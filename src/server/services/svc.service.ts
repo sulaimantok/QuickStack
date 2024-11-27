@@ -1,10 +1,10 @@
-import { AppExtendedModel } from "@/model/app-extended.model";
+import { AppExtendedModel } from "@/shared/model/app-extended.model";
 import k3s from "../adapter/kubernetes-api.adapter";
 import { V1PersistentVolumeClaim } from "@kubernetes/client-node";
-import { ServiceException } from "@/model/service.exception.model";
+import { ServiceException } from "@/shared/model/service.exception.model";
 import { AppVolume } from "@prisma/client";
-import { StringUtils } from "../utils/string.utils";
-import { Constants } from "../utils/constants";
+import { KubeObjectNameUtils } from "../utils/kube-object-name.utils";
+import { Constants } from "../../shared/utils/constants";
 
 class SvcService {
 
@@ -13,16 +13,16 @@ class SvcService {
         if (!existingService) {
             return;
         }
-        const returnVal = await  k3s.core.deleteNamespacedService(StringUtils.toServiceName(appId), projectId);
-        console.log(`Deleted Service ${StringUtils.toServiceName(appId)} in namespace ${projectId}`);
+        const returnVal = await  k3s.core.deleteNamespacedService(KubeObjectNameUtils.toServiceName(appId), projectId);
+        console.log(`Deleted Service ${KubeObjectNameUtils.toServiceName(appId)} in namespace ${projectId}`);
         return returnVal;
     }
 
 
     async getService(projectId: string, appId: string) {
         const allServices = await k3s.core.listNamespacedService(projectId);
-        if (allServices.body.items.some((item) => item.metadata?.name === StringUtils.toServiceName(appId))) {
-            const res = await k3s.core.readNamespacedService(StringUtils.toServiceName(appId), projectId);
+        if (allServices.body.items.some((item) => item.metadata?.name === KubeObjectNameUtils.toServiceName(appId))) {
+            const res = await k3s.core.readNamespacedService(KubeObjectNameUtils.toServiceName(appId), projectId);
             return res.body;
         }
     }
@@ -50,7 +50,7 @@ class SvcService {
 
         const body = {
             metadata: {
-                name: StringUtils.toServiceName(app.id)
+                name: KubeObjectNameUtils.toServiceName(app.id)
             },
             spec: {
                 selector: {
@@ -60,7 +60,7 @@ class SvcService {
             }
         };
         if (existingService) {
-            await k3s.core.replaceNamespacedService(StringUtils.toServiceName(app.id), app.projectId, body);
+            await k3s.core.replaceNamespacedService(KubeObjectNameUtils.toServiceName(app.id), app.projectId, body);
         } else {
             await k3s.core.createNamespacedService(app.projectId, body);
         }

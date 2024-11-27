@@ -3,8 +3,8 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { updateQuickstack } from "./actions";
 import { Button } from "@/components/ui/button";
-import { Toast } from "@/lib/toast.utils";
-import { useConfirmDialog } from "@/lib/zustand.states";
+import { Toast } from "@/frontend/utils/toast.utils";
+import { useConfirmDialog } from "@/frontend/states/zustand.states";
 
 export default function QuickStackMaintenanceSettings() {
 

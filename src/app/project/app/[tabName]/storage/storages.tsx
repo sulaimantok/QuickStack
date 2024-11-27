@@ -1,12 +1,12 @@
 'use client';
 
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
-import { AppExtendedModel } from "@/model/app-extended.model";
+import { AppExtendedModel } from "@/shared/model/app-extended.model";
 import { Table, TableBody, TableCaption, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
 import { EditIcon, TrashIcon } from "lucide-react";
 import DialogEditDialog from "./storage-edit-overlay";
-import { Toast } from "@/lib/toast.utils";
+import { Toast } from "@/frontend/utils/toast.utils";
 import { deleteVolume } from "./actions";
 
 

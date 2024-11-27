@@ -2,7 +2,7 @@ import { revalidateTag, unstable_cache } from "next/cache";
 import dataAccess from "../adapter/db.client";
 import { Tags } from "../utils/cache-tag-generator.utils";
 import { Parameter, Prisma } from "@prisma/client";
-import { Constants } from "../utils/constants";
+import { Constants } from "../../shared/utils/constants";
 
 export class ParamService {
 

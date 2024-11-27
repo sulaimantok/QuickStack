@@ -1,4 +1,4 @@
-import { stringToNumber } from "@/lib/zod.utils";
+import { stringToNumber } from "@/shared/utils/zod.utils";
 import { access } from "fs";
 import { z } from "zod";
 

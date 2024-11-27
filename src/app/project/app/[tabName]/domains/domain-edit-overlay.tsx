@@ -14,11 +14,11 @@ import { zodResolver } from "@hookform/resolvers/zod"
 import { useForm } from "react-hook-form"
 import { useFormState } from 'react-dom'
 import { useEffect, useState } from "react";
-import { FormUtils } from "@/lib/form.utilts";
+import { FormUtils } from "@/frontend/utils/form.utilts";
 import { SubmitButton } from "@/components/custom/submit-button";
 import { AppDomain } from "@prisma/client"
-import { AppDomainEditModel, appDomainEditZodModel } from "@/model/domain-edit.model"
-import { ServerActionResult } from "@/model/server-action-error-return.model"
+import { AppDomainEditModel, appDomainEditZodModel } from "@/shared/model/domain-edit.model"
+import { ServerActionResult } from "@/shared/model/server-action-error-return.model"
 import { saveDomain } from "./actions"
 import { toast } from "sonner"
 import CheckboxFormField from "@/components/custom/checkbox-form-field"

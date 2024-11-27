@@ -1,4 +1,4 @@
-import { stringToBoolean, stringToNumber } from "@/lib/zod.utils";
+import { stringToBoolean, stringToNumber } from "@/shared/utils/zod.utils";
 import { z } from "zod";
 
 export const appDomainEditZodModel = z.object({

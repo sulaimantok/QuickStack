@@ -3,29 +3,29 @@
 import { SubmitButton } from "@/components/custom/submit-button";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
-import { FormUtils } from "@/lib/form.utilts";
+import { FormUtils } from "@/frontend/utils/form.utilts";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import { saveDefaultPortConfiguration } from "./actions";
 import { useFormState } from "react-dom";
-import { ServerActionResult } from "@/model/server-action-error-return.model";
+import { ServerActionResult } from "@/shared/model/server-action-error-return.model";
 import { Input } from "@/components/ui/input";
 import { useEffect } from "react";
 import { toast } from "sonner";
-import { AppExtendedModel } from "@/model/app-extended.model";
-import { AppDefaultPortsModel, appdefaultPortZodModel } from "@/model/default-port.model";
-import { StringUtils } from "@/server/utils/string.utils";
+import { AppExtendedModel } from "@/shared/model/app-extended.model";
+import { AppDefaultPortsModel, appdefaultPortZodModel } from "@/shared/model/default-port.model";
+import { KubeObjectNameUtils } from "@/server/utils/kube-object-name.utils";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { QuestionMarkCircledIcon } from "@radix-ui/react-icons";
 import { Code } from "@/components/custom/code";
-import { ListUtils } from "@/server/utils/list.utils";
+import { ListUtils } from "@/shared/utils/list.utils";
 
 
 export default function InternalHostnames({ app }: {
     app: AppExtendedModel
 }) {
 
-    const internalUrl = StringUtils.toServiceName(app.id);
+    const internalUrl = KubeObjectNameUtils.toServiceName(app.id);
 
     const form = useForm<AppDefaultPortsModel>({
         resolver: zodResolver(appdefaultPortZodModel),

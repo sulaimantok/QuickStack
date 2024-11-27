@@ -1,6 +1,6 @@
 import * as crypto from 'crypto';
 
-export class StringUtils {
+export class KubeObjectNameUtils {
 
     private static readonly MAX_OBJECT_NAME_LENGTH = 30; // in Kubernetes, the maximum length of an object name is 63 characters
 
@@ -16,7 +16,7 @@ export class StringUtils {
     }
 
     static toObjectId(str: string): string {
-        let snakeCase = StringUtils.toSnakeCase(str);
+        let snakeCase = KubeObjectNameUtils.toSnakeCase(str);
         const randomString = crypto.randomBytes(4).toString('hex');
         snakeCase = `${snakeCase}-${randomString}`;
         return snakeCase
@@ -26,13 +26,13 @@ export class StringUtils {
     }
 
     static toProjectId(str: string): `proj-${string}` {
-        str = str.substring(0, StringUtils.MAX_OBJECT_NAME_LENGTH).trim();
-        return `proj-${StringUtils.toObjectId(str)}`;
+        str = str.substring(0, KubeObjectNameUtils.MAX_OBJECT_NAME_LENGTH).trim();
+        return `proj-${KubeObjectNameUtils.toObjectId(str)}`;
     }
 
     static toAppId(str: string): `app-${string}` {
-        str = str.substring(0, StringUtils.MAX_OBJECT_NAME_LENGTH).trim();
-        return `app-${StringUtils.toObjectId(str)}`;
+        str = str.substring(0, KubeObjectNameUtils.MAX_OBJECT_NAME_LENGTH).trim();
+        return `app-${KubeObjectNameUtils.toObjectId(str)}`;
     }
 
     static toJobName(appId: string): `build-${string}` {

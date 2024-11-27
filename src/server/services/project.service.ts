@@ -2,7 +2,7 @@ import { revalidateTag, unstable_cache } from "next/cache";
 import dataAccess from "../adapter/db.client";
 import { Tags } from "../utils/cache-tag-generator.utils";
 import { Prisma, Project } from "@prisma/client";
-import { StringUtils } from "../utils/string.utils";
+import { KubeObjectNameUtils } from "../utils/kube-object-name.utils";
 import deploymentService from "./deployment.service";
 import namespaceService from "./namespace.service";
 import buildService from "./build.service";
@@ -53,7 +53,7 @@ class ProjectService {
                     data: item
                 });
             } else {
-                item.id = StringUtils.toProjectId(item.name as string);
+                item.id = KubeObjectNameUtils.toProjectId(item.name as string);
                 savedItem = await dataAccess.client.project.create({
                     data: item as Prisma.ProjectUncheckedCreateInput
                 });

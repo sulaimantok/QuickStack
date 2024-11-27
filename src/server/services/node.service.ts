@@ -1,6 +1,6 @@
 import { spec } from "node:test/reporters";
 import k3s from "../adapter/kubernetes-api.adapter";
-import { NodeInfoModel } from "@/model/node-info.model";
+import { NodeInfoModel } from "@/shared/model/node-info.model";
 import { Tags } from "../utils/cache-tag-generator.utils";
 import { revalidateTag, unstable_cache } from "next/cache";
 

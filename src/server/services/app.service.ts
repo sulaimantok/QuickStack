@@ -3,9 +3,9 @@ import dataAccess from "../adapter/db.client";
 import { Tags } from "../utils/cache-tag-generator.utils";
 import { App, AppDomain, AppVolume, Prisma } from "@prisma/client";
 import { DefaultArgs } from "@prisma/client/runtime/library";
-import { AppExtendedModel } from "@/model/app-extended.model";
-import { ServiceException } from "@/model/service.exception.model";
-import { StringUtils } from "../utils/string.utils";
+import { AppExtendedModel } from "@/shared/model/app-extended.model";
+import { ServiceException } from "@/shared/model/service.exception.model";
+import { KubeObjectNameUtils } from "../utils/kube-object-name.utils";
 import deploymentService from "./deployment.service";
 import buildService, { BUILD_NAMESPACE } from "./build.service";
 import namespaceService from "./namespace.service";
@@ -100,7 +100,7 @@ class AppService {
                     data: item
                 });
             } else {
-                item.id = StringUtils.toAppId(item.name as string);
+                item.id = KubeObjectNameUtils.toAppId(item.name as string);
                 savedItem = dataAccess.client.app.create({
                     data: item as Prisma.AppUncheckedCreateInput
                 });

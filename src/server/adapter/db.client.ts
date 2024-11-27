@@ -1,6 +1,6 @@
 import { Prisma, PrismaClient } from "@prisma/client";
 import { DefaultArgs } from "@prisma/client/runtime/library";
-import { ListUtils } from "../utils/list.utils";
+import { ListUtils } from "../../shared/utils/list.utils";
 
 type clientType = keyof PrismaClient<Prisma.PrismaClientOptions, never | undefined>;
 

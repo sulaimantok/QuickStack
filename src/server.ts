@@ -5,8 +5,8 @@ import socketIoServer from './socket-io.server'
 import quickStackService from './server/services/qs.service'
 import { CommandExecutorUtils } from './server/utils/command-executor.utils'
 import dataAccess from './server/adapter/db.client'
-import { FancyConsoleUtils } from './server/utils/fancy-console.utils'
-import { Constants } from './server/utils/constants'
+import { FancyConsoleUtils } from './shared/utils/fancy-console.utils'
+import { Constants } from './shared/utils/constants'
 
 // Source: https://nextjs.org/docs/app/building-your-application/configuring/custom-server
 

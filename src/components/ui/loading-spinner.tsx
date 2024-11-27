@@ -1,4 +1,4 @@
-import { cn } from "@/lib/utils"
+import { cn } from "@/frontend/utils/utils"
 
 export default function LoadingSpinner() {
     return <svg

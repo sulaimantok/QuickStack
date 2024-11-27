@@ -1,5 +1,5 @@
-import { ServiceException } from "@/model/service.exception.model";
-import { AppExtendedModel } from "@/model/app-extended.model";
+import { ServiceException } from "@/shared/model/service.exception.model";
+import { AppExtendedModel } from "@/shared/model/app-extended.model";
 import simpleGit from "simple-git";
 import { PathUtils } from "../utils/path.utils";
 import { FsUtils } from "../utils/fs.utils";

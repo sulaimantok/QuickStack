@@ -2,15 +2,15 @@
 
 import { SubmitButton } from "@/components/custom/submit-button";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
-import { AppExtendedModel } from "@/model/app-extended.model";
+import { AppExtendedModel } from "@/shared/model/app-extended.model";
 import { Table, TableBody, TableCaption, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
 import { CheckIcon, CrossIcon, DeleteIcon, EditIcon, TrashIcon, XIcon } from "lucide-react";
 import DialogEditDialog from "./domain-edit-overlay";
-import { Toast } from "@/lib/toast.utils";
+import { Toast } from "@/frontend/utils/toast.utils";
 import { deleteDomain } from "./actions";
-import { ListUtils } from "@/server/utils/list.utils";
-import { StringUtils } from "@/server/utils/string.utils";
+import { ListUtils } from "@/shared/utils/list.utils";
+import { KubeObjectNameUtils } from "@/server/utils/kube-object-name.utils";
 import { Code } from "@/components/custom/code";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { OpenInNewWindowIcon, QuestionMarkCircledIcon } from "@radix-ui/react-icons";

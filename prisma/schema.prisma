@@ -10,7 +10,7 @@ generator client {
 
 generator zod {
   provider = "zod-prisma"
-  output   = "../src/model/generated-zod" // (default) the directory where generated zod schemas will be saved
+  output   = "../src/shared/model/generated-zod" // (default) the directory where generated zod schemas will be saved
 
   relationModel = true // (default) Create and export both plain and related models.
   // relationModel         = "default" // Do not export model without relations.

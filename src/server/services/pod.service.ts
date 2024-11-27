@@ -1,6 +1,6 @@
-import { PodsInfoModel } from "@/model/pods-info.model";
+import { PodsInfoModel } from "@/shared/model/pods-info.model";
 import k3s from "../adapter/kubernetes-api.adapter";
-import { ServiceException } from "@/model/service.exception.model";
+import { ServiceException } from "@/shared/model/service.exception.model";
 import setupPodService from "./setup-services/setup-pod.service";
 
 

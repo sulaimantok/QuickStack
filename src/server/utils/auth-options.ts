@@ -3,7 +3,7 @@ import NextAuth, { NextAuthOptions, Session } from "next-auth"
 import EmailProvider from "next-auth/providers/email";
 import { PrismaAdapter } from "@next-auth/prisma-adapter"
 import { JWT } from "next-auth/jwt";
-import { UserSession } from "@/model/sim-session.model";
+import { UserSession } from "@/shared/model/sim-session.model";
 import dataAccess from "@/server/adapter/db.client";
 import CredentialsProvider from "next-auth/providers/credentials";
 import bcrypt from "bcrypt";
@@ -54,25 +54,6 @@ export const authOptions: NextAuthOptions = {
             }
         })
     ],
-    callbacks: {
-        /* async jwt({ token, user }) {
-             // Initial sign in
-             if (user) {
-                 token.id = user.id;
-                 token.role = 'tenant'; //user.role;
-             }
-             return token;
-         },*/
-        /*async session({ session, token, user }) {
-            // Add the user's role to the session
-            const dbUser = user as User;
-            const simSession = session as SimSession;
-            simSession.userId = dbUser.id;
-
-
-            return simSession;
-        },*/
-    },
     adapter: PrismaAdapter(dataAccess.client),
 };
 

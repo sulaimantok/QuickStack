@@ -1,12 +1,12 @@
-import { AppExtendedModel } from "@/model/app-extended.model";
+import { AppExtendedModel } from "@/shared/model/app-extended.model";
 import k3s from "../adapter/kubernetes-api.adapter";
 import { V1Job, V1JobStatus } from "@kubernetes/client-node";
-import { StringUtils } from "../utils/string.utils";
-import { BuildJobModel } from "@/model/build-job";
-import { ServiceException } from "@/model/service.exception.model";
-import { PodsInfoModel } from "@/model/pods-info.model";
+import { KubeObjectNameUtils } from "../utils/kube-object-name.utils";
+import { BuildJobModel } from "@/shared/model/build-job";
+import { ServiceException } from "@/shared/model/service.exception.model";
+import { PodsInfoModel } from "@/shared/model/pods-info.model";
 import namespaceService from "./namespace.service";
-import { Constants } from "../utils/constants";
+import { Constants } from "../../shared/utils/constants";
 import gitService from "./git.service";
 import deploymentService from "./deployment.service";
 import deploymentLogService from "./deployment-logs.service";
@@ -46,7 +46,7 @@ class BuildService {
 
     private async createAndStartBuildJob(app: AppExtendedModel, latestRemoteGitHash: string): Promise<[string, string, Promise<void>]> {
 
-        const buildName = StringUtils.addRandomSuffix(StringUtils.toJobName(app.id));
+        const buildName = KubeObjectNameUtils.addRandomSuffix(KubeObjectNameUtils.toJobName(app.id));
         const jobDefinition: V1Job = {
             apiVersion: "batch/v1",
             kind: "Job",
@@ -118,7 +118,7 @@ class BuildService {
 
 
     async deleteAllBuildsOfApp(appId: string) {
-        const jobNamePrefix = StringUtils.toJobName(appId);
+        const jobNamePrefix = KubeObjectNameUtils.toJobName(appId);
         const jobs = await k3s.batch.listNamespacedJob(BUILD_NAMESPACE);
         const jobsOfBuild = jobs.body.items.filter((job) => job.metadata?.name?.startsWith(jobNamePrefix));
         for (const job of jobsOfBuild) {
@@ -140,7 +140,7 @@ class BuildService {
     }
 
     async getBuildsForApp(appId: string) {
-        const jobNamePrefix = StringUtils.toJobName(appId);
+        const jobNamePrefix = KubeObjectNameUtils.toJobName(appId);
         const jobs = await k3s.batch.listNamespacedJob(BUILD_NAMESPACE);
         const jobsOfBuild = jobs.body.items.filter((job) => job.metadata?.name?.startsWith(jobNamePrefix));
         const builds = jobsOfBuild.map((job) => {

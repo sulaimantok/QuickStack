@@ -1,6 +1,6 @@
 'use server'
 
-import { SuccessActionResult } from "@/model/server-action-error-return.model";
+import { SuccessActionResult } from "@/shared/model/server-action-error-return.model";
 import appService from "@/server/services/app.service";
 import deploymentService from "@/server/services/deployment.service";
 import { getAuthUserSession, simpleAction } from "@/server/utils/action-wrapper.utils";

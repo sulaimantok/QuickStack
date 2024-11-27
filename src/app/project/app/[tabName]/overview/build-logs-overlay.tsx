@@ -12,10 +12,10 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import React, { useEffect } from "react";
 import { set } from "date-fns";
-import { DeploymentInfoModel } from "@/model/deployment-info.model";
+import { DeploymentInfoModel } from "@/shared/model/deployment-info.model";
 import LogsStreamed from "./logs-streamed";
-import { formatDate, formatDateTime } from "@/lib/format.utils";
-import { podLogsSocket } from "@/lib/sockets";
+import { formatDate, formatDateTime } from "@/frontend/utils/format.utils";
+import { podLogsSocket } from "@/frontend/sockets/sockets";
 
 export function BuildLogsDialog({
   deploymentInfo,

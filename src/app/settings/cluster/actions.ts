@@ -1,7 +1,7 @@
 'use server'
 
 import { getAuthUserSession, simpleAction } from "@/server/utils/action-wrapper.utils";
-import { SuccessActionResult } from "@/model/server-action-error-return.model";
+import { SuccessActionResult } from "@/shared/model/server-action-error-return.model";
 import clusterService from "@/server/services/node.service";
 
 export const setNodeStatus = async (nodeName: string, schedulable: boolean) =>

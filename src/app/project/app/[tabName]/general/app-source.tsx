@@ -3,20 +3,20 @@
 import { SubmitButton } from "@/components/custom/submit-button";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
-import { FormUtils } from "@/lib/form.utilts";
-import { AppSourceInfoInputModel, appSourceInfoInputZodModel } from "@/model/app-source-info.model";
+import { FormUtils } from "@/frontend/utils/form.utilts";
+import { AppSourceInfoInputModel, appSourceInfoInputZodModel } from "@/shared/model/app-source-info.model";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import { saveGeneralAppSourceInfo } from "./actions";
 import { useFormState } from "react-dom";
-import { ServerActionResult } from "@/model/server-action-error-return.model";
+import { ServerActionResult } from "@/shared/model/server-action-error-return.model";
 import { Input } from "@/components/ui/input";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Label } from "@/components/ui/label";
 import { useEffect } from "react";
 import { App } from "@prisma/client";
 import { toast } from "sonner";
-import { AppExtendedModel } from "@/model/app-extended.model";
+import { AppExtendedModel } from "@/shared/model/app-extended.model";
 
 export default function GeneralAppSource({ app }: {
     app: AppExtendedModel

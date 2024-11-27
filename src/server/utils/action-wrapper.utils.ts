@@ -1,11 +1,11 @@
-import { ServiceException } from "@/model/service.exception.model";
-import { UserSession } from "@/model/sim-session.model";
+import { ServiceException } from "@/shared/model/service.exception.model";
+import { UserSession } from "@/shared/model/sim-session.model";
 import { getServerSession } from "next-auth";
 import { ZodRawShape, ZodObject, objectUtil, baseObjectOutputType, z, ZodType } from "zod";
 import { redirect } from "next/navigation";
-import { ServerActionResult } from "@/model/server-action-error-return.model";
-import { FormValidationException } from "@/model/form-validation-exception.model";
-import { authOptions } from "@/lib/auth-options";
+import { ServerActionResult } from "@/shared/model/server-action-error-return.model";
+import { FormValidationException } from "@/shared/model/form-validation-exception.model";
+import { authOptions } from "@/server/utils/auth-options";
 import { NextResponse } from "next/server";
 
 /**

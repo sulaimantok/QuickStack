@@ -1,10 +1,10 @@
 'use server'
 
-import { AppRateLimitsModel, appRateLimitsZodModel } from "@/model/app-rate-limits.model";
-import { appSourceInfoContainerZodModel, appSourceInfoGitZodModel, AppSourceInfoInputModel, appSourceInfoInputZodModel } from "@/model/app-source-info.model";
-import { AuthFormInputSchema, authFormInputSchemaZod } from "@/model/auth-form";
-import { ErrorActionResult, ServerActionResult, SuccessActionResult } from "@/model/server-action-error-return.model";
-import { ServiceException } from "@/model/service.exception.model";
+import { AppRateLimitsModel, appRateLimitsZodModel } from "@/shared/model/app-rate-limits.model";
+import { appSourceInfoContainerZodModel, appSourceInfoGitZodModel, AppSourceInfoInputModel, appSourceInfoInputZodModel } from "@/shared/model/app-source-info.model";
+import { AuthFormInputSchema, authFormInputSchemaZod } from "@/shared/model/auth-form";
+import { ErrorActionResult, ServerActionResult, SuccessActionResult } from "@/shared/model/server-action-error-return.model";
+import { ServiceException } from "@/shared/model/service.exception.model";
 import appService from "@/server/services/app.service";
 import userService from "@/server/services/user.service";
 import { getAuthUserSession, saveFormAction, simpleAction } from "@/server/utils/action-wrapper.utils";

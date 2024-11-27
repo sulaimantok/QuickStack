@@ -2,7 +2,7 @@
 
 import { InputDialog } from "@/components/custom/input-dialog"
 import { Button } from "@/components/ui/button"
-import { Toast } from "@/lib/toast.utils";
+import { Toast } from "@/frontend/utils/toast.utils";
 import { createProject } from "./actions";
 
 

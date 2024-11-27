@@ -1,6 +1,6 @@
 'use server'
 
-import { AppEnvVariablesModel, appEnvVariablesZodModel } from "@/model/env-edit.model";
+import { AppEnvVariablesModel, appEnvVariablesZodModel } from "@/shared/model/env-edit.model";
 import appService from "@/server/services/app.service";
 import { getAuthUserSession, saveFormAction } from "@/server/utils/action-wrapper.utils";
 

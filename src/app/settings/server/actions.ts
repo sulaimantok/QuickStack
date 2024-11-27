@@ -2,10 +2,10 @@
 
 import { getAuthUserSession, saveFormAction, simpleAction } from "@/server/utils/action-wrapper.utils";
 import paramService, { ParamService } from "@/server/services/param.service";
-import { QsIngressSettingsModel, qsIngressSettingsZodModel } from "@/model/qs-settings.model";
-import { QsLetsEncryptSettingsModel, qsLetsEncryptSettingsZodModel } from "@/model/qs-letsencrypt-settings.model";
+import { QsIngressSettingsModel, qsIngressSettingsZodModel } from "@/shared/model/qs-settings.model";
+import { QsLetsEncryptSettingsModel, qsLetsEncryptSettingsZodModel } from "@/shared/model/qs-letsencrypt-settings.model";
 import quickStackService from "@/server/services/qs.service";
-import { ServerActionResult, SuccessActionResult } from "@/model/server-action-error-return.model";
+import { ServerActionResult, SuccessActionResult } from "@/shared/model/server-action-error-return.model";
 
 export const updateIngressSettings = async (prevState: any, inputData: QsIngressSettingsModel) =>
   saveFormAction(inputData, qsIngressSettingsZodModel, async (validatedData) => {

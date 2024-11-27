@@ -1,9 +1,9 @@
 import k3s from "../adapter/kubernetes-api.adapter";
 import { V1Deployment, V1Ingress, V1Service } from "@kubernetes/client-node";
 import namespaceService from "./namespace.service";
-import { StringUtils } from "../utils/string.utils";
+import { KubeObjectNameUtils } from "../utils/kube-object-name.utils";
 import crypto from "crypto";
-import { FancyConsoleUtils } from "../utils/fancy-console.utils";
+import { FancyConsoleUtils } from "../../shared/utils/fancy-console.utils";
 import setupPodService from "./setup-services/setup-pod.service";
 
 class QuickStackService {
@@ -57,7 +57,7 @@ class QuickStackService {
     }
 
     async createOrUpdateIngress(hostname: string) {
-        const ingressName = StringUtils.getIngressName(this.QUICKSTACK_NAMESPACE);
+        const ingressName = KubeObjectNameUtils.getIngressName(this.QUICKSTACK_NAMESPACE);
         const existingIngresses = await k3s.network.listNamespacedIngress(this.QUICKSTACK_NAMESPACE);
         const existingIngress = existingIngresses.body.items.find((item) => item.metadata?.name === ingressName);
 
@@ -84,7 +84,7 @@ class QuickStackService {
                                     pathType: 'Prefix',
                                     backend: {
                                         service: {
-                                            name: StringUtils.toServiceName(this.QUICKSTACK_DEPLOYMENT_NAME),
+                                            name: KubeObjectNameUtils.toServiceName(this.QUICKSTACK_DEPLOYMENT_NAME),
                                             port: {
                                                 number: this.QUICKSTACK_PORT_NUMBER,
                                             },
@@ -185,7 +185,7 @@ class QuickStackService {
     }
 
     async createOrUpdateService(openNodePort = false) {
-        const serviceName = StringUtils.toServiceName(this.QUICKSTACK_DEPLOYMENT_NAME);
+        const serviceName = KubeObjectNameUtils.toServiceName(this.QUICKSTACK_DEPLOYMENT_NAME);
         const body: V1Service = {
             apiVersion: 'v1',
             kind: 'Service',
@@ -223,7 +223,7 @@ class QuickStackService {
     }
 
     private async createOrUpdatePvc() {
-        const pvcName = StringUtils.toPvcName(this.QUICKSTACK_DEPLOYMENT_NAME);
+        const pvcName = KubeObjectNameUtils.toPvcName(this.QUICKSTACK_DEPLOYMENT_NAME);
         const pvc = {
             apiVersion: 'v1',
             kind: 'PersistentVolumeClaim',
@@ -318,7 +318,7 @@ class QuickStackService {
                         volumes: [{
                             name: 'quickstack-volume',
                             persistentVolumeClaim: {
-                                claimName: StringUtils.toPvcName(this.QUICKSTACK_DEPLOYMENT_NAME)
+                                claimName: KubeObjectNameUtils.toPvcName(this.QUICKSTACK_DEPLOYMENT_NAME)
                             }
                         }]
                     }

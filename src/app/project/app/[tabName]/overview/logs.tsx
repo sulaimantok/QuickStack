@@ -1,10 +1,10 @@
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { AppExtendedModel } from "@/model/app-extended.model";
+import { AppExtendedModel } from "@/shared/model/app-extended.model";
 import { useEffect, useState } from "react";
-import { podLogsSocket } from "@/lib/sockets";
+import { podLogsSocket } from "@/frontend/sockets/sockets";
 import LogsStreamed from "./logs-streamed";
 import { getPodsForApp } from "./actions";
-import { PodsInfoModel } from "@/model/pods-info.model";
+import { PodsInfoModel } from "@/shared/model/pods-info.model";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import FullLoadingSpinner from "@/components/ui/full-loading-spinnter";
 import { toast } from "sonner";

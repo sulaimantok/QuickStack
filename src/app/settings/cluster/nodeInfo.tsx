@@ -1,12 +1,12 @@
 'use client'
 
-import { NodeInfoModel } from "@/model/node-info.model";
+import { NodeInfoModel } from "@/shared/model/node-info.model";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Code } from "@/components/custom/code";
-import { Toast } from "@/lib/toast.utils";
+import { Toast } from "@/frontend/utils/toast.utils";
 import { setNodeStatus } from "./actions";
 import { Button } from "@/components/ui/button";
-import { useConfirmDialog } from "@/lib/zustand.states";
+import { useConfirmDialog } from "@/frontend/states/zustand.states";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 
 export default async function NodeInfo({ nodeInfos }: { nodeInfos: NodeInfoModel[] }) {

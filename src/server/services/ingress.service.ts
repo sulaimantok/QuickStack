@@ -1,9 +1,9 @@
-import { AppExtendedModel } from "@/model/app-extended.model";
+import { AppExtendedModel } from "@/shared/model/app-extended.model";
 import k3s from "../adapter/kubernetes-api.adapter";
 import { V1Ingress } from "@kubernetes/client-node";
-import { StringUtils } from "../utils/string.utils";
+import { KubeObjectNameUtils } from "../utils/kube-object-name.utils";
 import { App, AppDomain } from "@prisma/client";
-import { Constants } from "../utils/constants";
+import { Constants } from "../../shared/utils/constants";
 
 
 const traefikNamespace = 'kube-system';
@@ -17,7 +17,7 @@ class IngressService {
 
     async getIngress(projectId: string, domainId: string) {
         const res = await k3s.network.listNamespacedIngress(projectId);
-        return res.body.items.find((item) => item.metadata?.name === StringUtils.getIngressName(domainId));
+        return res.body.items.find((item) => item.metadata?.name === KubeObjectNameUtils.getIngressName(domainId));
     }
 
     async deleteUnusedIngressesOfApp(app: AppExtendedModel) {
@@ -63,7 +63,7 @@ class IngressService {
 
     async createIngress(app: AppExtendedModel, domain: AppDomain) {
         const hostname = domain.hostname;
-        const ingressName = StringUtils.getIngressName(domain.id);
+        const ingressName = KubeObjectNameUtils.getIngressName(domain.id);
         const existingIngress = await this.getIngress(app.projectId, domain.id);
 
         const ingressDefinition: V1Ingress = {
@@ -92,7 +92,7 @@ class IngressService {
                                     pathType: 'Prefix',
                                     backend: {
                                         service: {
-                                            name: StringUtils.toServiceName(app.id),
+                                            name: KubeObjectNameUtils.toServiceName(app.id),
                                             port: {
                                                 number: domain.port,
                                             },

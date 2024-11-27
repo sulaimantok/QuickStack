@@ -1,4 +1,4 @@
-import { FormZodErrorValidationCallback } from "@/lib/form.utilts";
+import { FormZodErrorValidationCallback } from "@/frontend/utils/form.utilts";
 
 export class ServerActionResult<TErrorData, TReturnData> {
 

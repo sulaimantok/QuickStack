@@ -1,9 +1,9 @@
 'use server'
 
-import { AppRateLimitsModel } from "@/model/app-rate-limits.model";
-import { AppDefaultPortsModel, appdefaultPortZodModel } from "@/model/default-port.model";
-import { appDomainEditZodModel } from "@/model/domain-edit.model";
-import { SuccessActionResult } from "@/model/server-action-error-return.model";
+import { AppRateLimitsModel } from "@/shared/model/app-rate-limits.model";
+import { AppDefaultPortsModel, appdefaultPortZodModel } from "@/shared/model/default-port.model";
+import { appDomainEditZodModel } from "@/shared/model/domain-edit.model";
+import { SuccessActionResult } from "@/shared/model/server-action-error-return.model";
 import appService from "@/server/services/app.service";
 import { getAuthUserSession, saveFormAction, simpleAction } from "@/server/utils/action-wrapper.utils";
 import { z } from "zod";

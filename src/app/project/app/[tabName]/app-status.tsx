@@ -3,7 +3,7 @@
 import { useEffect, useRef, useState } from "react";
 import { Textarea } from "@/components/ui/textarea";
 import React from "react";
-import { DeplyomentStatus } from "@/model/deployment-info.model";
+import { DeplyomentStatus } from "@/shared/model/deployment-info.model";
 import { set } from "date-fns";
 
 export default function AppStatus({

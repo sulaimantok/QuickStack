@@ -3,7 +3,7 @@ import dataAccess from "../adapter/db.client";
 import { revalidateTag, unstable_cache } from "next/cache";
 import { Tags } from "../utils/cache-tag-generator.utils";
 import bcrypt from "bcrypt";
-import { ServiceException } from "@/model/service.exception.model";
+import { ServiceException } from "@/shared/model/service.exception.model";
 import QRCode from "qrcode";
 import * as OTPAuth from "otpauth";
 

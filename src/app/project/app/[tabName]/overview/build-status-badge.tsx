@@ -10,7 +10,7 @@ import {
 } from "@/components/ui/form"
 import { Input } from "@/components/ui/input";
 import { isDate } from "date-fns";
-import { BuildJobStatus } from "@/model/build-job";
+import { BuildJobStatus } from "@/shared/model/build-job";
 
 
 export default function BuildStatusBadge(

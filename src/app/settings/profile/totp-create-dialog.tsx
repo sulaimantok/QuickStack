@@ -2,19 +2,19 @@
 
 import { SubmitButton } from "@/components/custom/submit-button";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
-import { FormUtils } from "@/lib/form.utilts";
+import { FormUtils } from "@/frontend/utils/form.utilts";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import { useFormState } from "react-dom";
-import { ServerActionResult } from "@/model/server-action-error-return.model";
+import { ServerActionResult } from "@/shared/model/server-action-error-return.model";
 import { Input } from "@/components/ui/input";
 import { useEffect } from "react";
 import { toast } from "sonner";
 import { createNewTotpToken, verifyTotpToken } from "./actions";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import React from "react";
-import { TotpModel, totpZodModel } from "@/model/totp.model";
-import { Toast } from "@/lib/toast.utils";
+import { TotpModel, totpZodModel } from "@/shared/model/totp.model";
+import { Toast } from "@/frontend/utils/toast.utils";
 import FullLoadingSpinner from "@/components/ui/full-loading-spinnter";
 
 export default function TotpCreateDialog({

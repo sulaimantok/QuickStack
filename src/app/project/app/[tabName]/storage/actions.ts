@@ -1,11 +1,11 @@
 'use server'
 
-import { appVolumeEditZodModel } from "@/model/volume-edit.model";
-import { SuccessActionResult } from "@/model/server-action-error-return.model";
+import { appVolumeEditZodModel } from "@/shared/model/volume-edit.model";
+import { SuccessActionResult } from "@/shared/model/server-action-error-return.model";
 import appService from "@/server/services/app.service";
 import { getAuthUserSession, saveFormAction, simpleAction } from "@/server/utils/action-wrapper.utils";
 import { z } from "zod";
-import { ServiceException } from "@/model/service.exception.model";
+import { ServiceException } from "@/shared/model/service.exception.model";
 import pvcStatusService from "@/server/services/pvc.status.service";
 
 const actionAppVolumeEditZodModel = appVolumeEditZodModel.merge(z.object({

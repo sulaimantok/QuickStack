@@ -10,7 +10,7 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog"
 import React from "react";
-import { useConfirmDialog } from "@/lib/zustand.states";
+import { useConfirmDialog } from "@/frontend/states/zustand.states";
 
 export function ConfirmDialog() {
   const { isDialogOpen, data, closeDialog } = useConfirmDialog();

@@ -2,7 +2,7 @@
 
 import { Card, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { deactivate2fa } from "./actions";
-import { Toast } from "@/lib/toast.utils";
+import { Toast } from "@/frontend/utils/toast.utils";
 import TotpCreateDialog from "./totp-create-dialog";
 import { Button } from "@/components/ui/button";
 

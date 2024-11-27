@@ -1,4 +1,4 @@
-import { cn } from "@/lib/utils"
+import { cn } from "@/frontend/utils/utils"
 import { Button } from "./button"
 import { DropdownMenu, DropdownMenuTrigger, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator } from "./dropdown-menu"
 import {

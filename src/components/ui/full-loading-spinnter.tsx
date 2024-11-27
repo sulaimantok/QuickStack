@@ -1,4 +1,4 @@
-import { cn } from "@/lib/utils"
+import { cn } from "@/frontend/utils/utils"
 import LoadingSpinner from "./loading-spinner";
 
 export default function FullLoadingSpinner() {

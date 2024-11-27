@@ -1,4 +1,4 @@
-import { stringToNumber, stringToOptionalNumber } from "@/lib/zod.utils";
+import { stringToNumber, stringToOptionalNumber } from "@/shared/utils/zod.utils";
 import { z } from "zod";
 
 export const appdefaultPortZodModel = z.object({
