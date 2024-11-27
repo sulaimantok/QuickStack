@@ -14,6 +14,7 @@ import { BuildJobModel } from "@/shared/model/build-job";
 import BuildsTab from "./overview/deployments";
 import Logs from "./overview/logs";
 import InternalHostnames from "./domains/internal-hostnames";
+import TerminalStreamed from "./overview/terminal-streamed";
 
 export default function AppTabs({
     app,

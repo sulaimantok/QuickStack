@@ -47,9 +47,12 @@ export class TerminalService {
                 terminalInfo.podName,
                 terminalInfo.containerName,
                 ['/bin/sh'],
-                stdoutStream,
+                process.stdout,
+                process.stderr,
+                process.stdin,
+               /* stdoutStream,
                 stderrStream,
-                stdinStream,
+                stdinStream,*/
                 true /* tty */,
                 (status: k8s.V1Status) => {
                     console.log('Exited with status:');
@@ -61,9 +64,11 @@ export class TerminalService {
             );
 
             stdoutStream.on('data', (chunk) => {
+                console.log(chunk)
                 socket.emit(streamOutputKey, chunk.toString());
             });
             stderrStream.on('data', (chunk) => {
+                console.log(chunk)
                 socket.emit(streamOutputKey, chunk.toString());
             });
             socket.on(streamInputKey, (data) => {
@@ -73,7 +78,7 @@ export class TerminalService {
             streamsOfSocket.push({ stdoutStream, stderrStream, stdinStream, streamInputKey, streamOutputKey, websocket });
 
 
-            console.log(`Client ${socket.id} joined log stream for ${stdoutStream}`);
+            console.log(`Client ${socket.id} joined terminal stream for ${streamInputKey}`);
         });
 
         socket.on('closeTerminal', (podInfo) => {
@@ -96,10 +101,10 @@ export class TerminalService {
 
 
     private deleteLogStream(streams: TerminalStrean) {
-        streams.stderrStream.end();
+       /* streams.stderrStream.end();
         streams.stdoutStream.end();
         streams.stdinStream.end();
-        streams.websocket.close();
+        streams.websocket.close();*/
 
         console.log(`Stopped log stream for ${streams.streamInputKey}.`);
     }

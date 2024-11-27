@@ -1,7 +1,6 @@
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { AppExtendedModel } from "@/shared/model/app-extended.model";
 import { useEffect, useState } from "react";
-import { podLogsSocket } from "@/frontend/sockets/sockets";
 import LogsStreamed from "../../../../../components/custom/logs-streamed";
 import { getPodsForApp } from "./actions";
 import { PodsInfoModel } from "@/shared/model/pods-info.model";
@@ -11,13 +10,14 @@ import { toast } from "sonner";
 import { LogsDialog } from "@/components/custom/logs-overlay";
 import { Button } from "@/components/ui/button";
 import { Expand, SquareArrowUp, SquareArrowUpRight } from "lucide-react";
+import { TerminalDialog } from "./terminal-overlay";
 
 export default function Logs({
     app
 }: {
     app: AppExtendedModel;
 }) {
-    const [selectedPod, setSelectedPod] = useState<string | undefined>(undefined);
+    const [selectedPod, setSelectedPod] = useState<PodsInfoModel | undefined>(undefined);
     const [appPods, setAppPods] = useState<PodsInfoModel[] | undefined>(undefined);
 
     const updateBuilds = async () => {
@@ -42,15 +42,15 @@ export default function Logs({
     }, [app]);
 
     useEffect(() => {
-        if (appPods && selectedPod && !appPods.find(p => p.podName === selectedPod)) {
+        if (appPods && selectedPod && !appPods.find(p => p.podName === selectedPod.podName)) {
             // current selected pod is not in the list anymore
             setSelectedPod(undefined);
             if (appPods.length > 0) {
-                setSelectedPod(appPods[0].podName);
+                setSelectedPod(appPods[0]);
             }
         } else if (!selectedPod && appPods && appPods.length > 0) {
             // no pod selected yet, initialize with first pod
-            setSelectedPod(appPods[0].podName);
+            setSelectedPod(appPods[0]);
         }
     }, [appPods]);
 
@@ -65,7 +65,7 @@ export default function Logs({
                 {appPods && appPods.length === 0 && <div>No running pods found for this app.</div>}
                 {selectedPod && appPods && <div className="flex gap-4">
                     <div className="flex-1">
-                        <Select value={selectedPod} onValueChange={(val) => setSelectedPod(val)}>
+                        <Select value={selectedPod.podName} onValueChange={(val) => setSelectedPod(appPods.find(p => p.podName === val))}>
                             <SelectTrigger className="w-full" >
                                 <SelectValue placeholder="Pod wählen" />
                             </SelectTrigger>
@@ -75,14 +75,25 @@ export default function Logs({
                         </Select>
                     </div>
                     <div>
-                        <LogsDialog namespace={app.projectId} podName={selectedPod}>
+                        <TerminalDialog terminalInfo={{
+                            podName: selectedPod.podName,
+                            containerName: selectedPod.containerName,
+                            namespace: app.projectId
+                        }} >
+                            <Button variant="secondary">
+                                Terminal
+                            </Button>
+                        </TerminalDialog>
+                    </div>
+                    <div>
+                        <LogsDialog namespace={app.projectId} podName={selectedPod.podName}>
                             <Button variant="secondary">
                                 <Expand />
                             </Button>
                         </LogsDialog>
                     </div>
                 </div>}
-                {app.projectId && selectedPod && <LogsStreamed namespace={app.projectId} podName={selectedPod} />}
+                {app.projectId && selectedPod && <LogsStreamed namespace={app.projectId} podName={selectedPod.podName} />}
             </CardContent>
         </Card >
     </>;
