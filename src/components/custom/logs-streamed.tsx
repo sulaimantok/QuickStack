@@ -1,15 +1,26 @@
 import { useEffect, useRef, useState } from "react";
 import { Textarea } from "@/components/ui/textarea";
 import React from "react";
+import {
+    HoverCard,
+    HoverCardContent,
+    HoverCardTrigger,
+} from "@/components/ui/hover-card"
+import { Input } from "../ui/input";
+
 
 export default function LogsStreamed({
     namespace,
     podName,
     buildJobName,
+    fullHeight = false,
+    linesCount = 100,
 }: {
     namespace?: string;
     podName?: string;
     buildJobName?: string;
+    fullHeight?: boolean;
+    linesCount?: number;
 }) {
     const [isConnected, setIsConnected] = useState(false);
     const [logs, setLogs] = useState<string>('');
@@ -28,7 +39,7 @@ export default function LogsStreamed({
             headers: {
                 "Content-Type": "text/event-stream",
             },
-            body: JSON.stringify({ namespace, podName, buildJobName }),
+            body: JSON.stringify({ namespace, podName, buildJobName, linesCount }),
             signal: signal,
         });
 
@@ -66,7 +77,7 @@ export default function LogsStreamed({
             setLogs('');
             controller.abort();
         };
-    }, [namespace, podName, buildJobName]);
+    }, [namespace, podName, buildJobName, linesCount]);
 
     useEffect(() => {
         if (textAreaRef.current) {
@@ -77,8 +88,17 @@ export default function LogsStreamed({
 
     return <>
         <div className="space-y-4">
-            <Textarea ref={textAreaRef} value={logs} readOnly className="h-[400px] bg-slate-900 text-white" />
-            <div className="text-sm pl-1">Status: {isConnected ? 'Connected' : 'Disconnected'}</div>
+            <Textarea ref={textAreaRef} value={logs} readOnly className={(fullHeight ? "h-[80vh]" : "h-[400px]") + " bg-slate-900 text-white"} />
+            <div className="w-fit">
+                <HoverCard>
+                    <HoverCardTrigger>
+                        {isConnected ? <div className="w-3 h-3 rounded-full bg-green-500"></div> : <div className="w-3 h-3 rounded-full bg-green-500"></div>}
+                    </HoverCardTrigger>
+                    <HoverCardContent className="text-sm">
+                        {isConnected ? 'Connected to Logstream' : 'Disconnected from Logstream'}
+                    </HoverCardContent>
+                </HoverCard>
+            </div>
         </div>
     </>;
 }

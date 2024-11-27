@@ -13,6 +13,7 @@ const zodInputModel = z.object({
     namespace: z.string().optional(),
     podName: z.string().optional(),
     buildJobName: z.string().optional(),
+    linesCount: z.number().optional().default(100),
 });
 
 export async function POST(request: Request) {
@@ -20,7 +21,7 @@ export async function POST(request: Request) {
         const input = await request.json();
 
         const podInfo = zodInputModel.parse(input);
-        let { namespace, podName, buildJobName } = podInfo;
+        let { namespace, podName, buildJobName, linesCount } = podInfo;
         let pod;
         let streamKey;
         if (namespace && podName) {
@@ -46,17 +47,15 @@ export async function POST(request: Request) {
             start(controller) {
                 const innerFunc = async () => {
                     console.log(`[CONNECT] Client joined log stream for ${streamKey}`);
-                    controller.enqueue(encoder.encode('Connected\n'));
+                    controller.enqueue(encoder.encode('Stream opened, loading pod logs...\n'));
 
-                    if (namespace !== BUILD_NAMESPACE) {
-                        // container logs and not build logs
-                        await podService.waitUntilPodIsRunningFailedOrSucceded(namespace, pod.podName); // has timeout onfigured
-                    }
+                    await podService.waitUntilPodIsRunningFailedOrSucceded(namespace, pod.podName); // has timeout configured
+
                     logStream = new stream.PassThrough();
 
                     k3sStreamRequest = await k3s.log.log(namespace, pod.podName, pod.containerName, logStream, {
                         follow: true,
-                        tailLines: namespace === BUILD_NAMESPACE ? undefined : 100,
+                        tailLines: namespace === BUILD_NAMESPACE ? undefined : linesCount,
                         timestamps: true,
                         pretty: false,
                         previous: false

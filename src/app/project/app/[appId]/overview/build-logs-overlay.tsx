@@ -13,9 +13,8 @@ import { Label } from "@/components/ui/label"
 import React, { useEffect } from "react";
 import { set } from "date-fns";
 import { DeploymentInfoModel } from "@/shared/model/deployment-info.model";
-import LogsStreamed from "./logs-streamed";
-import { formatDate, formatDateTime } from "@/frontend/utils/format.utils";
-import { podLogsSocket } from "@/frontend/sockets/sockets";
+import LogsStreamed from "../../../../../components/custom/logs-streamed";
+import { formatDateTime } from "@/frontend/utils/format.utils";
 
 export function BuildLogsDialog({
   deploymentInfo,
@@ -31,7 +30,6 @@ export function BuildLogsDialog({
 
   return (
     <Dialog open={!!deploymentInfo} onOpenChange={(isO) => {
-      podLogsSocket.emit('leavePodLog', { streamKey: deploymentInfo.buildJobName });
       onClose();
     }}>
       <DialogContent className="sm:max-w-[1300px]">

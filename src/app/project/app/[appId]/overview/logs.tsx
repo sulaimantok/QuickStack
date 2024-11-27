@@ -2,12 +2,15 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { AppExtendedModel } from "@/shared/model/app-extended.model";
 import { useEffect, useState } from "react";
 import { podLogsSocket } from "@/frontend/sockets/sockets";
-import LogsStreamed from "./logs-streamed";
+import LogsStreamed from "../../../../../components/custom/logs-streamed";
 import { getPodsForApp } from "./actions";
 import { PodsInfoModel } from "@/shared/model/pods-info.model";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import FullLoadingSpinner from "@/components/ui/full-loading-spinnter";
 import { toast } from "sonner";
+import { LogsDialog } from "@/components/custom/logs-overlay";
+import { Button } from "@/components/ui/button";
+import { Expand, SquareArrowUp, SquareArrowUpRight } from "lucide-react";
 
 export default function Logs({
     app
@@ -60,14 +63,25 @@ export default function Logs({
             <CardContent className="space-y-4">
                 {!appPods && <FullLoadingSpinner />}
                 {appPods && appPods.length === 0 && <div>No running pods found for this app.</div>}
-                {selectedPod && appPods && <Select value={selectedPod} onValueChange={(val) => setSelectedPod(val)}>
-                    <SelectTrigger className="w-full" >
-                        <SelectValue placeholder="Pod wählen" />
-                    </SelectTrigger>
-                    <SelectContent>
-                        {appPods.map(pod => <SelectItem key={pod.podName} value={pod.podName}>{pod.podName}</SelectItem>)}
-                    </SelectContent>
-                </Select>}
+                {selectedPod && appPods && <div className="flex gap-4">
+                    <div className="flex-1">
+                        <Select value={selectedPod} onValueChange={(val) => setSelectedPod(val)}>
+                            <SelectTrigger className="w-full" >
+                                <SelectValue placeholder="Pod wählen" />
+                            </SelectTrigger>
+                            <SelectContent>
+                                {appPods.map(pod => <SelectItem key={pod.podName} value={pod.podName}>{pod.podName}</SelectItem>)}
+                            </SelectContent>
+                        </Select>
+                    </div>
+                    <div>
+                        <LogsDialog namespace={app.projectId} podName={selectedPod}>
+                            <Button variant="secondary">
+                                <Expand />
+                            </Button>
+                        </LogsDialog>
+                    </div>
+                </div>}
                 {app.projectId && selectedPod && <LogsStreamed namespace={app.projectId} podName={selectedPod} />}
             </CardContent>
         </Card >

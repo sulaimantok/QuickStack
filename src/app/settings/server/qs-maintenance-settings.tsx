@@ -5,8 +5,14 @@ import { updateQuickstack } from "./actions";
 import { Button } from "@/components/ui/button";
 import { Toast } from "@/frontend/utils/toast.utils";
 import { useConfirmDialog } from "@/frontend/states/zustand.states";
+import { LogsDialog } from "@/components/custom/logs-overlay";
+import { Constants } from "@/shared/utils/constants";
 
-export default function QuickStackMaintenanceSettings() {
+export default function QuickStackMaintenanceSettings({
+    qsPodName
+}: {
+    qsPodName?: string;
+}) {
 
     const useConfirm = useConfirmDialog();
 
@@ -15,7 +21,7 @@ export default function QuickStackMaintenanceSettings() {
             <CardHeader>
                 <CardTitle>Maintenance</CardTitle>
             </CardHeader>
-            <CardContent>
+            <CardContent className="flex gap-4">
                 <Button variant="secondary" onClick={async () => {
                     if (await useConfirm.openDialog({
                         title: 'Update QuickStack',
@@ -25,6 +31,10 @@ export default function QuickStackMaintenanceSettings() {
                         Toast.fromAction(() => updateQuickstack());
                     }
                 }}>Update QuickStack</Button>
+
+                {qsPodName && <LogsDialog namespace={Constants.QS_NAMESPACE} podName={qsPodName}>
+                    <Button variant="secondary" >Open QuickStack Logs</Button>
+                </LogsDialog>}
             </CardContent>
         </Card >
 
