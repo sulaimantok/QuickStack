@@ -8,11 +8,11 @@ import EnvEdit from "./environment/env-edit";
 import { App } from "@prisma/client";
 import DomainsList from "./domains/domains";
 import StorageList from "./storage/storages";
-import MonitoringList from "./monitoring/monitoring";
 import { AppExtendedModel } from "@/shared/model/app-extended.model";
 import { BuildJobModel } from "@/shared/model/build-job";
 import BuildsTab from "./overview/deployments";
 import Logs from "./overview/logs";
+import MonitoringTab from "./overview/monitoring-app";
 import InternalHostnames from "./domains/internal-hostnames";
 import TerminalStreamed from "./overview/terminal-streamed";
 
@@ -41,6 +41,7 @@ export default function AppTabs({
             <TabsContent value="overview" className="grid grid-cols-1 3xl:grid-cols-2 gap-4">
                 <Logs app={app} />
                 <BuildsTab app={app} />
+                <MonitoringTab app={app} />
             </TabsContent>
             <TabsContent value="general" className="space-y-4">
                 <GeneralAppSource app={app} />

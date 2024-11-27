@@ -7,6 +7,7 @@ import { ServerActionResult, SuccessActionResult } from "@/shared/model/server-a
 import appService from "@/server/services/app.service";
 import buildService from "@/server/services/build.service";
 import deploymentService from "@/server/services/deployment.service";
+import monitorAppService from "@/server/services/monitor-app.service";
 import podService from "@/server/services/pod.service";
 import { getAuthUserSession, simpleAction } from "@/server/utils/action-wrapper.utils";
 
@@ -31,3 +32,9 @@ export const getPodsForApp = async (appId: string) =>
         const app = await appService.getExtendedById(appId);
         return await podService.getPodsForApp(app.projectId, appId);
     }) as Promise<ServerActionResult<unknown, PodsInfoModel[]>>;
+
+export const getRessourceDataApp = async (namespace: string, deploymentName: string) =>
+    simpleAction(async () => {
+        await getAuthUserSession();
+        return await monitorAppService.getPodsFromDeployment(namespace, deploymentName);
+    }) as Promise<ServerActionResult<unknown, string>>;
