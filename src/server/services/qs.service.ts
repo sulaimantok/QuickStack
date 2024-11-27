@@ -5,6 +5,7 @@ import { KubeObjectNameUtils } from "../utils/kube-object-name.utils";
 import crypto from "crypto";
 import { FancyConsoleUtils } from "../../shared/utils/fancy-console.utils";
 import setupPodService from "./setup-services/setup-pod.service";
+import ingressSetupService from "./setup-services/ingress-setup.service";
 
 class QuickStackService {
 
@@ -57,6 +58,9 @@ class QuickStackService {
     }
 
     async createOrUpdateIngress(hostname: string) {
+
+        await ingressSetupService.createTraefikRedirectMiddlewareIfNotExist();
+
         const ingressName = KubeObjectNameUtils.getIngressName(this.QUICKSTACK_NAMESPACE);
         const existingIngresses = await k3s.network.listNamespacedIngress(this.QUICKSTACK_NAMESPACE);
         const existingIngress = existingIngresses.body.items.find((item) => item.metadata?.name === ingressName);

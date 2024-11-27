@@ -22,7 +22,7 @@ export function CreateAppDialog({
         }
         const result = await Toast.fromAction(() => createApp(name, projectId));
         if (result.status === "success") {
-            router.push(`/project/app?appId=${result.data.id}`);
+            router.push(`/project/app/${result.data.id}`);
             return true;
         }
         return false;

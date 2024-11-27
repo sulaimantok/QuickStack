@@ -4,6 +4,7 @@ import { V1Ingress } from "@kubernetes/client-node";
 import { KubeObjectNameUtils } from "../utils/kube-object-name.utils";
 import { App, AppDomain } from "@prisma/client";
 import { Constants } from "../../shared/utils/constants";
+import ingressSetupService from "./setup-services/ingress-setup.service";
 
 
 const traefikNamespace = 'kube-system';
@@ -52,7 +53,7 @@ class IngressService {
 
     async createOrUpdateIngressForApp(app: AppExtendedModel) {
 
-        await this.createTraefikRedirectMiddlewareIfNotExist();
+        await ingressSetupService.createTraefikRedirectMiddlewareIfNotExist();
 
         for (const domainObj of app.appDomains) {
             await this.createIngress(app, domainObj);
@@ -121,45 +122,6 @@ class IngressService {
             await k3s.network.createNamespacedIngress(app.projectId, ingressDefinition);
             console.log(`Ingress ${ingressName} for domain ${hostname} successfully created.`);
         }
-    }
-
-    async checkIfTraefikRedirectMiddlewareExists() {
-        const res = await k3s.customObjects.listNamespacedCustomObject(
-            'traefik.io',            // group
-            'v1alpha1',              // version
-            traefikNamespace,        // namespace
-            'middlewares'            // plural name of the custom resource
-        );
-        return (res.body as any) && (res.body as any)?.items && (res.body as any)?.items?.length > 0;
-    }
-
-    async createTraefikRedirectMiddlewareIfNotExist() {
-        if (await this.checkIfTraefikRedirectMiddlewareExists()) {
-            return;
-        }
-
-        const middlewareManifest = {
-            apiVersion: 'traefik.io/v1alpha1',
-            kind: 'Middleware',
-            metadata: {
-                name: 'redirect-to-https',
-                namespace: traefikNamespace,
-            },
-            spec: {
-                redirectScheme: {
-                    scheme: 'https',
-                    permanent: true,
-                }
-            },
-        };
-
-        await k3s.customObjects.createNamespacedCustomObject(
-            'traefik.io',           // group
-            'v1alpha1',             // version
-            traefikNamespace,       // namespace
-            'middlewares',          // plural name of the custom resource
-            middlewareManifest      // object manifest
-        );
     }
 }
 
