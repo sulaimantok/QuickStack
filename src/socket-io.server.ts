@@ -1,12 +1,13 @@
 import type http from "node:http";
 import { Server } from "socket.io";
+import terminalService from "./server/services/terminal.service";
 
 class SocketIoServer {
 	initialize(server: http.Server<typeof http.IncomingMessage, typeof http.ServerResponse>) {
 		const io = new Server(server);
-		const podLogsNamespace = io.of("/pod-logs");
+		const podLogsNamespace = io.of("/pod-terminal");
 		podLogsNamespace.on("connection", (socket) => {
-			//logService.streamLogs(socket);
+			terminalService.streamLogs(socket);
 		});
 	};
 }
