@@ -3,7 +3,7 @@ import { DefaultEventsMap, Socket } from "socket.io";
 import k3s from "../adapter/kubernetes-api.adapter";
 import * as k8s from '@kubernetes/client-node';
 import stream from 'stream';
-import { StreamUtils } from "@/shared/utils/stream.utils";
+import { StreamUtils } from "../../shared/utils/stream.utils";
 import WebSocket from "ws";
 import crypto from 'crypto';
 
