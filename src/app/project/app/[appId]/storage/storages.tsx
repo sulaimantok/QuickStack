@@ -4,10 +4,10 @@ import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle }
 import { AppExtendedModel } from "@/shared/model/app-extended.model";
 import { Table, TableBody, TableCaption, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
-import { EditIcon, TrashIcon } from "lucide-react";
+import { Download, EditIcon, TrashIcon } from "lucide-react";
 import DialogEditDialog from "./storage-edit-overlay";
 import { Toast } from "@/frontend/utils/toast.utils";
-import { deleteVolume } from "./actions";
+import { deleteVolume, downloadPvcData } from "./actions";
 
 
 export default function StorageList({ app }: {
@@ -40,6 +40,13 @@ export default function StorageList({ app }: {
                                     <DialogEditDialog appId={app.id} volume={volume}>
                                         <Button variant="ghost"><EditIcon /></Button>
                                     </DialogEditDialog>
+                                    <Button variant="ghost" onClick={() => Toast.fromAction(() => downloadPvcData(volume.id)).then(x => {
+                                        if (x.status === 'success' && x.data) {
+                                            window.open('/api/volume-data-download?fileName=' + x.data);
+                                        }
+                                    })}>
+                                        <Download />
+                                    </Button>
                                     <Button variant="ghost" onClick={() => Toast.fromAction(() => deleteVolume(volume.id))}>
                                         <TrashIcon />
                                     </Button>

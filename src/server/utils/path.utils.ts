@@ -9,6 +9,10 @@ export class PathUtils {
         return path.join(this.tempDataRoot, 'git');
     }
 
+    static get tempVolumeDownloadPath() {
+        return path.join(this.tempDataRoot, 'volume-downloads');
+    }
+
     static gitRootPathForApp(appId: string): string {
         return path.join(PathUtils.gitRootPath, this.convertIdToFolderFriendlyName(appId));
     }
@@ -19,6 +23,14 @@ export class PathUtils {
 
     static appDeploymentLogFile(deploymentId: string): string {
         return path.join(this.deploymentLogsPath, `${deploymentId}.log`);
+    }
+
+    static volumeDownloadFolder(volumeId: string): string {
+        return path.join(this.tempVolumeDownloadPath, `${volumeId}-data`);
+    }
+
+    static volumeDownloadZipPath(volumeId: string): string {
+        return path.join(this.tempVolumeDownloadPath, `${volumeId}.tar.gz`);
     }
 
     private static convertIdToFolderFriendlyName(id: string): string {

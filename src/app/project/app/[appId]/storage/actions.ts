@@ -1,12 +1,13 @@
 'use server'
 
 import { appVolumeEditZodModel } from "@/shared/model/volume-edit.model";
-import { SuccessActionResult } from "@/shared/model/server-action-error-return.model";
+import { ServerActionResult, SuccessActionResult } from "@/shared/model/server-action-error-return.model";
 import appService from "@/server/services/app.service";
 import { getAuthUserSession, saveFormAction, simpleAction } from "@/server/utils/action-wrapper.utils";
 import { z } from "zod";
 import { ServiceException } from "@/shared/model/service.exception.model";
 import pvcStatusService from "@/server/services/pvc.status.service";
+import pvcService from "@/server/services/pvc.service";
 
 const actionAppVolumeEditZodModel = appVolumeEditZodModel.merge(z.object({
     appId: z.string(),
@@ -39,3 +40,9 @@ export const getPvcUsage = async (pvcName: string, pvcNamespace: string) =>
         await getAuthUserSession();
         return await pvcStatusService.getPvcUsageByName(pvcName, pvcNamespace);
     });
+
+export const downloadPvcData = async (volumeId: string) =>
+    simpleAction(async () => {
+        await getAuthUserSession();
+        return await pvcService.downloadPvcData(volumeId); // returns the download path on the server
+    }) as Promise<ServerActionResult<any, string>>;

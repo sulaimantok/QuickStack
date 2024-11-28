@@ -6,10 +6,46 @@ import { AppVolume } from "@prisma/client";
 import { KubeObjectNameUtils } from "../utils/kube-object-name.utils";
 import { Constants } from "../../shared/utils/constants";
 import { MemoryCalcUtils } from "../utils/memory-caluclation.utils";
+import { FsUtils } from "../utils/fs.utils";
+import { PathUtils } from "../utils/path.utils";
+import * as k8s from '@kubernetes/client-node';
+import dataAccess from "../adapter/db.client";
+import podService from "./pod.service";
+import path from "path";
 
 class PvcService {
 
     static readonly SHARED_PVC_NAME = 'qs-shared-pvc';
+
+    async downloadPvcData(volumeId: string) {
+
+        const volume = await dataAccess.client.appVolume.findFirstOrThrow({
+            where: {
+                id: volumeId
+            },
+            include: {
+                app: true
+            }
+        });
+
+        const pod = await podService.getPodsForApp(volume.app.projectId, volume.app.id);
+        if (pod.length === 0) {
+            throw new ServiceException(`No pod found for volume id ${volumeId} in app ${volume.app.id}`);
+        }
+        const firstPod = pod[0];
+
+        const downloadPath = PathUtils.volumeDownloadZipPath(volumeId);
+        await FsUtils.createDirIfNotExistsAsync(PathUtils.tempVolumeDownloadPath, true);
+        await FsUtils.deleteDirIfExistsAsync(downloadPath, true);
+
+        console.log(`Downloading data from pod ${firstPod.podName} ${volume.containerMountPath} to ${downloadPath}`);
+        await podService.cpFromPod(volume.app.projectId, firstPod.podName, firstPod.containerName, volume.containerMountPath, downloadPath);
+
+        const fileName = path.basename(downloadPath);
+        return fileName;
+    }
+
+
 
     async doesAppConfigurationIncreaseAnyPvcSize(app: AppExtendedModel) {
         const existingPvcs = await this.getAllPvcForApp(app.projectId, app.id);
