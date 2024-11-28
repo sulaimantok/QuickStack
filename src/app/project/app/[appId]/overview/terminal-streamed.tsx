@@ -70,8 +70,10 @@ export default function TerminalStreamed({
                     <Button variant="secondary" onClick={() => startTerminalSession('bash')}>Start bash</Button>
                 </div>
             </> : <Button variant="secondary" onClick={() => disconnectTerminalSession()}>Disconnect Session</Button>}
-            <div ref={terminalWindow}></div>
 
+            <div className={sessionTerminalInfo ? 'px-4 py-4 bg-black rounded-lg' : ''}>
+                <div ref={terminalWindow}></div>
+            </div>
         </div>
     </>;
 }
