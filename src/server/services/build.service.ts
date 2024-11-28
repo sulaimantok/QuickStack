@@ -9,8 +9,9 @@ import namespaceService from "./namespace.service";
 import { Constants } from "../../shared/utils/constants";
 import gitService from "./git.service";
 import deploymentService from "./deployment.service";
-import deploymentLogService from "./deployment-logs.service";
+import deploymentLogService, { dlog } from "./deployment-logs.service";
 import podService from "./pod.service";
+import stream from "stream";
 
 const kanikoImage = "gcr.io/kaniko-project/executor:latest";
 const REGISTRY_NODE_PORT = 30100;
@@ -24,7 +25,7 @@ export const REGISTRY_URL_INTERNAL = `${REGISTRY_SVC_NAME}.${BUILD_NAMESPACE}.sv
 class BuildService {
 
 
-    async buildApp(app: AppExtendedModel, forceBuild: boolean = false): Promise<[string, string, Promise<void>]> {
+    async buildApp(deploymentId: string, app: AppExtendedModel, forceBuild: boolean = false): Promise<[string, string, Promise<void>]> {
         await namespaceService.createNamespaceIfNotExists(BUILD_NAMESPACE);
         await this.deployRegistryIfNotExists();
         const buildsForApp = await this.getBuildsForApp(app.id);
@@ -32,21 +33,32 @@ class BuildService {
             throw new ServiceException("A build job is already running for this app.");
         }
 
+        dlog(deploymentId, `Initialized app build...`);
+        dlog(deploymentId, `Trying to clone repository...`);
+
         // Check if last build is already up to date with data in git repo
         const latestSuccessfulBuld = buildsForApp.find(x => x.status === 'SUCCEEDED');
         const latestRemoteGitHash = await gitService.getLatestRemoteCommitHash(app);
+
+        dlog(deploymentId, `Cloned repository successfully`);
+        dlog(deploymentId, `Latest remote git hash: ${latestRemoteGitHash}`);
+
         if (!forceBuild && latestSuccessfulBuld?.gitCommit && latestRemoteGitHash &&
             latestSuccessfulBuld?.gitCommit === latestRemoteGitHash) {
+            await dlog(deploymentId, `Latest build is already up to date with git repository, using container from last build.`);
             console.log(`Last build is already up to date with data in git repo for app ${app.id}`);
             // todo check if the container is still in registry
             return [latestSuccessfulBuld.name, latestRemoteGitHash, Promise.resolve()];
         }
-        return await this.createAndStartBuildJob(app, latestRemoteGitHash);
+        return await this.createAndStartBuildJob(deploymentId, app, latestRemoteGitHash);
     }
 
-    private async createAndStartBuildJob(app: AppExtendedModel, latestRemoteGitHash: string): Promise<[string, string, Promise<void>]> {
+    private async createAndStartBuildJob(deploymentId: string, app: AppExtendedModel, latestRemoteGitHash: string): Promise<[string, string, Promise<void>]> {
 
         const buildName = KubeObjectNameUtils.addRandomSuffix(KubeObjectNameUtils.toJobName(app.id));
+
+        dlog(deploymentId, `Creating build job with name: ${buildName}`);
+
         const jobDefinition: V1Job = {
             apiVersion: "batch/v1",
             kind: "Job",
@@ -57,6 +69,7 @@ class BuildService {
                     [Constants.QS_ANNOTATION_APP_ID]: app.id,
                     [Constants.QS_ANNOTATION_PROJECT_ID]: app.projectId,
                     [Constants.QS_ANNOTATION_GIT_COMMIT]: latestRemoteGitHash,
+                    [Constants.QS_ANNOTATION_DEPLOYMENT_ID]: deploymentId,
                 }
             },
             spec: {
@@ -97,9 +110,43 @@ class BuildService {
         }
         await k3s.batch.createNamespacedJob(BUILD_NAMESPACE, jobDefinition);
 
+        await dlog(deploymentId, `Build job ${buildName} started successfully`);
+
+        await this.logBuildOutput(deploymentId, buildName);
+
         const buildJobPromise = this.waitForJobCompletion(jobDefinition.metadata!.name!)
 
         return [buildName, latestRemoteGitHash, buildJobPromise];
+    }
+
+    async logBuildOutput(deploymentId: string, buildName: string) {
+
+        const pod = await this.getPodForJob(buildName);
+        await podService.waitUntilPodIsRunningFailedOrSucceded(BUILD_NAMESPACE, pod.podName);
+
+        const logStream = new stream.PassThrough();
+
+        const k3sStreamRequest = await k3s.log.log(BUILD_NAMESPACE, pod.podName, pod.containerName, logStream, {
+            follow: true,
+            tailLines: undefined,
+            timestamps: true,
+            pretty: false,
+            previous: false
+        });
+
+        logStream.on('data', async (chunk) => {
+            await dlog(deploymentId, chunk.toString(), false, false);
+        });
+
+        logStream.on('error', async (error) => {
+            console.error("Error in build log stream for deployment " + deploymentId, error);
+            await dlog(deploymentId, '[ERROR] An unexpected error occurred while streaming logs.');
+        });
+
+        logStream.on('end', async () => {
+            console.log(`[END] Log stream ended for build process: ${buildName}`);
+            await dlog(deploymentId, `[END] Log stream ended for build process: ${buildName}`);
+        });
     }
 
     createInternalContainerRegistryUrlForAppId(appId?: string) {
@@ -149,6 +196,7 @@ class BuildService {
                 startTime: job.status?.startTime,
                 status: this.getJobStatusString(job.status),
                 gitCommit: job.metadata?.annotations?.[Constants.QS_ANNOTATION_GIT_COMMIT],
+                deploymentId: job.metadata?.annotations?.[Constants.QS_ANNOTATION_DEPLOYMENT_ID],
             } as BuildJobModel;
         });
         builds.sort((a, b) => {

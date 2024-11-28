@@ -8,24 +8,16 @@ import {
 } from "@/components/ui/hover-card"
 
 
-export default function LogsStreamed({
-    namespace,
-    podName,
-    buildJobName,
+export default function BuildLogsStreamed({
+    deploymentId,
     fullHeight = false,
-    linesCount = 100,
 }: {
-    namespace?: string;
-    podName?: string;
-    buildJobName?: string;
+    deploymentId?: string;
     fullHeight?: boolean;
-    linesCount?: number;
 }) {
     const [isConnected, setIsConnected] = useState(false);
     const [logs, setLogs] = useState<string>('');
     const textAreaRef = useRef<HTMLTextAreaElement>(null);
-
-
 
     const initializeConnection = async (controller: AbortController) => {
         // Initiate the first call to connect to SSE API
@@ -33,12 +25,12 @@ export default function LogsStreamed({
         setLogs('Loading...');
 
         const signal = controller.signal;
-        const apiResponse = await fetch('/api/pod-logs', {
+        const apiResponse = await fetch('/api/build-logs', {
             method: "POST",
             headers: {
                 "Content-Type": "text/event-stream",
             },
-            body: JSON.stringify({ namespace, podName, buildJobName, linesCount }),
+            body: JSON.stringify({ deploymentId }),
             signal: signal,
         });
 
@@ -65,7 +57,7 @@ export default function LogsStreamed({
     }
 
     useEffect(() => {
-        if (!buildJobName && (!namespace || !podName)) {
+        if (!deploymentId) {
             return;
         }
         const controller = new AbortController();
@@ -76,7 +68,7 @@ export default function LogsStreamed({
             setLogs('');
             controller.abort();
         };
-    }, [namespace, podName, buildJobName, linesCount]);
+    }, [deploymentId]);
 
     useEffect(() => {
         if (textAreaRef.current) {

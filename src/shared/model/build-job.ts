@@ -8,6 +8,7 @@ export const buildJobSchemaZod = z.object({
     startTime: z.date(),
     status:  buildJobStatusEnumZod,
     gitCommit: z.string(),
+    deploymentId: z.string(),
 });
 
 export type BuildJobModel = z.infer<typeof buildJobSchemaZod>;

@@ -12,22 +12,36 @@ import namespaceService from "./namespace.service";
 import ingressService from "./ingress.service";
 import pvcService from "./pvc.service";
 import svcService from "./svc.service";
+import deploymentLogService, { dlog } from "./deployment-logs.service";
+import crypto from "crypto";
 
 class AppService {
 
     async buildAndDeploy(appId: string, forceBuild: boolean = false) {
-        const app = await this.getExtendedById(appId);
-        if (app.sourceType === 'GIT') {
-            // first make build
-            const [buildJobName, gitCommitHash, buildPromise] = await buildService.buildApp(app, forceBuild);
-            buildPromise.then(async () => {
-                console.warn('Build job finished, deploying...');
-                await deploymentService.createDeployment(app, buildJobName, gitCommitHash);
-            });
-        } else {
-            // only deploy
-            await deploymentService.createDeployment(app);
-        }
+        const deploymentId = crypto.randomUUID();
+        return await deploymentLogService.catchErrosAndLog(deploymentId, async () => {
+            const app = await this.getExtendedById(appId);
+
+            await dlog(deploymentId, `
+-----------------------------------------------
+ Deployment:   ${deploymentId}
+ App:          ${app.id}
+ Project:      ${app.projectId}
+-----------------------------------------------`, false);
+
+            if (app.sourceType === 'GIT') {
+                // first make build
+                const [buildJobName, gitCommitHash, buildPromise] = await buildService.buildApp(deploymentId, app, forceBuild);
+                buildPromise.then(async () => {
+                    console.log('Build job finished, deploying...');
+                    dlog(deploymentId, `Build job ${buildJobName} completed successfully`);
+                    await deploymentService.createDeployment(deploymentId, app, buildJobName, gitCommitHash);
+                });
+            } else {
+                // only deploy
+                await deploymentService.createDeployment(deploymentId, app);
+            }
+        });
     }
 
     async deleteById(id: string) {

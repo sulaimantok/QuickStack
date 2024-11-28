@@ -16,6 +16,7 @@ export const deploymentInfoZodModel = z.object({
     createdAt: z.date(),
     status: deploymentStatusEnumZod,
     gitCommit: z.string().optional(),
+    deploymentId: z.string(),
 });
 
 export type DeploymentInfoModel = z.infer<typeof deploymentInfoZodModel>;

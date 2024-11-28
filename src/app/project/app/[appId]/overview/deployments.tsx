@@ -77,7 +77,7 @@ export default function BuildsTab({
                     <SimpleDataTable columns={[
                         ['replicasetName', 'Deployment Name', false],
                         ['buildJobName', 'Build Job Name', false],
-                        ['buildJobName', 'Build Job Name', false],
+                        ['deploymentId', 'Deployment Id', false],
                         ['status', 'Status', true, (item) => <DeploymentStatusBadge>{item.status}</DeploymentStatusBadge>],
                         ["startTime", "Started At", true, (item) => formatDateTime(item.createdAt)],
                         ['gitCommit', 'Git Commit', true, (item) => <ShortCommitHash>{item.gitCommit}</ShortCommitHash>],
@@ -88,7 +88,7 @@ export default function BuildsTab({
                             return <>
                                 <div className="flex gap-4">
                                     <div className="flex-1"></div>
-                                    {item.buildJobName && <Button variant="secondary" onClick={() => setSelectedDeploymentForLogs(item)}>Show Logs</Button>}
+                                    {item.deploymentId && <Button variant="secondary" onClick={() => setSelectedDeploymentForLogs(item)}>Show Logs</Button>}
                                     {item.buildJobName && item.status === 'BUILDING' && <Button variant="destructive" onClick={() => deleteBuildClick(item.buildJobName!)}>Stop Build</Button>}
                                 </div>
                             </>
