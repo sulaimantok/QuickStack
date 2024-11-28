@@ -12,6 +12,8 @@ import { DeploymentInfoModel } from "@/shared/model/deployment-info.model";
 import DeploymentStatusBadge from "./deployment-status-badge";
 import { BuildLogsDialog } from "./build-logs-overlay";
 import ShortCommitHash from "@/components/custom/short-commit-hash";
+import { PodsResourceInfoModel } from "@/shared/model/pods-resource-info.model";
+import { Table, TableBody, TableCaption, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 
 export default function MonitoringTab({
     app
@@ -19,24 +21,27 @@ export default function MonitoringTab({
     app: AppExtendedModel;
 }) {
 
+    const [selectedPod, setSelectedPod] = useState<PodsResourceInfoModel | undefined>(undefined);
+    const [error, setError] = useState<string | undefined>(undefined);
+
     const updateValues = async () => {
+        setError(undefined);
         try {
-            const response = await getRessourceDataApp(app.projectId, app.id.split('-').slice(0, 3).join('-'));
+            const response = await getRessourceDataApp(app.projectId, app.id);
             if (response.status === 'success' && response.data) {
-                console.log(response.data);
+                setSelectedPod(response.data);
+
             } else {
                 console.error(response);
-                console.log(response.message ?? 'An unknown error occurred.');
+                setError(response.message ?? 'An unknown error occurred.');
             }
         } catch (ex) {
             console.error(ex);
+            setError('An unknown error occurred.');
         }
     }
 
     useEffect(() => {
-        if (app.sourceType === 'container') {
-            return;
-        }
         updateValues();
         const intervalId = setInterval(updateValues, 10000);
         return () => clearInterval(intervalId);
@@ -51,8 +56,32 @@ export default function MonitoringTab({
         <Card>
             <CardHeader>
                 <CardTitle>App Monitoring</CardTitle>
-                <CardDescription>This is an overview about the resources the app is consuming.</CardDescription>
+                <CardDescription>This is an overview about the resources the app is consuming.
+                </CardDescription>
             </CardHeader>
-        </Card>
+            <CardContent>
+                <Table>
+                    <TableHeader>
+                        <TableRow>
+                            <TableHead>CPU absolut</TableHead>
+                            <TableHead>CPU percent</TableHead>
+                            <TableHead>memory absent</TableHead>
+                            <TableHead>memory percent</TableHead>
+                            <TableHead>volume percent</TableHead>
+                        </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                            <TableRow>
+                                <TableCell className="font-medium">{selectedPod?.cpuAbsolut}</TableCell>
+                                <TableCell className="font-medium">{selectedPod?.cpuPercent}</TableCell>
+                                <TableCell className="font-medium">{selectedPod?.memoryAbsolut}</TableCell>
+                                <TableCell className="font-medium">{selectedPod?.memoryPercent}</TableCell>
+                                <TableCell className="font-medium">{selectedPod?.volumePercent}</TableCell>
+                            </TableRow>
+                    </TableBody>
+                </Table>
+            </CardContent>
+        </Card >
+
     </>;
 }
