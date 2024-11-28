@@ -9,7 +9,7 @@ import FullLoadingSpinner from "@/components/ui/full-loading-spinnter";
 import { toast } from "sonner";
 import { LogsDialog } from "@/components/custom/logs-overlay";
 import { Button } from "@/components/ui/button";
-import { Expand, SquareArrowUp, SquareArrowUpRight } from "lucide-react";
+import { Expand, SquareArrowUp, SquareArrowUpRight, Terminal } from "lucide-react";
 import { TerminalDialog } from "./terminal-overlay";
 
 export default function Logs({
@@ -81,7 +81,7 @@ export default function Logs({
                             namespace: app.projectId
                         }} >
                             <Button variant="secondary">
-                                Terminal
+                                <Terminal />  Terminal
                             </Button>
                         </TerminalDialog>
                     </div>

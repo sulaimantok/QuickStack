@@ -5,6 +5,7 @@ import * as k8s from '@kubernetes/client-node';
 import stream from 'stream';
 import { StreamUtils } from "../../shared/utils/stream.utils";
 import WebSocket from "ws";
+import setupPodService from "./setup-services/setup-pod.service";
 
 interface TerminalStrean {
     stdoutStream: stream.PassThrough;
@@ -33,66 +34,58 @@ export class TerminalService {
                 const streamInputKey = StreamUtils.getInputStreamName(terminalInfo);
                 const streamOutputKey = StreamUtils.getOutputStreamName(terminalInfo);
 
-                /*const podReachable = await setupPodService.waitUntilPodIsRunningFailedOrSucceded(terminalInfo.namespace, terminalInfo.podName);
+                const podReachable = await setupPodService.waitUntilPodIsRunningFailedOrSucceded(terminalInfo.namespace, terminalInfo.podName);
                 if (!podReachable) {
                     socket.emit(streamOutputKey, 'Pod is not reachable.');
                     return;
-                }*/
+                }
 
                 const exec = new k8s.Exec(k3s.getKubeConfig());
 
                 const stdoutStream = new stream.PassThrough();
                 const stderrStream = new stream.PassThrough();
                 const stdinStream = new stream.PassThrough();
-                console.log('starting exec')
-                await exec.exec(
+
+                const socketStreamInfo = {
+                    stdoutStream,
+                    stderrStream,
+                    stdinStream,
+                    terminalSessionKey: terminalInfo.terminalSessionKey ?? '',
+                } as TerminalStrean;
+                streamsOfSocket.push(socketStreamInfo);
+
+                const websocket = await exec.exec(
                     terminalInfo.namespace,
                     terminalInfo.podName,
                     terminalInfo.containerName,
                     [terminalInfo.terminalType === 'sh' ? '/bin/sh' : '/bin/bash'],
-                    /* process.stdout,
-                     process.stderr,
-                     process.stdin,*/
                     stdoutStream,
                     stderrStream,
                     stdinStream,
-                    false /* tty */,
+                    true /* tty */,
                     (status: k8s.V1Status) => {
                         console.log('[EXIT] Exited with status:');
                         console.log(JSON.stringify(status, null, 2));
-                        stderrStream!.end();
-                        stdoutStream!.end();
-                        stdinStream!.end();
+                        if (status.status === 'Failure') {
+                            socket.emit(streamOutputKey, `\n[ERROR] Error while opening Terminal session\n`);
+                            socket.emit(streamOutputKey, `\n${status.message}\n`);
+                        } else {
+                            socket.emit(streamOutputKey, `\n[INFO] Terminal session closed\n`);
+                        }
+                        this.cleanupLogStream(socketStreamInfo);
                     },
                 );
+                socketStreamInfo.websocket = websocket;
 
                 stdoutStream.on('data', (chunk) => {
-                    console.log(chunk)
                     socket.emit(streamOutputKey, chunk.toString());
                 });
-                stdoutStream.on('error', (error) => {
-                    console.error("Error in terminal stream:", error);
-                });
-                stdoutStream.on('end', () => {
-                    //console.log(`[END] Log stream ended for ${streamKey} by ${streamEndedByClient ? 'client' : 'server'}`);
-
-                });
-
                 stderrStream.on('data', (chunk) => {
                     console.log(chunk)
                     socket.emit(streamOutputKey, chunk.toString());
                 });
                 socket.on(streamInputKey, (data) => {
-                    console.log('Received data:', data);
                     stdinStream!.write(data);
-                });
-
-                streamsOfSocket.push({
-                    stdoutStream,
-                    stderrStream,
-                    stdinStream,
-                    terminalSessionKey: terminalInfo.terminalSessionKey ?? '',
-                    //websocket
                 });
 
                 console.log(`Client ${socket.id} joined terminal stream for:`);
@@ -109,49 +102,26 @@ export class TerminalService {
 
             const streams = streamsOfSocket.find(stream => stream.terminalSessionKey === terminalInfo.terminalSessionKey);
             if (streams) {
-                this.deleteLogStream(streams);
+                this.cleanupLogStream(streams);
             }
         });
 
         socket.on('disconnecting', () => {
             // Stop all log streams for this client
             for (const stream of streamsOfSocket) {
-                this.deleteLogStream(stream);
+                this.cleanupLogStream(stream);
             }
         });
     }
 
 
-    private deleteLogStream(streams: TerminalStrean) {
-        /* streams.stderrStream.end();
-         streams.stdoutStream.end();
-         streams.stdinStream.end();
-         streams.websocket.close();*/
-
-        console.log(`Stopped log stream for ${streams.terminalSessionKey}.`);
+    private cleanupLogStream(stream: TerminalStrean) {
+        stream.stderrStream.end();
+        stream.stdoutStream.end();
+        stream.stdinStream.end();
+        stream.websocket?.close();
+        console.log(`Stopped terminal stream for ${stream.terminalSessionKey}.`);
     }
-    /*
-        private async createLogStreamForPod(socket: Socket<DefaultEventsMap, DefaultEventsMap, DefaultEventsMap, any>,
-            streamKey: string, inputInfo: TerminalSetupInfoModel) {
-
-
-
-            logStream.on('data', (chunk) => {
-                socket.emit(streamKey, chunk.toString());
-            });
-
-            logStream.on('data', (chunk) => {
-                socket.to(streamKey).emit(`${streamKey}`, chunk.toString());
-            });
-
-            let k3sStreamRequest = await k3s.log.log(app.projectId, pod.podName, pod.containerName, logStream, {
-                follow: true,
-                pretty: false,
-                tailLines: 100,
-            });
-            const retVal = { logStream, clients: 0, k3sStreamRequest };
-            return retVal;
-        }*/
 }
 
 const terminalService = new TerminalService();

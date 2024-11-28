@@ -46,34 +46,31 @@ export default function TerminalStreamed({
         });
 
         podTerminalSocket.on(terminalOutputKey, (data: string) => {
-            console.log('Received data:', data);
             term.write(data);
         });
         podTerminalSocket.emit('openTerminal', termInfo);
-        term.write('Terminal is ready');
         setTerminal(term);
         setSessionTerminalInfo(termInfo);
     };
 
-
-    useEffect(() => {
-        return () => {
-            console.log('Disconnecting from terminal...');
-            //terminal?.dispose();
-            //if (sessionTerminalInfo) podTerminalSocket.emit('closeTerminal', sessionTerminalInfo);
-        };
-    });
+    const disconnectTerminalSession = () => {
+        terminal?.dispose();
+        if (sessionTerminalInfo) {
+            podTerminalSocket.emit('closeTerminal', sessionTerminalInfo);
+            setSessionTerminalInfo(undefined);
+        }
+    }
 
 
     return <>
         <div className="space-y-4">
-            {!sessionTerminalInfo && <>
+            {!sessionTerminalInfo ? <>
                 <div className="flex gap-4">
                     <Button variant="secondary" onClick={() => startTerminalSession('sh')}>Start sh</Button>
                     <Button variant="secondary" onClick={() => startTerminalSession('bash')}>Start bash</Button>
                 </div>
-            </>}
-            <div ref={terminalWindow} ></div>
+            </> : <Button variant="secondary" onClick={() => disconnectTerminalSession()}>Disconnect Session</Button>}
+            <div ref={terminalWindow}></div>
 
         </div>
     </>;
