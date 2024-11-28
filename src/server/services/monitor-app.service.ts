@@ -17,17 +17,17 @@ import { Label } from "@radix-ui/react-dropdown-menu";
 
 class MonitorAppService {
     async getRessourceData() {
-        console.log("gugus");
+        //console.log("gugus");
         return "miau";
     }
 
     async getPodsFromDeployment(namespace: string, deploymentName: string): Promise<void> {
         const pods = await k3s.core.listNamespacedPod(namespace, undefined, undefined, undefined, undefined, `app=${deploymentName}`);
-        console.log(namespace);
-        console.log(deploymentName);
-        console.log(pods.body.items);
+       // console.log(namespace);
+       // console.log(deploymentName);
+        //console.log(pods.body.items);
         for (const pod of pods.body.items) {
-            console.log(pod.metadata?.name);
+            //console.log(pod.metadata?.name);
         }
 
 }

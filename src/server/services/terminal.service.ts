@@ -5,7 +5,6 @@ import * as k8s from '@kubernetes/client-node';
 import stream from 'stream';
 import { StreamUtils } from "../../shared/utils/stream.utils";
 import WebSocket from "ws";
-import crypto from 'crypto';
 
 interface TerminalStrean {
     stdoutStream: stream.PassThrough;
@@ -46,7 +45,7 @@ export class TerminalService {
                 const stderrStream = new stream.PassThrough();
                 const stdinStream = new stream.PassThrough();
                 console.log('starting exec')
-                exec.exec(
+                await exec.exec(
                     terminalInfo.namespace,
                     terminalInfo.podName,
                     terminalInfo.containerName,
@@ -59,7 +58,7 @@ export class TerminalService {
                     stdinStream,
                     false /* tty */,
                     (status: k8s.V1Status) => {
-                        console.log('Exited with status:');
+                        console.log('[EXIT] Exited with status:');
                         console.log(JSON.stringify(status, null, 2));
                         stderrStream!.end();
                         stdoutStream!.end();

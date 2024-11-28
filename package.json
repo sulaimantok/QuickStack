@@ -4,7 +4,7 @@
   "private": true,
   "scripts": {
     "dev": "next dev",
-    "dev-live": "bun src/server.ts",
+    "dev-live": "tsc src/server.ts",
     "build": "next build && tsc --project tsconfig.server.json",
     "start": "next start",
     "start-prod": "cross-env NODE_ENV=production node dist/server.js",
