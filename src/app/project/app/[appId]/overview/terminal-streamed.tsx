@@ -11,6 +11,7 @@ import { Terminal } from '@xterm/xterm'
 import '@xterm/xterm/css/xterm.css'
 import { podTerminalSocket } from "@/frontend/sockets/sockets";
 import { StreamUtils } from "@/shared/utils/stream.utils";
+import { Button } from "@/components/ui/button";
 
 export default function TerminalStreamed({
     terminalInfo,
@@ -18,18 +19,25 @@ export default function TerminalStreamed({
     terminalInfo: TerminalSetupInfoModel;
 }) {
     const [isConnected, setIsConnected] = useState(false);
-    const [logs, setLogs] = useState<string>('');
     const terminalWindow = useRef<HTMLDivElement>(null);
 
+    const [terminal, setTerminal] = useState<Terminal | undefined>(undefined);
+    const [sessionTerminalInfo, setSessionTerminalInfo] = useState<TerminalSetupInfoModel | undefined>(undefined);
 
-
-
-    useEffect(() => {
+    const startTerminalSession = (terminalType: 'sh' | 'bash') => {
         if (!terminalInfo || !terminalWindow || !terminalWindow.current) {
             return;
         }
-        const terminalInputKey = StreamUtils.getInputStreamName(terminalInfo);
-        const terminalOutputKey = StreamUtils.getOutputStreamName(terminalInfo);
+        const terminalSessionKey = `${terminalInfo.namespace}-${terminalInfo.podName}-${terminalInfo.containerName}-${terminalType}-${new Date().getTime()}`;
+        const termInfo = {
+            ...terminalInfo,
+            terminalSessionKey,
+            terminalType,
+        };
+        const terminalInputKey = StreamUtils.getInputStreamName(termInfo);
+        const terminalOutputKey = StreamUtils.getOutputStreamName(termInfo);
+        console.log(`InputKey ${terminalInputKey}`);
+        console.log(`OutputKey ${terminalOutputKey}`);
 
         var term = new Terminal();
         term.open(terminalWindow.current);
@@ -41,22 +49,30 @@ export default function TerminalStreamed({
             console.log('Received data:', data);
             term.write(data);
         });
-        podTerminalSocket.emit('openTerminal', terminalInfo);
-
-
+        podTerminalSocket.emit('openTerminal', termInfo);
         term.write('Terminal is ready');
+        setTerminal(term);
+        setSessionTerminalInfo(termInfo);
+    };
 
 
+    useEffect(() => {
         return () => {
             console.log('Disconnecting from terminal...');
-            term.dispose();
-            podTerminalSocket.emit('closeTerminal', terminalInfo);
+            //terminal?.dispose();
+            //if (sessionTerminalInfo) podTerminalSocket.emit('closeTerminal', sessionTerminalInfo);
         };
-    }, [terminalInfo]);
+    });
 
 
     return <>
         <div className="space-y-4">
+            {!sessionTerminalInfo && <>
+                <div className="flex gap-4">
+                    <Button variant="secondary" onClick={() => startTerminalSession('sh')}>Start sh</Button>
+                    <Button variant="secondary" onClick={() => startTerminalSession('bash')}>Start bash</Button>
+                </div>
+            </>}
             <div ref={terminalWindow} ></div>
 
         </div>

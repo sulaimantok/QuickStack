@@ -1,91 +1,114 @@
 import { TerminalSetupInfoModel, terminalSetupInfoZodModel } from "../../shared/model/terminal-setup-info.model";
 import { DefaultEventsMap, Socket } from "socket.io";
-import setupPodService from "./setup-services/setup-pod.service";
 import k3s from "../adapter/kubernetes-api.adapter";
 import * as k8s from '@kubernetes/client-node';
 import stream from 'stream';
 import { StreamUtils } from "@/shared/utils/stream.utils";
 import WebSocket from "ws";
+import crypto from 'crypto';
 
 interface TerminalStrean {
     stdoutStream: stream.PassThrough;
     stderrStream: stream.PassThrough;
     stdinStream: stream.PassThrough;
-    streamInputKey: string;
-    streamOutputKey: string;
-    websocket: WebSocket.WebSocket;
+    terminalSessionKey: string;
+    websocket?: WebSocket.WebSocket;
 }
 
 export class TerminalService {
     activeStreams = new Map<string, { logStream: stream.PassThrough, clients: number, k3sStreamRequest: any }>();
 
     async streamLogs(socket: Socket<DefaultEventsMap, DefaultEventsMap, DefaultEventsMap, any>) {
-        console.log('Client connected:', socket.id);
+        console.log('[NEW] Client connected:', socket.id);
 
         const streamsOfSocket: TerminalStrean[] = [];
 
         socket.on('openTerminal', async (podInfo) => {
+            console.warn('openTerminal', podInfo);
+            try {
+                const terminalInfo = terminalSetupInfoZodModel.parse(podInfo);
+                if (!terminalInfo.terminalSessionKey) {
+                    console.warn('terminalSessionKey not provided. Setting as undefined.');
+                }
+                console.log(terminalInfo)
+                const streamInputKey = StreamUtils.getInputStreamName(terminalInfo);
+                const streamOutputKey = StreamUtils.getOutputStreamName(terminalInfo);
 
-            const terminalInfo = terminalSetupInfoZodModel.parse(podInfo);
-            const streamInputKey = StreamUtils.getInputStreamName(terminalInfo);
-            const streamOutputKey = StreamUtils.getOutputStreamName(terminalInfo);
+                /*const podReachable = await setupPodService.waitUntilPodIsRunningFailedOrSucceded(terminalInfo.namespace, terminalInfo.podName);
+                if (!podReachable) {
+                    socket.emit(streamOutputKey, 'Pod is not reachable.');
+                    return;
+                }*/
 
-            const podReachable = await setupPodService.waitUntilPodIsRunningFailedOrSucceded(terminalInfo.namespace, terminalInfo.podName);
-            if (!podReachable) {
-                socket.emit(streamOutputKey);
-                return;
+                const exec = new k8s.Exec(k3s.getKubeConfig());
+
+                const stdoutStream = new stream.PassThrough();
+                const stderrStream = new stream.PassThrough();
+                const stdinStream = new stream.PassThrough();
+                console.log('starting exec')
+                exec.exec(
+                    terminalInfo.namespace,
+                    terminalInfo.podName,
+                    terminalInfo.containerName,
+                    [terminalInfo.terminalType === 'sh' ? '/bin/sh' : '/bin/bash'],
+                    /* process.stdout,
+                     process.stderr,
+                     process.stdin,*/
+                    stdoutStream,
+                    stderrStream,
+                    stdinStream,
+                    false /* tty */,
+                    (status: k8s.V1Status) => {
+                        console.log('Exited with status:');
+                        console.log(JSON.stringify(status, null, 2));
+                        stderrStream!.end();
+                        stdoutStream!.end();
+                        stdinStream!.end();
+                    },
+                );
+
+                stdoutStream.on('data', (chunk) => {
+                    console.log(chunk)
+                    socket.emit(streamOutputKey, chunk.toString());
+                });
+                stdoutStream.on('error', (error) => {
+                    console.error("Error in terminal stream:", error);
+                });
+                stdoutStream.on('end', () => {
+                    //console.log(`[END] Log stream ended for ${streamKey} by ${streamEndedByClient ? 'client' : 'server'}`);
+
+                });
+
+                stderrStream.on('data', (chunk) => {
+                    console.log(chunk)
+                    socket.emit(streamOutputKey, chunk.toString());
+                });
+                socket.on(streamInputKey, (data) => {
+                    console.log('Received data:', data);
+                    stdinStream!.write(data);
+                });
+
+                streamsOfSocket.push({
+                    stdoutStream,
+                    stderrStream,
+                    stdinStream,
+                    terminalSessionKey: terminalInfo.terminalSessionKey ?? '',
+                    //websocket
+                });
+
+                console.log(`Client ${socket.id} joined terminal stream for:`);
+                console.log(`Input:  ${streamInputKey}`);
+                console.log(`Output: ${streamOutputKey}`);
+            } catch (error) {
+                console.error('Error while initializing terminal session', podInfo, error);
             }
-
-            const exec = new k8s.Exec(k3s.getKubeConfig());
-
-            const stdoutStream = new stream.PassThrough();
-            const stderrStream = new stream.PassThrough();
-            const stdinStream = new stream.PassThrough();
-
-            const websocket = await exec.exec(
-                terminalInfo.namespace,
-                terminalInfo.podName,
-                terminalInfo.containerName,
-                ['/bin/sh'],
-                process.stdout,
-                process.stderr,
-                process.stdin,
-               /* stdoutStream,
-                stderrStream,
-                stdinStream,*/
-                true /* tty */,
-                (status: k8s.V1Status) => {
-                    console.log('Exited with status:');
-                    console.log(JSON.stringify(status, null, 2));
-                    stderrStream!.end();
-                    stdoutStream!.end();
-                    stdinStream!.end();
-                },
-            );
-
-            stdoutStream.on('data', (chunk) => {
-                console.log(chunk)
-                socket.emit(streamOutputKey, chunk.toString());
-            });
-            stderrStream.on('data', (chunk) => {
-                console.log(chunk)
-                socket.emit(streamOutputKey, chunk.toString());
-            });
-            socket.on(streamInputKey, (data) => {
-                stdinStream!.write(data);
-            });
-
-            streamsOfSocket.push({ stdoutStream, stderrStream, stdinStream, streamInputKey, streamOutputKey, websocket });
-
-
-            console.log(`Client ${socket.id} joined terminal stream for ${streamInputKey}`);
         });
 
         socket.on('closeTerminal', (podInfo) => {
+            console.warn('closeTerminal', podInfo);
             const terminalInfo = terminalSetupInfoZodModel.parse(podInfo);
-            const streamInputKey = StreamUtils.getInputStreamName(terminalInfo);
 
-            const streams = streamsOfSocket.find(stream => stream.streamInputKey === streamInputKey);
+            const streams = streamsOfSocket.find(stream => stream.terminalSessionKey === terminalInfo.terminalSessionKey);
             if (streams) {
                 this.deleteLogStream(streams);
             }
@@ -101,12 +124,12 @@ export class TerminalService {
 
 
     private deleteLogStream(streams: TerminalStrean) {
-       /* streams.stderrStream.end();
-        streams.stdoutStream.end();
-        streams.stdinStream.end();
-        streams.websocket.close();*/
+        /* streams.stderrStream.end();
+         streams.stdoutStream.end();
+         streams.stdinStream.end();
+         streams.websocket.close();*/
 
-        console.log(`Stopped log stream for ${streams.streamInputKey}.`);
+        console.log(`Stopped log stream for ${streams.terminalSessionKey}.`);
     }
     /*
         private async createLogStreamForPod(socket: Socket<DefaultEventsMap, DefaultEventsMap, DefaultEventsMap, any>,
