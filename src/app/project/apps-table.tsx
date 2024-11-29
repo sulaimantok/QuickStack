@@ -54,7 +54,7 @@ export default function AppTable({ data }: { data: App[] }) {
                                 <DropdownMenuSeparator />
                                 <DropdownMenuItem onClick={() => openDialog({
                                     title: "Delete App",
-                                    description: "Are you sure you want to delete this app?",
+                                    description: "Are you sure you want to delete this app? All data will be lost and this action cannot be undone.",
                                 }).then((result) => result ? Toast.fromAction(() => deleteApp(item.id)) : undefined)}>
                                     <span className="text-red-500">Delete App</span>
                                 </DropdownMenuItem>

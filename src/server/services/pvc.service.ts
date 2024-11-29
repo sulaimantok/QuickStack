@@ -30,7 +30,7 @@ class PvcService {
 
         const pod = await podService.getPodsForApp(volume.app.projectId, volume.app.id);
         if (pod.length === 0) {
-            throw new ServiceException(`No pod found for volume id ${volumeId} in app ${volume.app.id}`);
+            throw new ServiceException(`There are no running pods for volume id ${volumeId} in app ${volume.app.id}. Make sure the app is running.`);
         }
         const firstPod = pod[0];
 

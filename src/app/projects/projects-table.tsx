@@ -10,10 +10,24 @@ import { MoreHorizontal } from "lucide-react";
 import { Toast } from "@/frontend/utils/toast.utils";
 import { Project } from "@prisma/client";
 import { deleteProject } from "./actions";
+import { useConfirmDialog } from "@/frontend/states/zustand.states";
 
 
 
 export default function ProjectsTable({ data }: { data: Project[] }) {
+
+    const { openDialog } = useConfirmDialog();
+
+    const asyncDeleteProject = async (domainId: string) => {
+        const confirm = await openDialog({
+            title: "Delete Project",
+            description: "Are you sure you want to delete this project? All data (apps, deployments, volumes, domains) will be lost and this action cannot be undone. Running apps will be stopped and removed.",
+            yesButton: "Delete Project"
+        });
+        if (confirm) {
+            await Toast.fromAction(() => deleteProject(domainId));
+        }
+    };
 
     return <>
         <SimpleDataTable columns={[
@@ -43,7 +57,7 @@ export default function ProjectsTable({ data }: { data: Project[] }) {
                                     </DropdownMenuItem>
                                 </Link>
                                 <DropdownMenuSeparator />
-                                <DropdownMenuItem onClick={() => Toast.fromAction(() => deleteProject(item.id))}>
+                                <DropdownMenuItem onClick={() => asyncDeleteProject(item.id)}>
                                     <span className="text-red-500">Delete Project</span>
                                 </DropdownMenuItem>
                             </DropdownMenuContent>

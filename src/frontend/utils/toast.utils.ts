@@ -12,7 +12,7 @@ export class Toast {
                 }
                 return retVal;
             }, {
-                loading: 'laden...',
+                loading: 'loading...',
                 success: (result: ServerActionResult<A, B>) => {
                     resolve(result);
                     return result.message ?? 'Operation successful';

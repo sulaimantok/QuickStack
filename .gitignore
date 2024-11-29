@@ -43,3 +43,4 @@ kube-config.config_old
 kube-config.config_restricted
 internal
 dist
+storage/

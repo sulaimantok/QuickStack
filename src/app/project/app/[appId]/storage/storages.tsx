@@ -8,11 +8,41 @@ import { Download, EditIcon, TrashIcon } from "lucide-react";
 import DialogEditDialog from "./storage-edit-overlay";
 import { Toast } from "@/frontend/utils/toast.utils";
 import { deleteVolume, downloadPvcData } from "./actions";
+import { useConfirmDialog } from "@/frontend/states/zustand.states";
 
 
 export default function StorageList({ app }: {
     app: AppExtendedModel
 }) {
+
+    const { openDialog } = useConfirmDialog();
+
+    const asyncDeleteVolume = async (volumeId: string) => {
+        const confirm = await openDialog({
+            title: "Delete Volume",
+            description: "The volume will be removed and the Data will be lost. The changes will take effect, after you deploy the app. Are you sure you want to remove this volume?",
+            yesButton: "Delete Volume"
+        });
+        if (confirm) {
+            await Toast.fromAction(() => deleteVolume(volumeId));
+        }
+    };
+
+    const asyncDownloadPvcData = async (volumeId: string) => {
+        const confirm = await openDialog({
+            title: "Download Volume Data",
+            description: "The volume data will be zipped and downloaded. Depending on the size of the volume this can take a while. Are you sure you want to download the volume data?",
+            yesButton: "Download"
+        });
+        if (confirm) {
+            await Toast.fromAction(() => downloadPvcData(volumeId)).then(x => {
+                if (x.status === 'success' && x.data) {
+                    window.open('/api/volume-data-download?fileName=' + x.data);
+                }
+            });
+        }
+    }
+
     return <>
         <Card>
             <CardHeader>
@@ -37,17 +67,13 @@ export default function StorageList({ app }: {
                                 <TableCell className="font-medium">{volume.size}</TableCell>
                                 <TableCell className="font-medium">{volume.accessMode}</TableCell>
                                 <TableCell className="font-medium flex gap-2">
+                                    <Button variant="ghost" onClick={() => asyncDownloadPvcData(volume.id)}>
+                                        <Download />
+                                    </Button>
                                     <DialogEditDialog appId={app.id} volume={volume}>
                                         <Button variant="ghost"><EditIcon /></Button>
                                     </DialogEditDialog>
-                                    <Button variant="ghost" onClick={() => Toast.fromAction(() => downloadPvcData(volume.id)).then(x => {
-                                        if (x.status === 'success' && x.data) {
-                                            window.open('/api/volume-data-download?fileName=' + x.data);
-                                        }
-                                    })}>
-                                        <Download />
-                                    </Button>
-                                    <Button variant="ghost" onClick={() => Toast.fromAction(() => deleteVolume(volume.id))}>
+                                    <Button variant="ghost" onClick={() => asyncDeleteVolume(volume.id)}>
                                         <TrashIcon />
                                     </Button>
                                 </TableCell>

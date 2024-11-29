@@ -8,6 +8,7 @@ import { z } from "zod";
 import { ServiceException } from "@/shared/model/service.exception.model";
 import pvcStatusService from "@/server/services/pvc.status.service";
 import pvcService from "@/server/services/pvc.service";
+import deploymentService from "@/server/services/deployment.service";
 
 const actionAppVolumeEditZodModel = appVolumeEditZodModel.merge(z.object({
     appId: z.string(),
@@ -44,5 +45,6 @@ export const getPvcUsage = async (pvcName: string, pvcNamespace: string) =>
 export const downloadPvcData = async (volumeId: string) =>
     simpleAction(async () => {
         await getAuthUserSession();
-        return await pvcService.downloadPvcData(volumeId); // returns the download path on the server
+        const fileNameOfDownloadedFile = await pvcService.downloadPvcData(volumeId);
+        return new SuccessActionResult(fileNameOfDownloadedFile, 'Successfully zipped volume data'); // returns the download path on the server
     }) as Promise<ServerActionResult<any, string>>;

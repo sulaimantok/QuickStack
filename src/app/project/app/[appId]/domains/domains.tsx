@@ -14,11 +14,26 @@ import { KubeObjectNameUtils } from "@/server/utils/kube-object-name.utils";
 import { Code } from "@/components/custom/code";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { OpenInNewWindowIcon, QuestionMarkCircledIcon } from "@radix-ui/react-icons";
+import { useConfirmDialog } from "@/frontend/states/zustand.states";
 
 
 export default function DomainsList({ app }: {
     app: AppExtendedModel
 }) {
+
+    const { openDialog } = useConfirmDialog();
+
+    const asyncDeleteDomain = async (domainId: string) => {
+        const confirm = await openDialog({
+            title: "Delete Domain",
+            description: "The domain will be removed and the changes will take effect, after you deploy the app. Are you sure you want to remove this domain?",
+            yesButton: "Delete Domain"
+        });
+        if (confirm) {
+            await Toast.fromAction(() => deleteDomain(domainId));
+        }
+    };
+
     return <>
         <Card>
             <CardHeader>
@@ -54,7 +69,7 @@ export default function DomainsList({ app }: {
                                     <DialogEditDialog appId={app.id} domain={domain}>
                                         <Button variant="ghost"><EditIcon /></Button>
                                     </DialogEditDialog>
-                                    <Button variant="ghost" onClick={() => Toast.fromAction(() => deleteDomain(domain.id))}>
+                                    <Button variant="ghost" onClick={() => asyncDeleteDomain(domain.id)}>
                                         <TrashIcon />
                                     </Button>
                                 </TableCell>
