@@ -34,7 +34,7 @@ class AppService {
                 const [buildJobName, gitCommitHash, buildPromise] = await buildService.buildApp(deploymentId, app, forceBuild);
                 buildPromise.then(async () => {
                     console.log('Build job finished, deploying...');
-                    dlog(deploymentId, `Build job ${buildJobName} completed successfully`);
+                    dlog(deploymentId, `Starting deployment with output from build "${buildJobName}"`);
                     await deploymentService.createDeployment(deploymentId, app, buildJobName, gitCommitHash);
                 });
             } else {
