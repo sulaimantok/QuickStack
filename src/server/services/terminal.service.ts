@@ -18,7 +18,7 @@ interface TerminalStrean {
 export class TerminalService {
     activeStreams = new Map<string, { logStream: stream.PassThrough, clients: number, k3sStreamRequest: any }>();
 
-    async streamLogs(socket: Socket<DefaultEventsMap, DefaultEventsMap, DefaultEventsMap, any>) {
+    async streamTerminal(socket: Socket<DefaultEventsMap, DefaultEventsMap, DefaultEventsMap, any>) {
         console.log('[NEW] Client connected:', socket.id);
 
         const streamsOfSocket: TerminalStrean[] = [];

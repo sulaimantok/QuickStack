@@ -7,7 +7,7 @@ class SocketIoServer {
 		const io = new Server(server);
 		const podLogsNamespace = io.of("/pod-terminal");
 		podLogsNamespace.on("connection", (socket) => {
-			terminalService.streamLogs(socket);
+			terminalService.streamTerminal(socket);
 		});
 	};
 }
