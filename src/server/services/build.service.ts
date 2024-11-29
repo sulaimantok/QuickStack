@@ -112,6 +112,7 @@ class BuildService {
 
         await dlog(deploymentId, `Build job ${buildName} started successfully`);
 
+        await new Promise(resolve => setTimeout(resolve, 5000)); // wait to be sure that pod is created
         await this.logBuildOutput(deploymentId, buildName);
 
         const buildJobPromise = this.waitForJobCompletion(jobDefinition.metadata!.name!)
