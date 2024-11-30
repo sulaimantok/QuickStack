@@ -1,20 +1,5 @@
-import { AppExtendedModel } from "@/shared/model/app-extended.model";
 import k3s from "../adapter/kubernetes-api.adapter";
 import * as k8s from '@kubernetes/client-node';
-import { V1Deployment, V1LabelSelector, V1ReplicaSet } from "@kubernetes/client-node";
-import buildService from "./build.service";
-import { ListUtils } from "../../shared/utils/list.utils";
-import { DeploymentInfoModel, DeplyomentStatus } from "@/shared/model/deployment-info.model";
-import { BuildJobStatus } from "@/shared/model/build-job";
-import { ServiceException } from "@/shared/model/service.exception.model";
-import { PodsInfoModel, podsInfoZodModel } from "@/shared/model/pods-info.model";
-import { KubeObjectNameUtils } from "../utils/kube-object-name.utils";
-import pvcService from "./pvc.service";
-import ingressService from "./ingress.service";
-import namespaceService from "./namespace.service";
-import { Constants } from "../../shared/utils/constants";
-import svcService from "./svc.service";
-import { Label } from "@radix-ui/react-dropdown-menu";
 import setupPodService from "./setup-services/setup-pod.service";
 import clusterService from "./node.service";
 import { PodsResourceInfoModel } from "@/shared/model/pods-resource-info.model";
@@ -29,30 +14,39 @@ class MonitorAppService {
             podsFromApp.some((pod) => pod.podName === topPod.Pod.metadata?.name)
         );
 
-        const nodeInfo = await clusterService.getNodeInfo();
+        const topNodes = await clusterService.getNodeInfo();
 
-        const nodesColumns = nodeInfo.map((node) => {
-            return {
-                'POD': node.name,
-                'CPU(cores)': node.cpuCapacity,
-                'MEMORY(bytes)': node.ramCapacity,
-            };
-        });
+        const totalResourcesNodes = topNodes.reduce(
+            (acc, node) => {
+                acc.cpu += Number(node.cpuCapacity) || 0;
+                acc.ram += parseFloat(node.ramCapacity.replace('Ki','')) || 0;
+                return acc;
+            },
+            { cpu: 0, ram: 0 }
+        );
 
-        const podsColumns = filteredTopPods.map((pod) => {
-            return {
-                'POD': pod.Pod.metadata?.name,
-                'CPU(cores)': pod.CPU.CurrentUsage,
-                'MEMORY(bytes)': pod.Memory.CurrentUsage,
-            };
-        });
+        const totalResourcesApp = filteredTopPods.reduce(
+            (acc, pod) => {
+                acc.cpu += Number(pod.CPU.CurrentUsage) || 0;
+                acc.ram += Number(pod.Memory.CurrentUsage) || 0;
+                return acc;
+            },
+            { cpu: 0, ram: 0 }
+        );
+
+
+        var totalRamNodesCorrectUnit: number = totalResourcesNodes.ram / 1024; //von KB in MB umrechnen
+        var totalRamAppCorrectUnit: number = totalResourcesApp.ram / (1024 * 1024);  //von Byte in MB umrechnen
+
+
+        const appCpuUsagePercent = ((totalResourcesApp.cpu / totalResourcesNodes.cpu) * 100).toFixed(2);
+        const appRamUsagePercent = ((totalRamAppCorrectUnit / totalRamNodesCorrectUnit) * 100).toFixed(2);
 
         return {
-            cpuAbsolut: '5',
-            cpuPercent: '6',
-            memoryAbsolut: '7',
-            memoryPercent: '8',
-            volumePercent: '9',
+            cpuPercent: `${appCpuUsagePercent}%`,
+            cpuAbsolut: `${totalResourcesApp.cpu.toFixed(10)} cores`,
+            ramPercent: `${appRamUsagePercent}%`,
+            ramAbsolut: `${totalRamAppCorrectUnit.toFixed(2)} MB`
         }
     }
 

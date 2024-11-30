@@ -56,30 +56,30 @@ export default function MonitoringTab({
         <Card>
             <CardHeader>
                 <CardTitle>App Monitoring</CardTitle>
-                <CardDescription>This is an overview about the resources the app is consuming.
+                <CardDescription>This is an overview about the resources the app is consuming in comparison to the resources of all nodes.
                 </CardDescription>
             </CardHeader>
             <CardContent>
+            {!selectedPod ? <FullLoadingSpinner /> :
                 <Table>
                     <TableHeader>
                         <TableRow>
-                            <TableHead>CPU absolut</TableHead>
-                            <TableHead>CPU percent</TableHead>
-                            <TableHead>memory absent</TableHead>
-                            <TableHead>memory percent</TableHead>
-                            <TableHead>volume percent</TableHead>
+                            <TableHead>CPU %</TableHead>
+                            <TableHead>CPU</TableHead>
+                            <TableHead>RAM %</TableHead>
+                            <TableHead>RAM</TableHead>
                         </TableRow>
                     </TableHeader>
                     <TableBody>
                             <TableRow>
-                                <TableCell className="font-medium">{selectedPod?.cpuAbsolut}</TableCell>
                                 <TableCell className="font-medium">{selectedPod?.cpuPercent}</TableCell>
-                                <TableCell className="font-medium">{selectedPod?.memoryAbsolut}</TableCell>
-                                <TableCell className="font-medium">{selectedPod?.memoryPercent}</TableCell>
-                                <TableCell className="font-medium">{selectedPod?.volumePercent}</TableCell>
+                                <TableCell className="font-medium">{selectedPod?.cpuAbsolut}</TableCell>
+                                <TableCell className="font-medium">{selectedPod?.ramPercent}</TableCell>
+                                <TableCell className="font-medium">{selectedPod?.ramAbsolut}</TableCell>
                             </TableRow>
                     </TableBody>
                 </Table>
+        }
             </CardContent>
         </Card >
 
