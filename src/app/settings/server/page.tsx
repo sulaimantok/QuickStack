@@ -15,6 +15,7 @@ import QuickStackLetsEncryptSettings from "./qs-letsencrypt-settings";
 import QuickStackMaintenanceSettings from "./qs-maintenance-settings";
 import podService from "@/server/services/pod.service";
 import { Constants } from "@/shared/utils/constants";
+import ServerBreadcrumbs from "./server-breadcrumbs";
 
 export default async function ProjectPage() {
 
@@ -26,11 +27,12 @@ export default async function ProjectPage() {
     console.log(qsPodInfos)
     const qsPodInfo = qsPodInfos.find(p => !!p);
     return (
-        <div className="flex-1 space-y-4 p-8 pt-6">
+        <div className="flex-1 space-y-4 pt-6">
             <PageTitle
                 title={'Server Settings'}
                 subtitle={`View or edit Server Settings`}>
             </PageTitle>
+            <ServerBreadcrumbs />
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div><QuickStackIngressSettings disableNodePortAccess={disableNodePortAccess!} serverUrl={serverUrl!} /></div>
                 <div> <QuickStackLetsEncryptSettings letsEncryptMail={letsEncryptMail!} /></div>

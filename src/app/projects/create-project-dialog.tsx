@@ -6,7 +6,7 @@ import { Toast } from "@/frontend/utils/toast.utils";
 import { createProject } from "./actions";
 
 
-export function CreateProjectDialog() {
+export function CreateProjectDialog({ children }: { children?: React.ReactNode }) {
 
     const createProj = async (name: string | undefined) => {
         if (!name) {
@@ -21,6 +21,6 @@ export function CreateProjectDialog() {
         description="Name your new project."
         fieldName="Name"
         onResult={createProj}>
-        <Button>Create Project</Button>
+        {children}
     </InputDialog>
 }

@@ -10,7 +10,8 @@ import { MoreHorizontal } from "lucide-react";
 import { Toast } from "@/frontend/utils/toast.utils";
 import { Project } from "@prisma/client";
 import { deleteProject } from "./actions";
-import { useConfirmDialog } from "@/frontend/states/zustand.states";
+import { useBreadcrumbs, useConfirmDialog } from "@/frontend/states/zustand.states";
+import { useEffect } from "react";
 
 
 

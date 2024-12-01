@@ -15,6 +15,8 @@ import Logs from "./overview/logs";
 import MonitoringTab from "./overview/monitoring-app";
 import InternalHostnames from "./domains/internal-hostnames";
 import TerminalStreamed from "./overview/terminal-streamed";
+import { useEffect } from "react";
+import { useBreadcrumbs } from "@/frontend/states/zustand.states";
 
 export default function AppTabs({
     app,

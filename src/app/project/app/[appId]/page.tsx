@@ -1,16 +1,7 @@
 import { getAuthUserSession } from "@/server/utils/action-wrapper.utils";
 import appService from "@/server/services/app.service";
-import {
-    Breadcrumb,
-    BreadcrumbItem,
-    BreadcrumbLink,
-    BreadcrumbList,
-    BreadcrumbSeparator,
-} from "@/components/ui/breadcrumb"
-import PageTitle from "@/components/custom/page-title";
 import AppTabs from "./app-tabs";
-import AppActionButtons from "./app-action-buttons";
-import buildService from "@/server/services/build.service";
+import AppBreadcrumbs from "./app-breadcrumbs";
 
 export default async function AppPage({
     searchParams,
@@ -26,7 +17,9 @@ export default async function AppPage({
     }
     const app = await appService.getExtendedById(appId);
 
-    return (
+    return (<>
         <AppTabs app={app} tabName={searchParams?.tabName ?? 'overview'} />
+        <AppBreadcrumbs app={app} />
+    </>
     )
 }

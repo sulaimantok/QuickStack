@@ -40,18 +40,22 @@ export const useConfirmDialog = create<ZustandDialogProps>((set) => ({
         return { isDialogOpen: false, userInfo: null, resolvePromise: null };
     }),
 }));
-/*
-export async function confirmDialog(props: DialogProps): Promise<boolean> {
 
-    const { openDialog } = useConfirmDialog();
-    return new Promise((resolve) => {
-        const extendedPropd = {
-            ...props,
-            returnFunc: (returnVal) => {
-                resolve(returnVal);
-            }
-        } as InternDialogProps;
-        openDialog(extendedPropd);
-    });
+interface ZustandBreadcrumbsProps {
+    breadcrumbs: Breadcrumb[] | null;
+    setBreadcrumbs: ((result: Breadcrumb[]) => void);
+}
 
-}*/
+export interface Breadcrumb {
+    name: string;
+    url?: string;
+}
+
+export const useBreadcrumbs = create<ZustandBreadcrumbsProps>((set) => ({
+    breadcrumbs: null,
+    setBreadcrumbs: (data) => {
+        set({
+            breadcrumbs: data,
+        });
+    },
+}));

@@ -15,25 +15,24 @@ import {
     BreadcrumbPage,
     BreadcrumbSeparator,
 } from "@/components/ui/breadcrumb"
+import { useBreadcrumbs } from "@/frontend/states/zustand.states";
+import ProjectsBreadcrumbs from "./projects-breadcrumbs";
 
 export default async function ProjectPage() {
 
     await getAuthUserSession();
     const data = await projectService.getAllProjects();
+
     return (
-        <div className="flex-1 space-y-4 p-8 pt-6">
-            <Breadcrumb>
-                <BreadcrumbList>
-                    <BreadcrumbItem>
-                        <BreadcrumbLink href="/">Projects</BreadcrumbLink>
-                    </BreadcrumbItem>
-                </BreadcrumbList>
-            </Breadcrumb>
+        <div className="flex-1 space-y-4 pt-6">
             <div className="flex gap-4">
                 <h2 className="text-3xl font-bold tracking-tight flex-1">Projects</h2>
-                <CreateProjectDialog />
+                <CreateProjectDialog>
+                    <Button>Create Project</Button>
+                </CreateProjectDialog>
             </div>
             <ProjectsTable data={data} />
+            <ProjectsBreadcrumbs />
         </div>
     )
 }

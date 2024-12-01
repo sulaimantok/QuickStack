@@ -27,22 +27,7 @@ export default async function RootLayout({
   const app = await appService.getExtendedById(appId);
 
   return (
-    <div className="flex-1 space-y-6 p-8 pt-6">
-      <Breadcrumb>
-        <BreadcrumbList>
-          <BreadcrumbItem>
-            <BreadcrumbLink href="/">Projects</BreadcrumbLink>
-          </BreadcrumbItem>
-          <BreadcrumbSeparator />
-          <BreadcrumbItem>
-            <BreadcrumbLink href={`/project?projectId=${app.projectId}`}>{app.project.name}</BreadcrumbLink>
-          </BreadcrumbItem>
-          <BreadcrumbSeparator />
-          <BreadcrumbItem>
-            <BreadcrumbLink>{app.name}</BreadcrumbLink>
-          </BreadcrumbItem>
-        </BreadcrumbList>
-      </Breadcrumb>
+    <div className="flex-1 space-y-6 pt-6">
       <PageTitle
         title={app.name}
         subtitle={`App ID: ${app.id}`}>

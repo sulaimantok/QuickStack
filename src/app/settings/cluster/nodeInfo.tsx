@@ -6,12 +6,20 @@ import { Code } from "@/components/custom/code";
 import { Toast } from "@/frontend/utils/toast.utils";
 import { setNodeStatus } from "./actions";
 import { Button } from "@/components/ui/button";
-import { useConfirmDialog } from "@/frontend/states/zustand.states";
+import { useBreadcrumbs, useConfirmDialog } from "@/frontend/states/zustand.states";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
+import { useEffect } from "react";
 
 export default async function NodeInfo({ nodeInfos }: { nodeInfos: NodeInfoModel[] }) {
 
     const { openDialog } = useConfirmDialog();
+
+    const { setBreadcrumbs } = useBreadcrumbs();
+    useEffect(() => setBreadcrumbs([
+        { name: "Settings", url: "/settings/profile" },
+        { name: "Cluster" },
+    ]), []);
+
     const setNodeStatusClick = async (nodeName: string, schedulable: boolean) => {
         const confirmation = await openDialog({
             title: 'Update Node Status',

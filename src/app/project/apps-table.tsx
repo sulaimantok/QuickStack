@@ -8,13 +8,14 @@ import { formatDateTime } from "@/frontend/utils/format.utils";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { MoreHorizontal } from "lucide-react";
 import { Toast } from "@/frontend/utils/toast.utils";
-import { App } from "@prisma/client";
+import { App, Project } from "@prisma/client";
 import { deleteApp } from "./actions";
-import { useConfirmDialog } from "@/frontend/states/zustand.states";
+import { useBreadcrumbs, useConfirmDialog } from "@/frontend/states/zustand.states";
+import { useEffect } from "react";
 
 
 
-export default function AppTable({ data }: { data: App[] }) {
+export default function AppTable({ app }: { app: App[] }) {
 
     const { openDialog } = useConfirmDialog();
 
@@ -31,7 +32,7 @@ export default function AppTable({ data }: { data: App[] }) {
             ["createdAt", "Created At", true, (item) => formatDateTime(item.createdAt)],
             ["updatedAt", "Updated At", false, (item) => formatDateTime(item.updatedAt)],
         ]}
-            data={data}
+            data={app}
             onItemClickLink={(item) => `/project/app/${item.id}`}
             actionCol={(item) =>
                 <>
