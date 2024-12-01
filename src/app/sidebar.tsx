@@ -14,20 +14,18 @@ import {
   SidebarMenuSub,
   SidebarMenuSubItem
 } from "@/components/ui/sidebar"
-import { AppleIcon, Calendar, ChartNoAxesCombined, ChevronDown, ChevronUp, FolderClosed, Home, Inbox, Plus, Search, Server, Settings, Settings2, User, User2 } from "lucide-react"
+import { AppleIcon, BookOpen, Boxes, Calendar, ChartNoAxesCombined, ChevronDown, ChevronUp, FolderClosed, Home, Inbox, Info, Plus, Radio, Search, Server, Settings, Settings2, User, User2 } from "lucide-react"
 import Link from "next/link"
 import { CreateProjectDialog } from "./projects/create-project-dialog"
 import projectService from "@/server/services/project.service"
 import { getAuthUserSession, getUserSession } from "@/server/utils/action-wrapper.utils"
 import { SidebarLogoutButton } from "./sidebar-logout-button"
+import {
+  Avatar,
+  AvatarFallback,
+  AvatarImage,
+} from "@/components/ui/avatar"
 
-const monitoringMenu = [
-  {
-    title: "Overall Cluster",
-    url: "/Montioring",
-    icon: Home,
-  },
-]
 
 const settingsMenu = [
   {
@@ -59,7 +57,42 @@ export async function AppSidebar() {
 
   return (
     <Sidebar collapsible="icon">
-      <SidebarHeader />
+      <SidebarHeader>
+        <SidebarMenu>
+          <SidebarMenuItem>
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <SidebarMenuButton size="lg"
+                  className="data-[state=open]:bg-sidebar-accent data-[state=open]:text-sidebar-accent-foreground">
+                  <div className="flex aspect-square size-8 items-center justify-center rounded-lg bg-sidebar-primary text-sidebar-primary-foreground">
+                    <Boxes className="size-4" />
+                  </div>
+                  <div className="grid flex-1 text-left text-sm leading-tight my-4">
+                    <span className="truncate font-semibold">QuickStack</span>
+                    <span className="truncate text-xs">Admin Panel</span>
+                  </div>
+                  <ChevronDown className="ml-auto" />
+                </SidebarMenuButton>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent className="w-[--radix-popper-anchor-width]">
+                <Link href="https://quickstack.dev" target="_blank">
+                  <DropdownMenuItem>
+                    <Info />
+                    <span>QuickStack Website</span>
+                  </DropdownMenuItem>
+                </Link>
+                <Link href="https://docs.quickstack.dev" target="_blank">
+                  <DropdownMenuItem>
+                    <BookOpen />
+                    <span>QuickStack Docs</span>
+                  </DropdownMenuItem>
+                </Link>
+              </DropdownMenuContent>
+            </DropdownMenu>
+          </SidebarMenuItem>
+        </SidebarMenu>
+      </SidebarHeader>
+
       <SidebarContent>
         <SidebarGroup>
           <SidebarGroupLabel>Menu</SidebarGroupLabel>
@@ -102,27 +135,12 @@ export async function AppSidebar() {
             <SidebarMenu>
               <Collapsible defaultOpen className="group/collapsible">
                 <SidebarMenuItem>
-                  <CollapsibleTrigger asChild>
-                    <SidebarMenuButton asChild>
-                      <Link href="/monitoring">
-                        <ChartNoAxesCombined />
-                        <span>Monitoring</span>
-                      </Link>
-                    </SidebarMenuButton>
-                  </CollapsibleTrigger>
-                  <CollapsibleContent>
-                    <SidebarMenuSub>
-                      {monitoringMenu.map((item) => (
-                        <SidebarMenuSubItem key={item.title}>
-                          <SidebarMenuButton asChild>
-                            <Link href={item.url}>
-                              <span>{item.title}</span>
-                            </Link>
-                          </SidebarMenuButton>
-                        </SidebarMenuSubItem>
-                      ))}
-                    </SidebarMenuSub>
-                  </CollapsibleContent>
+                  <SidebarMenuButton asChild>
+                    <Link href="/monitoring">
+                      <ChartNoAxesCombined />
+                      <span>Monitoring</span>
+                    </Link>
+                  </SidebarMenuButton>
                 </SidebarMenuItem>
               </Collapsible>
             </SidebarMenu>
@@ -169,8 +187,13 @@ export async function AppSidebar() {
           <SidebarMenuItem>
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
-                <SidebarMenuButton>
-                  <User2 /> {session.email}
+                <SidebarMenuButton
+                  size="lg"
+                  className="data-[state=open]:bg-sidebar-accent data-[state=open]:text-sidebar-accent-foreground">
+                  <Avatar className="h-8 w-8 rounded-lg">
+                    <AvatarFallback className="rounded-lg">{session.email.substring(0, 1) || 'Q'}</AvatarFallback>
+                  </Avatar>
+                  {session.email}
                   <ChevronUp className="ml-auto" />
                 </SidebarMenuButton>
               </DropdownMenuTrigger>

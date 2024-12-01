@@ -17,6 +17,7 @@ import {
 } from "@/components/ui/breadcrumb"
 import { useBreadcrumbs } from "@/frontend/states/zustand.states";
 import ProjectsBreadcrumbs from "./projects-breadcrumbs";
+import { Plus } from "lucide-react";
 
 export default async function ProjectPage() {
 
@@ -28,7 +29,7 @@ export default async function ProjectPage() {
             <div className="flex gap-4">
                 <h2 className="text-3xl font-bold tracking-tight flex-1">Projects</h2>
                 <CreateProjectDialog>
-                    <Button>Create Project</Button>
+                    <Button><Plus /> Create Project</Button>
                 </CreateProjectDialog>
             </div>
             <ProjectsTable data={data} />

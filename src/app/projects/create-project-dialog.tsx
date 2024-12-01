@@ -20,6 +20,7 @@ export function CreateProjectDialog({ children }: { children?: React.ReactNode }
         title="Create Project"
         description="Name your new project."
         fieldName="Name"
+        OKButton="Create Project"
         onResult={createProj}>
         {children}
     </InputDialog>

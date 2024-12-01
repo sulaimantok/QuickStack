@@ -6,6 +6,7 @@ import { Toast } from "@/frontend/utils/toast.utils";
 import { createApp } from "./actions";
 import { redirect } from "next/navigation";
 import { useRouter } from "next/navigation";
+import { Plus } from "lucide-react";
 
 
 export function CreateAppDialog({
@@ -33,6 +34,6 @@ export function CreateAppDialog({
         description="Name your new App."
         fieldName="Name"
         onResult={createAppFunc}>
-        <Button>Create App</Button>
+        <Button><Plus /> Create App</Button>
     </InputDialog>
 }
