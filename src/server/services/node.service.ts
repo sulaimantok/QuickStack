@@ -1,6 +1,8 @@
 import { spec } from "node:test/reporters";
 import k3s from "../adapter/kubernetes-api.adapter";
+import * as k8s from '@kubernetes/client-node';
 import { NodeInfoModel } from "@/shared/model/node-info.model";
+import { NodeResourceModel } from "@/shared/model/node-resource.model";
 import { Tags } from "../utils/cache-tag-generator.utils";
 import { revalidateTag, unstable_cache } from "next/cache";
 
@@ -58,6 +60,28 @@ class ClusterService {
             revalidateTag(Tags.nodeInfos());
         }
     }
+
+    async getNodeResourceUsage(): Promise<NodeResourceModel[]> {
+        const topNodes = await k8s.topNodes(k3s.core);
+
+        function calculatePercent(current: number, capacity: number): number {
+            return parseFloat(((current / capacity) * 100).toFixed(2));
+        }
+
+        function bytesToMb(bytes: number): number {
+            return parseFloat((bytes / (1024 * 1024)).toFixed(2));
+        }
+
+        return topNodes.map((node) => {
+            return {
+                name: node.Node.metadata?.name!,
+                cpuUsagePercent: `${calculatePercent(Number(node.CPU?.RequestTotal!), Number(node.CPU?.Capacity!))}%`,
+                cpuUsageAbsolut: `${Number(node.CPU?.RequestTotal!).toFixed(2)} cores`,
+                ramUsagePercent: `${calculatePercent(bytesToMb(Number(node.Memory?.RequestTotal!)), bytesToMb(Number(node.Memory?.Capacity!)))}%`,
+                ramUsageAbsolut: `${bytesToMb(Number(node.Memory?.RequestTotal!))} MB`,
+                diskUsagePercent: "300GB",
+            }});
+        }
 }
 
 const clusterService = new ClusterService();
