@@ -1,7 +1,7 @@
 'use server'
 
 import { AppRateLimitsModel } from "@/shared/model/app-rate-limits.model";
-import { AppDefaultPortsModel, appdefaultPortZodModel } from "@/shared/model/default-port.model";
+import { AppPortModel, appPortZodModel } from "@/shared/model/default-port.model";
 import { appDomainEditZodModel } from "@/shared/model/domain-edit.model";
 import { SuccessActionResult } from "@/shared/model/server-action-error-return.model";
 import appService from "@/server/services/app.service";
@@ -29,13 +29,19 @@ export const deleteDomain = async (domainId: string) =>
         return new SuccessActionResult(undefined, 'Successfully deleted domain');
     });
 
-export const saveDefaultPortConfiguration = async (prevState: any, inputData: AppDefaultPortsModel, appId: string) =>
-    saveFormAction(inputData, appdefaultPortZodModel, async (validatedData) => {
+export const savePort = async (prevState: any, inputData: AppPortModel, appId: string, portId?: string) =>
+    saveFormAction(inputData, appPortZodModel, async (validatedData) => {
         await getAuthUserSession();
-        const existingApp = await appService.getById(appId);
-        await appService.save({
-            ...existingApp,
+        await appService.savePort({
             ...validatedData,
-            id: appId,
+            id: portId ?? undefined,
+            appId
         });
+    });
+
+export const deletePort = async (portId: string) =>
+    simpleAction(async () => {
+        await getAuthUserSession();
+        await appService.deletePortById(portId);
+        return new SuccessActionResult(undefined, 'Successfully deleted port');
     });

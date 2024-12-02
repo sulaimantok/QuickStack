@@ -1,7 +1,7 @@
 import { revalidateTag, unstable_cache } from "next/cache";
 import dataAccess from "../adapter/db.client";
 import { Tags } from "../utils/cache-tag-generator.utils";
-import { App, AppDomain, AppVolume, Prisma } from "@prisma/client";
+import { App, AppDomain, AppPort, AppVolume, Prisma } from "@prisma/client";
 import { DefaultArgs } from "@prisma/client/runtime/library";
 import { AppExtendedModel } from "@/shared/model/app-extended.model";
 import { ServiceException } from "@/shared/model/service.exception.model";
@@ -85,6 +85,7 @@ class AppService {
                 project: true,
                 appDomains: true,
                 appVolumes: true,
+                appPorts: true
             }
         }),
             [Tags.app(appId)], {
@@ -104,10 +105,10 @@ class AppService {
     }
 
     async save(item: Prisma.AppUncheckedCreateInput | Prisma.AppUncheckedUpdateInput) {
-        let savedItem: Prisma.Prisma__AppClient<App, never, DefaultArgs>;
+        let savedItem: App;
         try {
             if (item.id) {
-                savedItem = dataAccess.client.app.update({
+                savedItem = await dataAccess.client.app.update({
                     where: {
                         id: item.id as string
                     },
@@ -115,8 +116,15 @@ class AppService {
                 });
             } else {
                 item.id = KubeObjectNameUtils.toAppId(item.name as string);
-                savedItem = dataAccess.client.app.create({
+                savedItem = await dataAccess.client.app.create({
                     data: item as Prisma.AppUncheckedCreateInput
+                });
+                // add default port 80
+                await dataAccess.client.appPort.create({
+                    data: {
+                        appId: savedItem.id,
+                        port: 80
+                    }
                 });
             }
         } finally {
@@ -197,15 +205,17 @@ class AppService {
     async saveVolume(volumeToBeSaved: Prisma.AppVolumeUncheckedCreateInput | Prisma.AppVolumeUncheckedUpdateInput) {
         let savedItem: AppVolume;
         const existingApp = await this.getExtendedById(volumeToBeSaved.appId as string);
-        const existingAppWithSameVolumeMountPath = await dataAccess.client.appVolume.findFirst({
+        const existingAppWithSameVolumeMountPath = await dataAccess.client.appVolume.findMany({
             where: {
                 appId: volumeToBeSaved.appId as string,
-                containerMountPath: volumeToBeSaved.containerMountPath as string,
             }
         });
-        if (volumeToBeSaved.appId == existingAppWithSameVolumeMountPath?.appId && volumeToBeSaved.id !== existingAppWithSameVolumeMountPath?.id) {
-            throw new ServiceException("Volume mount path is already in use from another volume within the same app.");
+
+        if (existingAppWithSameVolumeMountPath.filter(x => x.id !== volumeToBeSaved.id)
+            .some(x => x.containerMountPath === volumeToBeSaved.containerMountPath)) {
+            throw new ServiceException("Mount Path is already configured within the same app.");
         }
+
         try {
             if (volumeToBeSaved.id) {
                 savedItem = await dataAccess.client.appVolume.update({
@@ -247,6 +257,62 @@ class AppService {
         } finally {
             revalidateTag(Tags.app(existingVolume.appId));
             revalidateTag(Tags.apps(existingVolume.app.projectId));
+        }
+    }
+
+    async savePort(portToBeSaved: Prisma.AppPortUncheckedCreateInput | Prisma.AppPortUncheckedUpdateInput) {
+        let savedItem: AppPort;
+        const existingApp = await this.getExtendedById(portToBeSaved.appId as string);
+        const allPortsOfApp = await dataAccess.client.appPort.findMany({
+            where: {
+                appId: portToBeSaved.appId as string,
+            }
+        });
+        if (allPortsOfApp.filter(x => x.id !== portToBeSaved.id)
+            .some(x => x.port === portToBeSaved.port)) {
+            throw new ServiceException("Port is already configured within the same app.");
+        }
+        try {
+            if (portToBeSaved.id) {
+                savedItem = await dataAccess.client.appPort.update({
+                    where: {
+                        id: portToBeSaved.id as string
+                    },
+                    data: portToBeSaved
+                });
+            } else {
+                savedItem = await dataAccess.client.appPort.create({
+                    data: portToBeSaved as Prisma.AppPortUncheckedCreateInput
+                });
+            }
+
+        } finally {
+            revalidateTag(Tags.apps(existingApp.projectId as string));
+            revalidateTag(Tags.app(existingApp.id as string));
+        }
+        return savedItem;
+    }
+
+    async deletePortById(id: string) {
+        const existingPort = await dataAccess.client.appPort.findFirst({
+            where: {
+                id
+            }, include: {
+                app: true
+            }
+        });
+        if (!existingPort) {
+            return;
+        }
+        try {
+            await dataAccess.client.appPort.delete({
+                where: {
+                    id
+                }
+            });
+        } finally {
+            revalidateTag(Tags.app(existingPort.appId));
+            revalidateTag(Tags.apps(existingPort.app.projectId));
         }
     }
 }

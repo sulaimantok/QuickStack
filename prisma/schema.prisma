@@ -146,12 +146,24 @@ model App {
   cpuReservation    Int?
   cpuLimit          Int?
 
-  defaultPort Int         @default(80)
-  appDomains  AppDomain[]
-  appVolumes  AppVolume[]
+  appDomains AppDomain[]
+  appVolumes AppVolume[]
+  appPorts   AppPort[]
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+}
+
+model AppPort {
+  id    String @id @default(uuid())
+  appId String
+  app   App    @relation(fields: [appId], references: [id], onDelete: Cascade)
+  port  Int
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([appId, port])
 }
 
 model AppDomain {
@@ -177,6 +189,8 @@ model AppVolume {
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+
+  @@unique([appId, containerMountPath])
 }
 
 model Parameter {

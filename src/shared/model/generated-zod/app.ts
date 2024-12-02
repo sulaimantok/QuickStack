@@ -1,6 +1,6 @@
 import * as z from "zod"
 
-import { CompleteProject, RelatedProjectModel, CompleteAppDomain, RelatedAppDomainModel, CompleteAppVolume, RelatedAppVolumeModel } from "./index"
+import { CompleteProject, RelatedProjectModel, CompleteAppDomain, RelatedAppDomainModel, CompleteAppVolume, RelatedAppVolumeModel, CompleteAppPort, RelatedAppPortModel } from "./index"
 
 export const AppModel = z.object({
   id: z.string(),
@@ -19,7 +19,6 @@ export const AppModel = z.object({
   memoryLimit: z.number().int().nullish(),
   cpuReservation: z.number().int().nullish(),
   cpuLimit: z.number().int().nullish(),
-  defaultPort: z.number().int(),
   createdAt: z.date(),
   updatedAt: z.date(),
 })
@@ -28,6 +27,7 @@ export interface CompleteApp extends z.infer<typeof AppModel> {
   project: CompleteProject
   appDomains: CompleteAppDomain[]
   appVolumes: CompleteAppVolume[]
+  appPorts: CompleteAppPort[]
 }
 
 /**
@@ -39,4 +39,5 @@ export const RelatedAppModel: z.ZodSchema<CompleteApp> = z.lazy(() => AppModel.e
   project: RelatedProjectModel,
   appDomains: RelatedAppDomainModel.array(),
   appVolumes: RelatedAppVolumeModel.array(),
+  appPorts: RelatedAppPortModel.array(),
 }))

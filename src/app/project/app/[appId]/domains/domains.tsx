@@ -5,7 +5,7 @@ import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle }
 import { AppExtendedModel } from "@/shared/model/app-extended.model";
 import { Table, TableBody, TableCaption, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
-import { CheckIcon, CrossIcon, DeleteIcon, EditIcon, TrashIcon, XIcon } from "lucide-react";
+import { CheckIcon, CrossIcon, DeleteIcon, EditIcon, Plus, TrashIcon, XIcon } from "lucide-react";
 import DialogEditDialog from "./domain-edit-overlay";
 import { Toast } from "@/frontend/utils/toast.utils";
 import { deleteDomain } from "./actions";
@@ -80,7 +80,7 @@ export default function DomainsList({ app }: {
             </CardContent>
             <CardFooter>
                 <DialogEditDialog appId={app.id}>
-                    <Button>Add Domain</Button>
+                    <Button><Plus /> Add Domain</Button>
                 </DialogEditDialog>
             </CardFooter>
         </Card >

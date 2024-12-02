@@ -5,6 +5,7 @@ import { KubeObjectNameUtils } from "../utils/kube-object-name.utils";
 import { App, AppDomain } from "@prisma/client";
 import { Constants } from "../../shared/utils/constants";
 import ingressSetupService from "./setup-services/ingress-setup.service";
+import { dlog } from "./deployment-logs.service";
 
 
 const traefikNamespace = 'kube-system';
@@ -51,18 +52,18 @@ class IngressService {
     }
 
 
-    async createOrUpdateIngressForApp(app: AppExtendedModel) {
+    async createOrUpdateIngressForApp(deploymentId: string, app: AppExtendedModel) {
 
         await ingressSetupService.createTraefikRedirectMiddlewareIfNotExist();
 
         for (const domainObj of app.appDomains) {
-            await this.createIngress(app, domainObj);
+            await this.createOrUpdateIngress(deploymentId, app, domainObj);
         }
 
         await this.deleteUnusedIngressesOfApp(app);
     }
 
-    async createIngress(app: AppExtendedModel, domain: AppDomain) {
+    async createOrUpdateIngress(deploymentId: string, app: AppExtendedModel, domain: AppDomain) {
         const hostname = domain.hostname;
         const ingressName = KubeObjectNameUtils.getIngressName(domain.id);
         const existingIngress = await this.getIngress(app.projectId, domain.id);
@@ -115,6 +116,7 @@ class IngressService {
             },
         };
 
+        await dlog(deploymentId, `Configuring Ingress with Domain ${domain.useSsl ? 'https' : 'http'}://${hostname} --> ${app.id}:${domain.port}`);
         if (existingIngress) {
             await k3s.network.replaceNamespacedIngress(ingressName, app.projectId, ingressDefinition);
             console.log(`Ingress ${ingressName} for domain ${hostname} successfully updated.`);

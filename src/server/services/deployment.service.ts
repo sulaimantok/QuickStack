@@ -41,25 +41,25 @@ class DeploymentService {
         }
     }
 
-    async createDeployment(deplyomentId: string, app: AppExtendedModel, buildJobName?: string, gitCommitHash?: string) {
+    async createDeployment(deploymentId: string, app: AppExtendedModel, buildJobName?: string, gitCommitHash?: string) {
         await this.validateDeployment(app);
 
-        dlog(deplyomentId, `Starting deployment of containter...`);
+        dlog(deploymentId, `Starting deployment of containter...`);
 
         await namespaceService.createNamespaceIfNotExists(app.projectId);
         const appHasPvcChanges = await pvcService.doesAppConfigurationIncreaseAnyPvcSize(app);
         if (appHasPvcChanges) {
-            dlog(deplyomentId, `Configuring Storage Volumes...`);
+            dlog(deploymentId, `Configuring Storage Volumes...`);
             await this.setReplicasForDeployment(app.projectId, app.id, 0); // update of PVCs is only possible if deployment is scaled down
             await new Promise(resolve => setTimeout(resolve, 5000));
         }
         const { volumes, volumeMounts } = await pvcService.createOrUpdatePvc(app);
         if (volumes && volumes.length > 0) {
-            dlog(deplyomentId, `Configured ${volumes.length} Storage Volumes.`);
+            dlog(deploymentId, `Configured ${volumes.length} Storage Volumes.`);
         }
 
         const envVars = this.parseEnvVariables(app);
-        dlog(deplyomentId, `Configured ${envVars.length} Env Variables.`);
+        dlog(deploymentId, `Configured ${envVars.length} Env Variables.`);
 
         const existingDeployment = await this.getDeployment(app.projectId, app.id);
         const body: V1Deployment = {
@@ -81,7 +81,7 @@ class DeploymentService {
                         annotations: {
                             [Constants.QS_ANNOTATION_APP_ID]: app.id,
                             [Constants.QS_ANNOTATION_PROJECT_ID]: app.projectId,
-                            [Constants.QS_ANNOTATION_DEPLOYMENT_ID]: deplyomentId,
+                            [Constants.QS_ANNOTATION_DEPLOYMENT_ID]: deploymentId,
                             deploymentTimestamp: new Date().getTime() + "",
                             "kubernetes.io/change-cause": `Deployment ${new Date().toISOString()}`
                         }
@@ -124,21 +124,20 @@ class DeploymentService {
         }
 
         if (existingDeployment) {
-            dlog(deplyomentId, `Replacing existing deployment...`);
+            dlog(deploymentId, `Replacing existing deployment...`);
             const res = await k3s.apps.replaceNamespacedDeployment(app.id, app.projectId, body);
         } else {
-            dlog(deplyomentId, `Creating deployment...`);
+            dlog(deploymentId, `Creating deployment...`);
             const res = await k3s.apps.createNamespacedDeployment(app.projectId, body);
         }
         await pvcService.deleteUnusedPvcOfApp(app);
-        dlog(deplyomentId, `Updating service...`);
-        await svcService.createOrUpdateService(app);
-        dlog(deplyomentId, `Updating ingress...`);
-        await ingressService.createOrUpdateIngressForApp(app);
-        dlog(deplyomentId, `Deployment finished.`);
+        await svcService.createOrUpdateService(deploymentId, app);
+        dlog(deploymentId, `Updating ingress...`);
+        await ingressService.createOrUpdateIngressForApp(deploymentId, app);
+        dlog(deploymentId, `Deployment finished.`);
     }
 
-    private parseEnvVariables(app: { id: string; name: string; projectId: string; sourceType: string; dockerfilePath: string; replicas: number; envVars: string; defaultPort: number; createdAt: Date; updatedAt: Date; project: { id: string; name: string; createdAt: Date; updatedAt: Date; }; appDomains: { id: string; createdAt: Date; updatedAt: Date; hostname: string; port: number; useSsl: boolean; redirectHttps: boolean; appId: string; }[]; appVolumes: { id: string; createdAt: Date; updatedAt: Date; appId: string; containerMountPath: string; size: number; accessMode: string; }[]; containerImageSource?: string | null | undefined; gitUrl?: string | null | undefined; gitBranch?: string | null | undefined; gitUsername?: string | null | undefined; gitToken?: string | null | undefined; memoryReservation?: number | null | undefined; memoryLimit?: number | null | undefined; cpuReservation?: number | null | undefined; cpuLimit?: number | null | undefined; }) {
+    private parseEnvVariables(app: AppExtendedModel) {
         return app.envVars ? app.envVars.split('\n').filter(x => !!x).map(env => {
             const [name] = env.split('=');
             const value = env.replace(`${name}=`, '');

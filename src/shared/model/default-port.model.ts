@@ -1,8 +1,8 @@
 import { stringToNumber, stringToOptionalNumber } from "@/shared/utils/zod.utils";
 import { z } from "zod";
 
-export const appdefaultPortZodModel = z.object({
-  defaultPort: stringToNumber,
-})
+export const appPortZodModel = z.object({
+  port: stringToNumber,
+});
 
-export type AppDefaultPortsModel = z.infer<typeof appdefaultPortZodModel>;
+export type AppPortModel = z.infer<typeof appPortZodModel>;
