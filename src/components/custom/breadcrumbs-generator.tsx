@@ -24,14 +24,16 @@ import projectService from "@/server/services/project.service"
 import { getAuthUserSession } from "@/server/utils/action-wrapper.utils"
 import { Breadcrumb, BreadcrumbItem, BreadcrumbLink, BreadcrumbList, BreadcrumbSeparator } from "@/components/ui/breadcrumb";
 import { useBreadcrumbs } from "@/frontend/states/zustand.states"
+import { Separator } from "../ui/separator"
 
 export function BreadcrumbsGenerator() {
 
     const { breadcrumbs } = useBreadcrumbs();
 
-    return (
-        <div className="-ml-1 flex gap-4 items-center">
+    return (<>
+        <div className="-ml-1 flex gap-4 items-center fixed w-full top-0 bg-white pt-6 pb-4 z-50">
             <SidebarTrigger />
+            <Separator orientation="vertical" className="mr-1 h-4" />
             {breadcrumbs && <Breadcrumb>
                 <BreadcrumbList>
                     {breadcrumbs.map((x, index) => (<>
@@ -43,5 +45,9 @@ export function BreadcrumbsGenerator() {
                 </BreadcrumbList>
             </Breadcrumb>}
         </div>
+        <div className="h-[32px]">
+            <div></div>
+        </div>
+    </>
     )
 }
