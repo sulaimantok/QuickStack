@@ -28,7 +28,14 @@ class ProjectService {
     }
 
     async getAllProjects() {
-        return await unstable_cache(async () => await dataAccess.client.project.findMany(),
+        return await unstable_cache(async () => await dataAccess.client.project.findMany({
+            include: {
+                apps: true
+            },
+            orderBy: {
+                name: 'asc'
+            }
+        }),
             [Tags.projects()], {
             tags: [Tags.projects()]
         })();

@@ -63,6 +63,7 @@ class AppService {
         } finally {
             revalidateTag(Tags.apps(existingApp.projectId));
             revalidateTag(Tags.app(existingApp.id));
+            revalidateTag(Tags.projects());
         }
     }
 
@@ -70,6 +71,9 @@ class AppService {
         return await unstable_cache(async (projectId: string) => await dataAccess.client.app.findMany({
             where: {
                 projectId
+            },
+            orderBy: {
+                name: 'asc'
             }
         }),
             [Tags.apps(projectId)], {
@@ -130,6 +134,7 @@ class AppService {
         } finally {
             revalidateTag(Tags.apps(item.projectId as string));
             revalidateTag(Tags.app(item.id as string));
+            revalidateTag(Tags.projects());
         }
         return savedItem;
     }
