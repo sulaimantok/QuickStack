@@ -6,9 +6,7 @@ import appService from "@/server/services/app.service";
 import { getAuthUserSession, saveFormAction, simpleAction } from "@/server/utils/action-wrapper.utils";
 import { z } from "zod";
 import { ServiceException } from "@/shared/model/service.exception.model";
-import pvcStatusService from "@/server/services/pvc.status.service";
 import pvcService from "@/server/services/pvc.service";
-import deploymentService from "@/server/services/deployment.service";
 
 const actionAppVolumeEditZodModel = appVolumeEditZodModel.merge(z.object({
     appId: z.string(),
@@ -36,11 +34,11 @@ export const deleteVolume = async (volumeID: string) =>
         return new SuccessActionResult(undefined, 'Successfully deleted volume');
     });
 
-export const getPvcUsage = async (pvcName: string, pvcNamespace: string) =>
+export const getPvcUsage = async (appId: string, projectId: string) =>
     simpleAction(async () => {
         await getAuthUserSession();
-        return await pvcStatusService.getPvcUsageByName(pvcName, pvcNamespace);
-    });
+        return pvcService.getPvcUsageFromApp(appId, projectId);
+    }) as Promise<ServerActionResult<any, {pvcName: string, usage: number}[]>>;
 
 export const downloadPvcData = async (volumeId: string) =>
     simpleAction(async () => {

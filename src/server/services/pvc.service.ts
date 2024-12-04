@@ -1,5 +1,6 @@
 import { AppExtendedModel } from "@/shared/model/app-extended.model";
 import k3s from "../adapter/kubernetes-api.adapter";
+import longhornApiAdapter from "../adapter/longhorn-api.adapter";
 import { V1PersistentVolumeClaim } from "@kubernetes/client-node";
 import { ServiceException } from "@/shared/model/service.exception.model";
 import { AppVolume } from "@prisma/client";
@@ -12,6 +13,7 @@ import * as k8s from '@kubernetes/client-node';
 import dataAccess from "../adapter/db.client";
 import podService from "./pod.service";
 import path from "path";
+import { log } from "console";
 
 class PvcService {
 
@@ -45,7 +47,29 @@ class PvcService {
         return fileName;
     }
 
+    async getPvcUsageFromApp(appId: string, projectId: string): Promise<Array<{ pvcName: string, usage: number }>> {
+        const pvcFromApp = await this.getAllPvcForApp(projectId, appId);
+        const pvcUsageData: Array<{ pvcName: string, usage: number }> = [];
 
+        for (const pvc of pvcFromApp) {
+            const pvcName = pvc.metadata?.name;
+            const volumeName = pvc.spec?.volumeName;
+
+            if (pvcName && volumeName) {
+                try {
+                    // Rufe Speicherverbrauchsdaten von getLonghornVolume ab
+                    const usage = await longhornApiAdapter.getLonghornVolume(volumeName);
+                    // Füge die Daten in das Array ein
+                    pvcUsageData.push({ pvcName, usage });
+                } catch (error) {
+                    console.error(`Fehler beim Abrufen der Daten für PVC ${pvcName} und Volume ${volumeName}:`, error);
+                }
+            } else {
+                console.warn(`PVC ${pvc.metadata?.name} hat keinen gültigen Namen oder Volume-Namen.`);
+            }
+        }
+        return pvcUsageData;
+    }
 
     async doesAppConfigurationIncreaseAnyPvcSize(app: AppExtendedModel) {
         const existingPvcs = await this.getAllPvcForApp(app.projectId, app.id);

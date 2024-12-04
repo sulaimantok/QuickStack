@@ -7,13 +7,47 @@ import { Button } from "@/components/ui/button";
 import { Download, EditIcon, TrashIcon } from "lucide-react";
 import DialogEditDialog from "./storage-edit-overlay";
 import { Toast } from "@/frontend/utils/toast.utils";
-import { deleteVolume, downloadPvcData } from "./actions";
+import { deleteVolume, downloadPvcData, getPvcUsage } from "./actions";
 import { useConfirmDialog } from "@/frontend/states/zustand.states";
+import { AppVolume } from "@prisma/client";
+import React from "react";
+import { KubeObjectNameUtils } from "@/server/utils/kube-object-name.utils";
 
 
 export default function StorageList({ app }: {
     app: AppExtendedModel
 }) {
+
+    const [volumesWithStorage, setVolumesWithStorage] = React.useState<(AppVolume&{capacity?:string})[]>(app.appVolumes);
+
+    const loadAndMapStorageData = async () => {
+                //Funktion aufrufen, die die Daten aus dem Longhorn holt
+
+        const response = (await getPvcUsage(app.id, app.projectId)); // hier wäre der call
+
+        if (response.status === 'success' && response.data) {
+            (response.data);
+            const mappedVolumeData = [...volumesWithStorage];
+            for (let item of mappedVolumeData) {
+                const volume = response.data.find(x => x.pvcName === KubeObjectNameUtils.toPvcName(item.id));
+                if (volume) {
+                    item.capacity = `${volume.usage.toFixed(2)} MB (${(volume.usage / item.size * 100).toFixed(2)}%)`;
+                }
+            }
+            setVolumesWithStorage(mappedVolumeData);
+        } else {
+            console.error(response);
+        }
+
+
+
+    }
+
+    React.useEffect(() => {
+        setVolumesWithStorage(app.appVolumes);
+        loadAndMapStorageData();
+
+    }, [app.appVolumes]);
 
     const { openDialog } = useConfirmDialog();
 
@@ -55,16 +89,18 @@ export default function StorageList({ app }: {
                     <TableHeader>
                         <TableRow>
                             <TableHead>Mount Path</TableHead>
-                            <TableHead>Size in MB</TableHead>
+                            <TableHead>Available Storage</TableHead>
+                            <TableHead>Used Storage</TableHead>
                             <TableHead>Access Mode</TableHead>
                             <TableHead className="w-[100px]">Action</TableHead>
                         </TableRow>
                     </TableHeader>
                     <TableBody>
-                        {app.appVolumes.map(volume => (
+                        {volumesWithStorage.map(volume => (
                             <TableRow key={volume.containerMountPath}>
                                 <TableCell className="font-medium">{volume.containerMountPath}</TableCell>
-                                <TableCell className="font-medium">{volume.size}</TableCell>
+                                <TableCell className="font-medium">{volume.size} MB</TableCell>
+                                <TableCell className="font-medium">{volume.capacity}</TableCell>
                                 <TableCell className="font-medium">{volume.accessMode}</TableCell>
                                 <TableCell className="font-medium flex gap-2">
                                     <Button variant="ghost" onClick={() => asyncDownloadPvcData(volume.id)}>
