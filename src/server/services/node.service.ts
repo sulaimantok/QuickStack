@@ -79,7 +79,8 @@ class ClusterService {
                 cpuUsageAbsolut: `${Number(node.CPU?.RequestTotal!).toFixed(2)} cores`,
                 ramUsagePercent: `${calculatePercent(bytesToMb(Number(node.Memory?.RequestTotal!)), bytesToMb(Number(node.Memory?.Capacity!)))}%`,
                 ramUsageAbsolut: `${bytesToMb(Number(node.Memory?.RequestTotal!))} MB`,
-                diskUsagePercent: "300GB",
+                diskUsagePercent: "94%",
+                diskUsageAbsolut: "117GB%",
             }});
         }
 }
