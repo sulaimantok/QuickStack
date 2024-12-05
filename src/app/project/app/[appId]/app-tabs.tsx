@@ -41,9 +41,9 @@ export default function AppTabs({
                 <TabsTrigger value="storage">Storage</TabsTrigger>
             </TabsList>
             <TabsContent value="overview" className="grid grid-cols-1 3xl:grid-cols-2 gap-4">
+                <MonitoringTab app={app} />
                 <Logs app={app} />
                 <BuildsTab app={app} />
-                <MonitoringTab app={app} />
             </TabsContent>
             <TabsContent value="general" className="space-y-4">
                 <GeneralAppSource app={app} />
