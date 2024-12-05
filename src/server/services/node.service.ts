@@ -5,6 +5,7 @@ import { NodeInfoModel } from "@/shared/model/node-info.model";
 import { NodeResourceModel } from "@/shared/model/node-resource.model";
 import { Tags } from "../utils/cache-tag-generator.utils";
 import { revalidateTag, unstable_cache } from "next/cache";
+import longhornApiAdapter from "../adapter/longhorn-api.adapter";
 
 class ClusterService {
 
@@ -68,20 +69,23 @@ class ClusterService {
             return parseFloat(((current / capacity) * 100).toFixed(2));
         }
 
+
+
         function bytesToMb(bytes: number): number {
             return parseFloat((bytes / (1024 * 1024)).toFixed(2));
         }
 
-        return topNodes.map((node) => {
+        return await Promise.all (topNodes.map(async (node) => {
+            const diskInfo = await longhornApiAdapter.getNodeStorageInfo(node.Node.metadata?.name!);
             return {
                 name: node.Node.metadata?.name!,
-                cpuUsagePercent: `${calculatePercent(Number(node.CPU?.RequestTotal!), Number(node.CPU?.Capacity!))}%`,
-                cpuUsageAbsolut: `${Number(node.CPU?.RequestTotal!).toFixed(2)} cores`,
-                ramUsagePercent: `${calculatePercent(bytesToMb(Number(node.Memory?.RequestTotal!)), bytesToMb(Number(node.Memory?.Capacity!)))}%`,
-                ramUsageAbsolut: `${bytesToMb(Number(node.Memory?.RequestTotal!))} MB`,
-                diskUsagePercent: "94%",
-                diskUsageAbsolut: "117GB%",
-            }});
+                cpuUsageAbsolut: Number(node.CPU?.RequestTotal!),
+                cpuUsageCapacity: Number(node.CPU?.Capacity!),
+                ramUsageAbsolut: Number(node.Memory?.RequestTotal!),
+                ramUsageCapacity: Number(node.Memory?.Capacity!),
+                diskUsageAbsolut: diskInfo.totalStorageMaximum - diskInfo.totalStorageAvailable,
+                diskUsageCapacity: diskInfo.totalStorageMaximum,
+            }}));
         }
 }
 

@@ -29,22 +29,24 @@ export default async function ResourcesNodes({ resourcesNodes }: { resourcesNode
                     <TableHeader>
                         <TableRow>
                             <TableHead>Name</TableHead>
-                            <TableHead>CPU %</TableHead>
-                            <TableHead>CPU</TableHead>
-                            <TableHead>RAM %</TableHead>
-                            <TableHead>RAM</TableHead>
-                            <TableHead>Disk GB</TableHead>
+                            <TableHead>CPU Absolut</TableHead>
+                            <TableHead>CPU Capacity</TableHead>
+                            <TableHead>RAM Absolut</TableHead>
+                            <TableHead>RAM Capacity</TableHead>
+                            <TableHead>Disk Absolut</TableHead>
+                            <TableHead>Disk Capacity</TableHead>
                         </TableRow>
                     </TableHeader>
                     <TableBody>
                         {resourcesNodes.map((node) => (
                             <TableRow>
                                 <TableCell className="font-medium">{node.name}</TableCell>
-                                <TableCell className="font-medium">{node.cpuUsagePercent}</TableCell>
                                 <TableCell className="font-medium">{node.cpuUsageAbsolut}</TableCell>
-                                <TableCell className="font-medium">{node.ramUsagePercent}</TableCell>
+                                <TableCell className="font-medium">{node.cpuUsageCapacity}</TableCell>
                                 <TableCell className="font-medium">{node.ramUsageAbsolut}</TableCell>
-                                <TableCell className="font-medium">{node.diskUsagePercent}</TableCell>
+                                <TableCell className="font-medium">{node.ramUsageCapacity}</TableCell>
+                                <TableCell className="font-medium">{node.diskUsageAbsolut}</TableCell>
+                                <TableCell className="font-medium">{node.diskUsageCapacity}</TableCell>
                             </TableRow>
                         ))}
                     </TableBody>
