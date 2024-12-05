@@ -106,7 +106,7 @@ export default function StorageList({ app }: {
                                     <Button variant="ghost" onClick={() => asyncDownloadPvcData(volume.id)}>
                                         <Download />
                                     </Button>
-                                    <DialogEditDialog appId={app.id} volume={volume}>
+                                    <DialogEditDialog app={app} volume={volume}>
                                         <Button variant="ghost"><EditIcon /></Button>
                                     </DialogEditDialog>
                                     <Button variant="ghost" onClick={() => asyncDeleteVolume(volume.id)}>
@@ -119,7 +119,7 @@ export default function StorageList({ app }: {
                 </Table>
             </CardContent>
             <CardFooter>
-                <DialogEditDialog appId={app.id}>
+                <DialogEditDialog app={app}>
                     <Button>Add Volume</Button>
                 </DialogEditDialog>
             </CardFooter>

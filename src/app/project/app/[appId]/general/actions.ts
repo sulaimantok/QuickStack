@@ -44,6 +44,12 @@ export const saveGeneralAppRateLimits = async (prevState: any, inputData: AppRat
             throw new ServiceException('Replica Count must be at least 1');
         }
         await getAuthUserSession();
+
+        const extendedApp = await appService.getExtendedById(appId);
+        if (extendedApp.appVolumes.some(v => v.accessMode === 'ReadWriteOnce') && validatedData.replicas > 1) {
+            throw new ServiceException('Replica Count must be 1 because you have at least one volume with access mode ReadWriteOnce.');
+        }
+
         const existingApp = await appService.getById(appId);
         await appService.save({
             ...existingApp,

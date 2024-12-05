@@ -19,7 +19,6 @@ class SvcService {
         return returnVal;
     }
 
-
     async getService(projectId: string, appId: string) {
         const allServices = await k3s.core.listNamespacedService(projectId);
         if (allServices.body.items.some((item) => item.metadata?.name === KubeObjectNameUtils.toServiceName(appId))) {
@@ -47,7 +46,16 @@ class SvcService {
                 targetPort: port.port
             })),
         ].filter((port, index, self) =>
-            index === self.findIndex((t) => (t.port === port.port && t.targetPort === port.targetPort)));
+            index === self.findIndex((t) =>
+                (t.port === port.port && t.targetPort === port.targetPort)));
+
+        if (ports.length === 0) {
+            dlog(deplyomentId, `No domain or internal port settings found, service (HTTP) will not be created or updated. The application will run, but will not be accessible via the internal network or the internet.`);
+            if (existingService) {
+                await this.deleteService(app.projectId, app.id);
+            }
+            return;
+        }
 
         const body = {
             metadata: {
@@ -61,7 +69,7 @@ class SvcService {
             }
         };
 
-        dlog(deplyomentId, `Updating service with ports ${ports.map(x => x.port).join(', ')}...`);
+        dlog(deplyomentId, `Updating service (HTTP) with ports ${ports.map(x => x.port).join(', ')}...`);
         if (existingService) {
             await k3s.core.replaceNamespacedService(KubeObjectNameUtils.toServiceName(app.id), app.projectId, body);
         } else {

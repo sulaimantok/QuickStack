@@ -16,9 +16,13 @@ const actionAppVolumeEditZodModel = appVolumeEditZodModel.merge(z.object({
 export const saveVolume = async (prevState: any, inputData: z.infer<typeof actionAppVolumeEditZodModel>) =>
     saveFormAction(inputData, actionAppVolumeEditZodModel, async (validatedData) => {
         await getAuthUserSession();
+        const existingApp = await appService.getExtendedById(validatedData.appId);
         const existingVolume = validatedData.id ? await appService.getVolumeById(validatedData.id) : undefined;
         if (existingVolume && existingVolume.size > validatedData.size) {
             throw new ServiceException('Volume size cannot be decreased');
+        }
+        if (existingApp.replicas > 1 && validatedData.accessMode === 'ReadWriteOnce') {
+            throw new ServiceException('Volume access mode must be ReadWriteMany because your app has more than one replica configured.');
         }
         await appService.saveVolume({
             ...validatedData,

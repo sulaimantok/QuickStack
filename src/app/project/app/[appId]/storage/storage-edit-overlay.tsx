@@ -38,13 +38,14 @@ import { saveVolume } from "./actions"
 import { toast } from "sonner"
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { QuestionMarkCircledIcon } from "@radix-ui/react-icons"
+import { AppExtendedModel } from "@/shared/model/app-extended.model"
 
 const accessModes = [
   { label: "ReadWriteOnce", value: "ReadWriteOnce" },
   { label: "ReadWriteMany", value: "ReadWriteMany" },
 ] as const
 
-export default function DialogEditDialog({ children, volume, appId }: { children: React.ReactNode; volume?: AppVolume; appId: string; }) {
+export default function DialogEditDialog({ children, volume, app }: { children: React.ReactNode; volume?: AppVolume; app: AppExtendedModel; }) {
 
   const [isOpen, setIsOpen] = useState<boolean>(false);
 
@@ -53,14 +54,14 @@ export default function DialogEditDialog({ children, volume, appId }: { children
     resolver: zodResolver(appVolumeEditZodModel),
     defaultValues: {
       ...volume,
-      accessMode: volume?.accessMode ?? "ReadWriteOnce"
+      accessMode: volume?.accessMode ?? (app.replicas > 1 ? "ReadWriteMany" : "ReadWriteOnce")
     }
   });
 
   const [state, formAction] = useFormState((state: ServerActionResult<any, any>, payload: AppVolumeEditModel) =>
     saveVolume(state, {
       ...payload,
-      appId,
+      appId: app.id,
       id: volume?.id
     }), FormUtils.getInitialFormState<typeof appVolumeEditZodModel>());
 

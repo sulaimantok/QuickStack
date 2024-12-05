@@ -123,6 +123,30 @@ class DeploymentService {
             }
         }
 
+        if (app.cpuLimit || app.memoryLimit) {
+            body.spec!.template!.spec!.containers[0].resources = {
+                limits: {}
+            }
+            if (app.cpuLimit) {
+                body.spec!.template!.spec!.containers[0].resources!.limits!.cpu! = `${app.cpuLimit}m`;
+            }
+            if (app.memoryLimit) {
+                body.spec!.template!.spec!.containers[0].resources!.limits!.memory! = `${app.memoryLimit}M`;
+            }
+        }
+
+        if (app.cpuReservation || app.memoryReservation) {
+            body.spec!.template!.spec!.containers[0].resources = {
+                requests: {}
+            }
+            if (app.cpuReservation) {
+                body.spec!.template!.spec!.containers[0].resources!.requests!.cpu! = `${app.cpuReservation}m`;
+            }
+            if (app.memoryReservation) {
+                body.spec!.template!.spec!.containers[0].resources!.requests!.memory! = `${app.memoryReservation}M`;
+            }
+        }
+
         if (existingDeployment) {
             dlog(deploymentId, `Replacing existing deployment...`);
             const res = await k3s.apps.replaceNamespacedDeployment(app.id, app.projectId, body);
@@ -134,7 +158,7 @@ class DeploymentService {
         await svcService.createOrUpdateService(deploymentId, app);
         dlog(deploymentId, `Updating ingress...`);
         await ingressService.createOrUpdateIngressForApp(deploymentId, app);
-        dlog(deploymentId, `Deployment finished.`);
+        dlog(deploymentId, `Deployment applied`);
     }
 
     private parseEnvVariables(app: AppExtendedModel) {

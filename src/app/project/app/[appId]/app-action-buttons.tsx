@@ -7,6 +7,7 @@ import { AppExtendedModel } from "@/shared/model/app-extended.model";
 import { Toast } from "@/frontend/utils/toast.utils";
 import AppStatus from "./app-status";
 import { Hammer, Pause, Play, Rocket } from "lucide-react";
+import { toast } from "sonner";
 
 export default function AppActionButtons({
     app

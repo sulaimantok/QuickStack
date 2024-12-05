@@ -107,9 +107,9 @@ export default async function NodeInfo({ nodeInfos }: { nodeInfos: NodeInfoModel
                                     <span className="font-semibold">Kubelet Version:</span> {nodeInfo.kubeletVersion}
                                 </div>
                             </div>
-                            <div className="flex px-4 pb-4 gap-4">
+                            {index !== 0 && <div className="flex px-4 pb-4 gap-4">
                                 <Button onClick={() => setNodeStatusClick(nodeInfo.name, !nodeInfo.schedulable)} variant="outline">{nodeInfo.schedulable ? 'Deactivate' : 'Activate'} Node</Button>
-                            </div>
+                            </div>}
                         </div>
                     ))}
                 </div>

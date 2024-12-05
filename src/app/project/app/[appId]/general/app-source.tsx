@@ -152,7 +152,7 @@ export default function GeneralAppSource({ app }: {
                                     name="containerImageSource"
                                     render={({ field }) => (
                                         <FormItem>
-                                            <FormLabel>Docker Container Name</FormLabel>
+                                            <FormLabel>Docker Image Name</FormLabel>
                                             <FormControl>
                                                 <Input   {...field} value={field.value as string | number | readonly string[] | undefined} />
                                             </FormControl>
