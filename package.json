@@ -12,7 +12,8 @@
     "prisma-generate-build": "npx prisma generate && node ./fix-wrong-zod-imports.js",
     "prisma-migrate": "bunx prisma migrate dev --name migration",
     "prisma-deploy": "bunx prisma migrate deploy",
-    "lint": "next lint"
+    "lint": "next lint",
+    "test": "jest"
   },
   "dependencies": {
     "@hookform/resolvers": "^3.9.0",
@@ -74,6 +75,11 @@
     "zustand": "^5.0.1"
   },
   "devDependencies": {
+    "@testing-library/dom": "^10.4.0",
+    "@testing-library/jest-dom": "^6.6.3",
+    "@testing-library/react": "^16.1.0",
+    "@types/jest": "^29.5.14",
+    "@types/mocha": "^10.0.10",
     "@types/node": "^22.7.9",
     "@types/nodemailer": "^6.4.16",
     "@types/react": "^18.3.12",
@@ -81,6 +87,8 @@
     "@types/xml2js": "^0.4.14",
     "eslint": "^9.13.0",
     "eslint-config-next": "14.2.15",
+    "jest": "^29.7.0",
+    "jest-environment-jsdom": "^29.7.0",
     "postcss": "^8.4.47",
     "tailwindcss": "^3.4.14",
     "typescript": "^5.6.3",

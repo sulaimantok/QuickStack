@@ -2,8 +2,14 @@ import path from 'path';
 
 export class PathUtils {
 
-    static internalDataRoot = process.env.NODE_ENV === 'production' ? '/app/storage' : '/workspace/storage/internal';
-    static tempDataRoot = process.env.NODE_ENV === 'production' ? '/app/tmp-storage' : '/workspace/storage/tmp';
+    static isProduction = process.env.NODE_ENV === 'production';
+    static get internalDataRoot() {
+        return this.isProduction ? '/app/storage' : '/workspace/storage/internal';
+    }
+
+    static get tempDataRoot() {
+        return this.isProduction ? '/app/tmp-storage' : '/workspace/storage/tmp';
+    }
 
     static get gitRootPath() {
         return path.join(this.tempDataRoot, 'git');

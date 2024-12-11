@@ -1,11 +1,10 @@
 import fs from "fs"
-import fsPromises from "fs/promises"
 
 export class FsUtils {
 
     static async fileExists(pathName: string) {
         try {
-            await fsPromises.access(pathName, fs.constants.F_OK);
+            await fs.promises.access(pathName, fs.constants.F_OK);
             return true;
         } catch (ex) {
             return false;
@@ -22,7 +21,7 @@ export class FsUtils {
 
     static async isFolderEmpty(pathName: string) {
         try {
-            const files = await fsPromises.readdir(pathName);
+            const files = await fs.promises.readdir(pathName);
             return files.length === 0;
         } catch (ex) {
             return true;
@@ -45,7 +44,7 @@ export class FsUtils {
 
         }
         if (!exists) {
-            await fsPromises.mkdir(pathName, {
+            await fs.promises.mkdir(pathName, {
                 recursive
             });
         }
@@ -60,7 +59,7 @@ export class FsUtils {
         if (!exists) {
             return;
         }
-        await fsPromises.rm(pathName, {
+        await fs.promises.rm(pathName, {
             recursive
         });
     }
