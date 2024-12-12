@@ -54,12 +54,7 @@ export default function MonitoringTab({
 
     return <>
         <Card>
-            <CardHeader>
-                <CardTitle>App Monitoring</CardTitle>
-                <CardDescription>This is an overview about the resources the app is consuming in comparison to the resources of all nodes.
-                </CardDescription>
-            </CardHeader>
-            <CardContent>
+            <CardContent className="pb-0">
             {!selectedPod ? <FullLoadingSpinner /> :
                 <Table>
                     <TableHeader>

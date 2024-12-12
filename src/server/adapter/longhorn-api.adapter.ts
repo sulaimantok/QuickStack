@@ -4,7 +4,7 @@ class LonghornApiAdapter {
 
     async getLonghornVolume(pvcName: String) { //Soll PVC Name und Used Size zurückgeben
         let longhornApiUrl = process.env.NODE_ENV === 'production' ? 'http://longhorn-frontend.longhorn-system.svc.cluster.local/v1/volumes' : 'http://localhost:4000/v1/volumes';
-        try {
+
         // Request senden
         const response = await fetch(`${longhornApiUrl}/${pvcName}`, {
             cache: 'no-cache',
@@ -27,11 +27,6 @@ class LonghornApiAdapter {
         const usedStorage = data.controllers?.[0]?.actualSize;
 
         return (usedStorage / (1024 * 1024)); // Rückgabe mit Erfolgsfall
-
-    } catch (error) {
-        console.error('Fehler beim Abrufen der Daten:', error);
-        return -1; // Rückgabe mit Fehlerfall
-    }
     }
 
 
@@ -74,8 +69,8 @@ class LonghornApiAdapter {
         // Iterate over each disk and sum up the values
         Object.values(data.disks).forEach(disk => {
 
-                totalStorageMaximum += disk.storageMaximum;
-                totalStorageAvailable += disk.storageAvailable;
+            totalStorageMaximum += disk.storageMaximum;
+            totalStorageAvailable += disk.storageAvailable;
         });
 
         return {
@@ -83,7 +78,7 @@ class LonghornApiAdapter {
             totalStorageAvailable
         };
 
-}
+    }
 }
 const longhornApiAdapter = new LonghornApiAdapter();
 export default longhornApiAdapter;

@@ -59,6 +59,7 @@ class PvcService {
                 try {
                     // Rufe Speicherverbrauchsdaten von getLonghornVolume ab
                     const usage = await longhornApiAdapter.getLonghornVolume(volumeName);
+                    console.log(usage)
                     // Füge die Daten in das Array ein
                     pvcUsageData.push({ pvcName, usage });
                 } catch (error) {

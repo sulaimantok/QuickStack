@@ -28,7 +28,7 @@ class ProjectService {
     }
 
     async getAllProjects() {
-        return await unstable_cache(async () => await dataAccess.client.project.findMany({
+        return await unstable_cache(() =>  dataAccess.client.project.findMany({
             include: {
                 apps: true
             },

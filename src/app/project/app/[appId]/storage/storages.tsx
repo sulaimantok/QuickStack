@@ -13,21 +13,20 @@ import { AppVolume } from "@prisma/client";
 import React from "react";
 import { KubeObjectNameUtils } from "@/server/utils/kube-object-name.utils";
 
+type AppVolumeWithCapacity = (AppVolume & { capacity?: string });
 
 export default function StorageList({ app }: {
     app: AppExtendedModel
 }) {
 
-    const [volumesWithStorage, setVolumesWithStorage] = React.useState<(AppVolume&{capacity?:string})[]>(app.appVolumes);
+    const [volumesWithStorage, setVolumesWithStorage] = React.useState<AppVolumeWithCapacity[]>(app.appVolumes);
 
     const loadAndMapStorageData = async () => {
-                //Funktion aufrufen, die die Daten aus dem Longhorn holt
 
-        const response = (await getPvcUsage(app.id, app.projectId)); // hier wäre der call
+        const response = (await getPvcUsage(app.id, app.projectId));
 
         if (response.status === 'success' && response.data) {
-            (response.data);
-            const mappedVolumeData = [...volumesWithStorage];
+            const mappedVolumeData = [...app.appVolumes] as AppVolumeWithCapacity[];
             for (let item of mappedVolumeData) {
                 const volume = response.data.find(x => x.pvcName === KubeObjectNameUtils.toPvcName(item.id));
                 if (volume) {
@@ -38,15 +37,10 @@ export default function StorageList({ app }: {
         } else {
             console.error(response);
         }
-
-
-
     }
 
     React.useEffect(() => {
-        setVolumesWithStorage(app.appVolumes);
         loadAndMapStorageData();
-
     }, [app.appVolumes]);
 
     const { openDialog } = useConfirmDialog();

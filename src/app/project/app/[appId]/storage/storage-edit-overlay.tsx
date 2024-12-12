@@ -77,10 +77,8 @@ export default function DialogEditDialog({ children, volume, app }: { children: 
   }, [state]);
 
   useEffect(() => {
-    if (!isOpen) {
-      form.reset();
-    }
-  }, [isOpen]);
+    form.reset(volume);
+  }, [volume]);
 
   return (
     <>

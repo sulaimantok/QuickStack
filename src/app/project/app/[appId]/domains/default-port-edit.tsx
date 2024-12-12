@@ -52,10 +52,9 @@ export default function DefaultPortEditDialog({ children, appPort, appId }: { ch
     const values = form.watch();
 
     useEffect(() => {
-        if (!isOpen) {
-            form.reset();
-        }
-    }, [isOpen]);
+        form.reset(appPort);
+    }, [appPort]);
+
 
     return (
         <>

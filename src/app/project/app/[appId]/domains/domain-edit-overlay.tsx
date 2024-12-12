@@ -58,10 +58,8 @@ export default function DialogEditDialog({ children, domain, appId }: { children
     const values = form.watch();
 
     useEffect(() => {
-        if (!isOpen) {
-            form.reset();
-        }
-    }, [isOpen]);
+        form.reset(domain);
+    }, [domain]);
 
     return (
         <>
