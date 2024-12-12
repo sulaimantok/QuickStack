@@ -6,7 +6,7 @@ import Link from "next/link";
 import { getAuthUserSession, getUserSession } from "@/server/utils/action-wrapper.utils";
 import projectService from "@/server/services/project.service";
 import AppTable from "./apps-table";
-import { CreateAppDialog } from "./create-app-dialog";
+import { EditAppDialog } from "./edit-app-dialog";
 import appService from "@/server/services/app.service";
 import {
     Breadcrumb,
@@ -18,6 +18,7 @@ import {
 } from "@/components/ui/breadcrumb"
 import PageTitle from "@/components/custom/page-title";
 import ProjectBreadcrumbs from "./project-breadcrumbs";
+import { Plus } from "lucide-react";
 
 
 export default async function AppsPage({
@@ -38,9 +39,9 @@ export default async function AppsPage({
             <PageTitle
                 title="Apps"
                 subtitle={`All Apps for Project "${project.name}"`}>
-                <CreateAppDialog projectId={projectId} />
+                <EditAppDialog projectId={projectId}><Button><Plus /> Create App</Button></EditAppDialog>
             </PageTitle>
-            <AppTable app={data} />
+            <AppTable app={data} projectId={project.id} />
             <ProjectBreadcrumbs project={project} />
         </div>
     )

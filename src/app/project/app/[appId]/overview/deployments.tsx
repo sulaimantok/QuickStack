@@ -19,7 +19,7 @@ export default function BuildsTab({
     app: AppExtendedModel;
 }) {
 
-    const { openDialog } = useConfirmDialog();
+    const { openConfirmDialog: openDialog } = useConfirmDialog();
     const [appBuilds, setAppBuilds] = useState<DeploymentInfoModel[] | undefined>(undefined);
     const [error, setError] = useState<string | undefined>(undefined);
     const [selectedDeploymentForLogs, setSelectedDeploymentForLogs] = useState<DeploymentInfoModel | undefined>(undefined);
@@ -44,7 +44,7 @@ export default function BuildsTab({
         const confirm = await openDialog({
             title: "Delete Build",
             description: "The build will be stopped and removed. Are you sure you want to stop this build?",
-            yesButton: "Stop & Remove Build"
+            okButton: "Stop & Remove Build"
         });
         if (confirm) {
             await Toast.fromAction(() => deleteBuild(buildName));

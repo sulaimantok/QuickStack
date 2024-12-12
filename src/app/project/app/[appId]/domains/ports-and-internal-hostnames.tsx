@@ -30,13 +30,13 @@ export default function InternalHostnames({ app }: {
     app: AppExtendedModel
 }) {
 
-    const { openDialog } = useConfirmDialog();
+    const { openConfirmDialog: openDialog } = useConfirmDialog();
 
     const asyncDeleteDomain = async (portId: string) => {
         const confirm = await openDialog({
             title: "Delete Port",
             description: "The port will be removed and the changes will take effect, after you deploy the app. Are you sure you want to remove this port?",
-            yesButton: "Delete Port"
+            okButton: "Delete Port"
         });
         if (confirm) {
             await Toast.fromAction(() => deletePort(portId));

@@ -28,8 +28,8 @@ export function ConfirmDialog() {
           </DialogDescription>
         </DialogHeader>
         <DialogFooter>
-          <Button onClick={() => closeDialog(true)}>{data.yesButton ?? 'OK'}</Button>
-          <Button variant="secondary" onClick={() => closeDialog(false)}>{data.noButton ?? 'Cancel'}</Button>
+          <Button onClick={() => closeDialog(true)}>{data.okButton ?? 'OK'}</Button>
+          <Button variant="secondary" onClick={() => closeDialog(false)}>{data.cancelButton ?? 'Cancel'}</Button>
         </DialogFooter>
       </DialogContent>
     </Dialog>

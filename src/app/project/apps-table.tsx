@@ -6,18 +6,19 @@ import Link from "next/link";
 import { SimpleDataTable } from "@/components/custom/simple-data-table";
 import { formatDateTime } from "@/frontend/utils/format.utils";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
-import { MoreHorizontal } from "lucide-react";
+import { Edit2, Eye, MoreHorizontal, Trash } from "lucide-react";
 import { Toast } from "@/frontend/utils/toast.utils";
 import { App, Project } from "@prisma/client";
 import { deleteApp } from "./actions";
 import { useBreadcrumbs, useConfirmDialog } from "@/frontend/states/zustand.states";
 import { useEffect } from "react";
+import { EditAppDialog } from "./edit-app-dialog";
 
 
 
-export default function AppTable({ app }: { app: App[] }) {
+export default function AppTable({ app, projectId }: { app: App[], projectId: string }) {
 
-    const { openDialog } = useConfirmDialog();
+    const { openConfirmDialog: openDialog } = useConfirmDialog();
 
     return <>
         <SimpleDataTable columns={[
@@ -49,15 +50,21 @@ export default function AppTable({ app }: { app: App[] }) {
                                 <DropdownMenuLabel>Actions</DropdownMenuLabel>
                                 <Link href={`/project/app/${item.id}`}>
                                     <DropdownMenuItem>
-                                        <span>Show App Details</span>
+                                        <Eye /> <span>Show App Details</span>
                                     </DropdownMenuItem>
                                 </Link>
                                 <DropdownMenuSeparator />
-                                <DropdownMenuItem onClick={() => openDialog({
-                                    title: "Delete App",
-                                    description: "Are you sure you want to delete this app? All data will be lost and this action cannot be undone.",
-                                }).then((result) => result ? Toast.fromAction(() => deleteApp(item.id)) : undefined)}>
-                                    <span className="text-red-500">Delete App</span>
+                                <EditAppDialog projectId={projectId} existingItem={item}>
+                                    <DropdownMenuItem>
+                                        <Edit2 /> <span>Edit App Name</span>
+                                    </DropdownMenuItem>
+                                </EditAppDialog>
+                                <DropdownMenuItem className="text-red-500"
+                                    onClick={() => openDialog({
+                                        title: "Delete App",
+                                        description: "Are you sure you want to delete this app? All data will be lost and this action cannot be undone.",
+                                    }).then((result) => result ? Toast.fromAction(() => deleteApp(item.id)) : undefined)}>
+                                    <Trash />  <span >Delete App</span>
                                 </DropdownMenuItem>
                             </DropdownMenuContent>
                         </DropdownMenu>

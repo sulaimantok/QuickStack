@@ -6,7 +6,7 @@ import Link from "next/link";
 import { getAuthUserSession, getUserSession } from "@/server/utils/action-wrapper.utils";
 import projectService from "@/server/services/project.service";
 import ProjectsTable from "./projects-table";
-import { CreateProjectDialog } from "./create-project-dialog";
+import { EditProjectDialog } from "./edit-project-dialog";
 import {
     Breadcrumb,
     BreadcrumbItem,
@@ -28,9 +28,9 @@ export default async function ProjectPage() {
         <div className="flex-1 space-y-4 pt-6">
             <div className="flex gap-4">
                 <h2 className="text-3xl font-bold tracking-tight flex-1">Projects</h2>
-                <CreateProjectDialog>
+                <EditProjectDialog>
                     <Button><Plus /> Create Project</Button>
-                </CreateProjectDialog>
+                </EditProjectDialog>
             </div>
             <ProjectsTable data={data} />
             <ProjectsBreadcrumbs />

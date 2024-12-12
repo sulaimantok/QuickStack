@@ -21,13 +21,13 @@ export default function DomainsList({ app }: {
     app: AppExtendedModel
 }) {
 
-    const { openDialog } = useConfirmDialog();
+    const { openConfirmDialog: openDialog } = useConfirmDialog();
 
     const asyncDeleteDomain = async (domainId: string) => {
         const confirm = await openDialog({
             title: "Delete Domain",
             description: "The domain will be removed and the changes will take effect, after you deploy the app. Are you sure you want to remove this domain?",
-            yesButton: "Delete Domain"
+            okButton: "Delete Domain"
         });
         if (confirm) {
             await Toast.fromAction(() => deleteDomain(domainId));

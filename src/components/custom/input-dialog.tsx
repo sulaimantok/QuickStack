@@ -1,3 +1,5 @@
+'use client'
+
 import { Button } from "@/components/ui/button"
 import {
   Dialog,
@@ -6,13 +8,63 @@ import {
   DialogFooter,
   DialogHeader,
   DialogTitle,
-  DialogTrigger,
 } from "@/components/ui/dialog"
-import { Input } from "@/components/ui/input"
-import { Label } from "@/components/ui/label"
-import React from "react";
-import LoadingSpinner from "../ui/loading-spinner";
-import { set } from "date-fns";
+import React, { useEffect } from "react";
+import { Input } from "../ui/input";
+import { Label } from "../ui/label";
+import { useInputDialog } from "@/frontend/states/zustand.states";
+
+export function InputDialog() {
+  const { isDialogOpen, data, closeDialog } = useInputDialog();
+  const [inputValue, setInputValue] = React.useState<string>(data?.inputValue ?? '');
+
+  useEffect(() => {
+    setInputValue(data?.inputValue ?? '');
+  }, [data]);
+
+  if (!data) {
+    return <></>;
+  }
+
+  return (
+    <Dialog open={isDialogOpen} onOpenChange={() => closeDialog()}>
+      <DialogContent className="sm:max-w-[425px]">
+        <DialogHeader>
+          <DialogTitle>{data.title}</DialogTitle>
+          {data.description && <DialogDescription>
+            {data.description}
+          </DialogDescription>}
+        </DialogHeader>
+        <div className="grid gap-4 py-4">
+          <div className="grid grid-cols-4 items-center gap-4">
+            {data.fieldName && <Label className="text-right">
+              {data.fieldName}
+            </Label>}
+            <Input
+              value={inputValue}
+              onKeyUp={(key) => {
+                if (key.key === 'Enter' && inputValue) {
+                  closeDialog(inputValue);
+                }
+              }}
+              onChange={(e) => setInputValue(e.target.value)}
+              className="col-span-3"
+            />
+          </div>
+        </div>
+        <DialogFooter>
+          <Button onClick={() => {
+            if (!inputValue) return;
+            closeDialog(inputValue)
+          }}>{data.okButton ?? 'OK'}</Button>
+          <Button variant="secondary" onClick={() => closeDialog(undefined)}>{data.cancelButton ?? 'Cancel'}</Button>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
+  )
+}
+
+/*
 
 export function InputDialog({
   children,
@@ -29,13 +81,23 @@ export function InputDialog({
   fieldName: string;
   OKButton?: string;
   CancelButton?: string;
-  onResult: (result: string | undefined) => boolean | Promise<boolean>;
 }) {
 
   const [value, setValue] = React.useState<string>("");
   const [isOpen, setIsOpen] = React.useState(false);
   const [isLoading, setIsLoading] = React.useState(false);
   const [errorMessages, setErrorMessages] = React.useState<string>("");
+
+  const { isDialogOpen, data, closeDialog } = useInputDialog();
+  const [inputValue, setInputValue] = React.useState<string>(data?.inputValue ?? '');
+
+  useEffect(() => {
+    setInputValue(data?.inputValue ?? '');
+  }, [data]);
+
+  if (!data) {
+    return <></>;
+  }
 
   const submit = async () => {
     try {
@@ -98,3 +160,4 @@ export function InputDialog({
     </Dialog>
   )
 }
+*/

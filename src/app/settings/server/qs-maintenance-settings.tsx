@@ -23,10 +23,10 @@ export default function QuickStackMaintenanceSettings({
             </CardHeader>
             <CardContent className="flex gap-4">
                 <Button variant="secondary" onClick={async () => {
-                    if (await useConfirm.openDialog({
+                    if (await useConfirm.openConfirmDialog({
                         title: 'Update QuickStack',
                         description: 'This action will restart the QuickStack service and installs the lastest version. It may take a few minutes to complete.',
-                        yesButton: "Update QuickStack",
+                        okButton: "Update QuickStack",
                     })) {
                         Toast.fromAction(() => updateQuickstack());
                     }

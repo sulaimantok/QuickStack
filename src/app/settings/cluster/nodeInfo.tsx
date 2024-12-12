@@ -12,7 +12,7 @@ import { useEffect } from "react";
 
 export default async function NodeInfo({ nodeInfos }: { nodeInfos: NodeInfoModel[] }) {
 
-    const { openDialog } = useConfirmDialog();
+    const { openConfirmDialog: openDialog } = useConfirmDialog();
 
     const { setBreadcrumbs } = useBreadcrumbs();
     useEffect(() => setBreadcrumbs([
@@ -24,8 +24,8 @@ export default async function NodeInfo({ nodeInfos }: { nodeInfos: NodeInfoModel
         const confirmation = await openDialog({
             title: 'Update Node Status',
             description: `Do you really want to ${schedulable ? 'activate' : 'deactivate'} Node ${nodeName}? ${!schedulable ? 'This will stop all running containers on this node and moves the workload to the other nodes. Future workloads won\'t be scheduled on this node.' : ''}`,
-            yesButton: 'Yes',
-            noButton: 'cancel'
+            okButton: 'Yes',
+            cancelButton: 'cancel'
         });
         if (confirmation) {
             Toast.fromAction(() => setNodeStatus(nodeName, schedulable));

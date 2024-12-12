@@ -43,13 +43,13 @@ export default function StorageList({ app }: {
         loadAndMapStorageData();
     }, [app.appVolumes]);
 
-    const { openDialog } = useConfirmDialog();
+    const { openConfirmDialog: openDialog } = useConfirmDialog();
 
     const asyncDeleteVolume = async (volumeId: string) => {
         const confirm = await openDialog({
             title: "Delete Volume",
             description: "The volume will be removed and the Data will be lost. The changes will take effect, after you deploy the app. Are you sure you want to remove this volume?",
-            yesButton: "Delete Volume"
+            okButton: "Delete Volume"
         });
         if (confirm) {
             await Toast.fromAction(() => deleteVolume(volumeId));
@@ -60,7 +60,7 @@ export default function StorageList({ app }: {
         const confirm = await openDialog({
             title: "Download Volume Data",
             description: "The volume data will be zipped and downloaded. Depending on the size of the volume this can take a while. Are you sure you want to download the volume data?",
-            yesButton: "Download"
+            okButton: "Download"
         });
         if (confirm) {
             await Toast.fromAction(() => downloadPvcData(volumeId)).then(x => {

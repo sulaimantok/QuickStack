@@ -20,7 +20,7 @@ import {
 } from "@/components/ui/sidebar"
 import { AppleIcon, BookOpen, Boxes, Calendar, ChartNoAxesCombined, ChevronDown, ChevronRight, ChevronUp, Dot, FolderClosed, Home, Inbox, Info, Plus, Radio, Search, Server, Settings, Settings2, User, User2 } from "lucide-react"
 import Link from "next/link"
-import { CreateProjectDialog } from "./projects/create-project-dialog"
+import { EditProjectDialog } from "./projects/edit-project-dialog"
 import projectService from "@/server/services/project.service"
 import { getAuthUserSession, getUserSession } from "@/server/utils/action-wrapper.utils"
 import { SidebarLogoutButton } from "./sidebar-logout-button"
@@ -123,11 +123,11 @@ export function SidebarCient({
                     <span>Projects</span>
                   </Link>
                 </SidebarMenuButton>
-                <SidebarMenuAction>
-                  <CreateProjectDialog>
+                <EditProjectDialog>
+                  <SidebarMenuAction>
                     <Plus />
-                  </CreateProjectDialog>
-                </SidebarMenuAction>
+                  </SidebarMenuAction>
+                </EditProjectDialog>
                 <SidebarMenu>
                   {projects.map((item) => (
                     <DropdownMenu key={item.id}>

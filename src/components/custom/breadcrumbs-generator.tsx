@@ -19,7 +19,7 @@ import {
 } from "@/components/ui/sidebar"
 import { AppleIcon, Calendar, ChartNoAxesCombined, ChevronDown, ChevronUp, FolderClosed, Home, Inbox, Plus, Search, Server, Settings, Settings2, User, User2 } from "lucide-react"
 import Link from "next/link"
-import { CreateProjectDialog } from "../../app/projects/create-project-dialog"
+import { EditProjectDialog } from "../../app/projects/edit-project-dialog"
 import projectService from "@/server/services/project.service"
 import { getAuthUserSession } from "@/server/utils/action-wrapper.utils"
 import { Breadcrumb, BreadcrumbItem, BreadcrumbLink, BreadcrumbList, BreadcrumbSeparator } from "@/components/ui/breadcrumb";

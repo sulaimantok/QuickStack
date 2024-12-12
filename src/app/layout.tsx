@@ -12,6 +12,7 @@ import { AppSidebar } from "./sidebar";
 import { cookies } from "next/headers";
 import { BreadcrumbsGenerator } from "../components/custom/breadcrumbs-generator";
 import { getUserSession } from "@/server/utils/action-wrapper.utils";
+import { InputDialog } from "@/components/custom/input-dialog";
 
 const inter = Inter({
   subsets: ["latin"],
@@ -56,6 +57,7 @@ export default async function RootLayout({
 
         <Toaster />
         <ConfirmDialog />
+        <InputDialog />
       </body>
     </html>
   );

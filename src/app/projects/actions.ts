@@ -6,13 +6,15 @@ import { getAuthUserSession, saveFormAction, simpleAction } from "@/server/utils
 import { z } from "zod";
 
 const createProjectSchema = z.object({
-    projectName: z.string().min(1)
+    projectName: z.string().min(1),
+    projectId: z.string().optional()
 });
 
-export const createProject = async (projectName: string) =>
-    saveFormAction({ projectName }, createProjectSchema, async (validatedData) => {
+export const createProject = async (projectName: string, projectId?: string) =>
+    saveFormAction({ projectName, projectId }, createProjectSchema, async (validatedData) => {
         await getAuthUserSession();
         await projectService.save({
+            id: validatedData.projectId ?? undefined,
             name: validatedData.projectName
         });
         return new SuccessActionResult(undefined, "Project created successfully.");

@@ -9,11 +9,12 @@ const createAppSchema = z.object({
     appName: z.string().min(1)
 });
 
-export const createApp = async (appName: string, projectId: string) =>
+export const createApp = async (appName: string, projectId: string, appId?: string) =>
     saveFormAction({ appName }, createAppSchema, async (validatedData) => {
         await getAuthUserSession();
 
         const returnData = await appService.save({
+            id: appId ?? undefined,
             name: validatedData.appName,
             projectId
         });
