@@ -75,17 +75,13 @@ class PodService {
                     async ({ status }) => {
                         try {
                             writerStream.close();
-                            if (status === 'Failure' /* || stderrStream.size()*/) {
+                            if (status === 'Failure') {
                                 return reject(
                                     new Error(
                                         `Error from cpFromPod - details: \n ${stderrStream.read().toString()}`,
                                     ),
                                 );
                             }
-                            /*await tar.x({
-                                file: tmpFileName,
-                                cwd: tgtPath,
-                            });*/
                             resolve();
                         } catch (e) {
                             reject(e);
