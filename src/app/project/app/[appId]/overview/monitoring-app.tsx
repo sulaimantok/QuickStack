@@ -1,19 +1,11 @@
-import { SimpleDataTable } from "@/components/custom/simple-data-table";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { formatDateTime } from "@/frontend/utils/format.utils";
+import { Card, CardContent } from "@/components/ui/card";
 import { AppExtendedModel } from "@/shared/model/app-extended.model";
 import { useEffect, useState } from "react";
 import { getRessourceDataApp } from "./actions";
 import FullLoadingSpinner from "@/components/ui/full-loading-spinnter";
-import { Button } from "@/components/ui/button";
-import { useConfirmDialog } from "@/frontend/states/zustand.states";
-import { Toast } from "@/frontend/utils/toast.utils";
-import { DeploymentInfoModel } from "@/shared/model/deployment-info.model";
-import DeploymentStatusBadge from "./deployment-status-badge";
-import { BuildLogsDialog } from "./build-logs-overlay";
-import ShortCommitHash from "@/components/custom/short-commit-hash";
 import { PodsResourceInfoModel } from "@/shared/model/pods-resource-info.model";
-import { Table, TableBody, TableCaption, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 
 export default function MonitoringTab({
     app
@@ -67,10 +59,21 @@ export default function MonitoringTab({
                     </TableHeader>
                     <TableBody>
                             <TableRow>
-                                <TableCell className="font-medium">{selectedPod?.cpuPercent}</TableCell>
-                                <TableCell className="font-medium">{selectedPod?.cpuAbsolut}</TableCell>
-                                <TableCell className="font-medium">{selectedPod?.ramPercent}</TableCell>
-                                <TableCell className="font-medium">{selectedPod?.ramAbsolut}</TableCell>
+                                <TableCell className="font-medium">{selectedPod?.cpuPercent.toFixed(2)}</TableCell>
+                                <TableCell>
+                                <TooltipProvider>
+                                        <Tooltip>
+                                            <TooltipTrigger asChild>
+                                                <div className={'px-3 py-1.5 rounded cursor-pointer'}>{selectedPod?.cpuAbsolut.toFixed(2)}</div>
+                                            </TooltipTrigger>
+                                            <TooltipContent>
+                                                <p className="max-w-[350px]">{selectedPod?.cpuAbsolut.toFixed(10)} cores</p>
+                                            </TooltipContent>
+                                        </Tooltip>
+                                    </TooltipProvider>
+                                </TableCell>
+                                <TableCell className="font-medium">{selectedPod?.ramPercent.toFixed(2)}</TableCell>
+                                <TableCell className="font-medium">{selectedPod?.ramAbsolut.toFixed(2)}</TableCell>
                             </TableRow>
                     </TableBody>
                 </Table>

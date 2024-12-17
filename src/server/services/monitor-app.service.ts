@@ -8,9 +8,9 @@ class MonitorAppService {
     async getPodsForApp(projectId: string, appId: string): Promise<PodsResourceInfoModel> {
         const metricsClient = new k8s.Metrics(k3s.getKubeConfig());
         const podsFromApp = await setupPodService.getPodsForApp(projectId, appId);
-        const topPodsRes1 = await k8s.topPods(k3s.core, metricsClient, projectId);
+        const topPods = await k8s.topPods(k3s.core, metricsClient, projectId);
 
-        const filteredTopPods = topPodsRes1.filter((topPod) =>
+        const filteredTopPods = topPods.filter((topPod) =>
             podsFromApp.some((pod) => pod.podName === topPod.Pod.metadata?.name)
         );
 
@@ -39,14 +39,14 @@ class MonitorAppService {
         var totalRamAppCorrectUnit: number = totalResourcesApp.ram / (1024 * 1024);  //von Byte in MB umrechnen
 
 
-        const appCpuUsagePercent = ((totalResourcesApp.cpu / totalResourcesNodes.cpu) * 100).toFixed(2);
-        const appRamUsagePercent = ((totalRamAppCorrectUnit / totalRamNodesCorrectUnit) * 100).toFixed(2);
+        const appCpuUsagePercent = ((totalResourcesApp.cpu / totalResourcesNodes.cpu) * 100);
+        const appRamUsagePercent = ((totalRamAppCorrectUnit / totalRamNodesCorrectUnit) * 100);
 
         return {
-            cpuPercent: `${appCpuUsagePercent}%`,
-            cpuAbsolut: `${totalResourcesApp.cpu.toFixed(10)} cores`,
-            ramPercent: `${appRamUsagePercent}%`,
-            ramAbsolut: `${totalRamAppCorrectUnit.toFixed(2)} MB`
+            cpuPercent: appCpuUsagePercent,
+            cpuAbsolut: totalResourcesApp.cpu,
+            ramPercent: appRamUsagePercent,
+            ramAbsolut: totalRamAppCorrectUnit
         }
     }
 
