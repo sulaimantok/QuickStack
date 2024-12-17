@@ -4,8 +4,6 @@ import { getAuthUserSession } from "@/server/utils/action-wrapper.utils";
 import PageTitle from "@/components/custom/page-title";
 import clusterService from "@/server/services/node.service";
 import ResourceNodes from "./monitoring-nodes";
-import { Button } from "@/components/ui/button";
-import paramService, { ParamService } from "@/server/services/param.service";
 
 export default async function ResourceNodesInfoPage() {
 
