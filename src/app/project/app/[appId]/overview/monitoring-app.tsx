@@ -39,11 +39,6 @@ export default function MonitoringTab({
         return () => clearInterval(intervalId);
     }, [app]);
 
-
-    if (app.sourceType === 'container') {
-        return <></>;
-    }
-
     return <>
         <Card>
             <CardContent className="pb-0">

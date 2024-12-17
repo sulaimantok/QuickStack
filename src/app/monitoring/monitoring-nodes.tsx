@@ -112,7 +112,7 @@ export default async function ResourcesNodes({
                                       y={viewBox.cy}
                                       className="fill-foreground text-4xl font-bold"
                                     >
-                                      {(Node.cpuUsageAbsolut/Node.cpuUsageCapacity * 100).toFixed(2)}
+                                      {(Node.cpuUsageAbsolut / Node.cpuUsageCapacity * 100).toFixed(2)}
                                     </tspan>
                                     <tspan
                                       x={viewBox.cx}

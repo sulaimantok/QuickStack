@@ -16,12 +16,10 @@ import { useFormState } from 'react-dom'
 import { useEffect, useState } from "react";
 import { FormUtils } from "@/frontend/utils/form.utilts";
 import { SubmitButton } from "@/components/custom/submit-button";
-import { AppDomain, AppPort } from "@prisma/client"
-import { AppDomainEditModel, appDomainEditZodModel } from "@/shared/model/domain-edit.model"
+import { AppPort } from "@prisma/client"
 import { ServerActionResult } from "@/shared/model/server-action-error-return.model"
-import { saveDomain, savePort } from "./actions"
+import { savePort } from "./actions"
 import { toast } from "sonner"
-import CheckboxFormField from "@/components/custom/checkbox-form-field"
 import { AppPortModel, appPortZodModel } from "@/shared/model/default-port.model"
 
 

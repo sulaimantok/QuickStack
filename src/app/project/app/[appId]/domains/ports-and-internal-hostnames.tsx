@@ -1,19 +1,8 @@
 'use client';
 
-import { SubmitButton } from "@/components/custom/submit-button";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
-import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
-import { FormUtils } from "@/frontend/utils/form.utilts";
-import { zodResolver } from "@hookform/resolvers/zod";
-import { useForm } from "react-hook-form";
 import { deletePort, savePort } from "./actions";
-import { useFormState } from "react-dom";
-import { ServerActionResult } from "@/shared/model/server-action-error-return.model";
-import { Input } from "@/components/ui/input";
-import { useEffect } from "react";
-import { toast } from "sonner";
 import { AppExtendedModel } from "@/shared/model/app-extended.model";
-import { AppPortModel, appPortZodModel } from "@/shared/model/default-port.model";
 import { KubeObjectNameUtils } from "@/server/utils/kube-object-name.utils";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { QuestionMarkCircledIcon } from "@radix-ui/react-icons";

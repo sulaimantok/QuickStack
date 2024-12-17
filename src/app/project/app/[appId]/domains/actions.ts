@@ -1,6 +1,5 @@
 'use server'
 
-import { AppRateLimitsModel } from "@/shared/model/app-rate-limits.model";
 import { AppPortModel, appPortZodModel } from "@/shared/model/default-port.model";
 import { appDomainEditZodModel } from "@/shared/model/domain-edit.model";
 import { SuccessActionResult } from "@/shared/model/server-action-error-return.model";
