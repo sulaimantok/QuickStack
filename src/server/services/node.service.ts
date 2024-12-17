@@ -65,16 +65,6 @@ class ClusterService {
     async getNodeResourceUsage(): Promise<NodeResourceModel[]> {
         const topNodes = await k8s.topNodes(k3s.core);
 
-        function calculatePercent(current: number, capacity: number): number {
-            return parseFloat(((current / capacity) * 100).toFixed(2));
-        }
-
-
-
-        function bytesToMb(bytes: number): number {
-            return parseFloat((bytes / (1024 * 1024)).toFixed(2));
-        }
-
         return await Promise.all (topNodes.map(async (node) => {
             const diskInfo = await longhornApiAdapter.getNodeStorageInfo(node.Node.metadata?.name!);
             return {
