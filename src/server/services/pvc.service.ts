@@ -56,17 +56,9 @@ class PvcService {
             const volumeName = pvc.spec?.volumeName;
 
             if (pvcName && volumeName) {
-                try {
-                    // Rufe Speicherverbrauchsdaten von getLonghornVolume ab
-                    const usage = await longhornApiAdapter.getLonghornVolume(volumeName);
-                    console.log(usage)
-                    // Füge die Daten in das Array ein
-                    pvcUsageData.push({ pvcName, usage });
-                } catch (error) {
-                    console.error(`Fehler beim Abrufen der Daten für PVC ${pvcName} und Volume ${volumeName}:`, error);
-                }
-            } else {
-                console.warn(`PVC ${pvc.metadata?.name} hat keinen gültigen Namen oder Volume-Namen.`);
+
+                const usage = await longhornApiAdapter.getLonghornVolume(volumeName);
+                pvcUsageData.push({ pvcName, usage });
             }
         }
         return pvcUsageData;

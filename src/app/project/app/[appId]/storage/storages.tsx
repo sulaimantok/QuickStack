@@ -83,8 +83,8 @@ export default function StorageList({ app }: {
                     <TableHeader>
                         <TableRow>
                             <TableHead>Mount Path</TableHead>
-                            <TableHead>Available Storage</TableHead>
-                            <TableHead>Used Storage</TableHead>
+                            <TableHead>Storage Size</TableHead>
+                            <TableHead>Storage Used</TableHead>
                             <TableHead>Access Mode</TableHead>
                             <TableHead className="w-[100px]">Action</TableHead>
                         </TableRow>
