@@ -1,6 +1,4 @@
 'use client';
-
-import { TrendingUp } from 'lucide-react';
 import {
   Label,
   PolarGrid,
@@ -18,31 +16,10 @@ import {
   CardTitle,
 } from '@/components/ui/card';
 import { ChartConfig, ChartContainer } from '@/components/ui/chart';
-
 import { NodeResourceModel } from '@/shared/model/node-resource.model';
 import {
-  Table,
-  TableBody,
-  TableCaption,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from '@/components/ui/table';
-import { Code } from '@/components/custom/code';
-import { Toast } from '@/frontend/utils/toast.utils';
-import { setNodeStatus } from './actions';
-import { Button } from '@/components/ui/button';
-import {
   useBreadcrumbs,
-  useConfirmDialog,
 } from '@/frontend/states/zustand.states';
-import {
-  Tooltip,
-  TooltipContent,
-  TooltipProvider,
-  TooltipTrigger,
-} from '@/components/ui/tooltip';
 import { useEffect } from 'react';
 
 export default async function ResourcesNodes({
@@ -51,12 +28,12 @@ export default async function ResourcesNodes({
   resourcesNodes: NodeResourceModel[];
 }) {
   const chartData = [
-    { browser: 'safari', visitors: 200, fill: 'var(--color-safari)' },
+    { browser: 'safari', usage: 1, fill: 'var(--color-safari)' },
   ];
 
   const chartConfig = {
-    visitors: {
-      label: 'Visitors',
+    usage: {
+      label: 'Usage',
     },
     safari: {
       label: 'Safari',
@@ -71,11 +48,6 @@ export default async function ResourcesNodes({
   );
 
   return (
-    <Card>
-      <CardHeader>
-        <CardTitle>Nodes</CardTitle>
-        <CardDescription>Overview of all Nodes in your Cluster</CardDescription>
-      </CardHeader>
       <CardContent>
         <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
           {resourcesNodes.map((Node, index) => (
@@ -83,7 +55,8 @@ export default async function ResourcesNodes({
               <h3
                 className={'p-4 rounded-t-lg font-semibold text-xl text-center'}
               >
-                Node {index + 1}
+                Node {index + 1}:<br/>
+                {Node.name}
               </h3>
               <div className="space-y-2 px-4 pb-2">
                 <Card className="flex flex-col">
@@ -111,7 +84,7 @@ export default async function ResourcesNodes({
                           polarRadius={[86, 74]}
                         />
                         <RadialBar
-                          dataKey="visitors"
+                          dataKey="usage"
                           background
                           cornerRadius={10}
                         />
@@ -193,7 +166,7 @@ export default async function ResourcesNodes({
                           polarRadius={[86, 74]}
                         />
                         <RadialBar
-                          dataKey="visitors"
+                          dataKey="usage"
                           background
                           cornerRadius={10}
                         />
@@ -275,7 +248,7 @@ export default async function ResourcesNodes({
                           polarRadius={[86, 74]}
                         />
                         <RadialBar
-                          dataKey="visitors"
+                          dataKey="usage"
                           background
                           cornerRadius={10}
                         />
@@ -335,6 +308,5 @@ export default async function ResourcesNodes({
           ))}
         </div>
       </CardContent>
-    </Card>
   );
 }
