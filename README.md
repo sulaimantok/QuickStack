@@ -1,36 +1,34 @@
-This is a [Next.js](https://nextjs.org/) project bootstrapped with [`create-next-app`](https://github.com/vercel/next.js/tree/canary/packages/create-next-app).
+# QuickStack
+
+QuickStack is a open source self-hosted Platform-as-a-Service (PaaS) solution designed to simplify the management of containerized applications on Virtual Private Server (VPS) infrastructures.
+Developed as part of a student project at the [Eastern Switzerland University of Applied Sciences](https://ost.ch/), QuickStack provides a cost-effective alternative to commercial cloud PaaS offerings like Vercel, Digital Ocean App Platform or Azure App Service.
+
+## Key Features
+
+* **Simple Installation:** Deploy QuickStack on a VPS with a single command.
+* **Git Integration:** Deploy applications directly from public or private Git repositories.
+* **Live Logging:** Debug running containers with live log streams.
+* **Web Terminal:** Access a web-based terminal directly within the container for debugging.
+* **SSL Certificate Management:** Automatic SSL certificate generation via Let's Encrypt.
+* **Resource Management:** Set resource limits (CPU, RAM, storage) for each application.
+* **Monitoring Dashboard:** Track resource consumption and application performance.
+* **Persistent Storage:** Attach persistent storage volumes to applications using Longhorn.
+* **Cluster Support:** Scale applications across multiple VPS nodes using Kubernetes.
 
 ## Getting Started
+### Prerequisites
+Before getting started, ensure that you have:
+* A new virtual private server (VPS) running a Linux distribution (Ubuntu preferred).
 
-First, run the development server:
-
+### Installation
+1. **Connect to your VPS via SSH.**
+2. **Run the setup script:**
 ```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+curl -sfL https://get.quickstack.dev/setup.sh | sh
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+## Contributing
+Contributions are welcome! If you have ideas for new features or find bugs, please submit an issue or pull request.
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
-
-This project uses [`next/font`](https://nextjs.org/docs/basic-features/font-optimization) to automatically optimize and load Inter, a custom Google Font.
-
-## Learn More
-
-To learn more about Next.js, take a look at the following resources:
-
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
-
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js/) - your feedback and contributions are welcome!
-
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/deployment) for more details.
+## License
+This project is licensed under the GPL-3.0 license.
