@@ -8,10 +8,10 @@
     "build": "next build && tsc --project tsconfig.server.json",
     "start": "next start",
     "start-prod": "cross-env NODE_ENV=production node dist/server.js",
-    "prisma-generate": "bunx prisma generate && bun ./fix-wrong-zod-imports.js",
+    "prisma-generate": "npx prisma generate && node ./fix-wrong-zod-imports.js",
     "prisma-generate-build": "npx prisma generate && node ./fix-wrong-zod-imports.js",
-    "prisma-migrate": "bunx prisma migrate dev --name migration",
-    "prisma-deploy": "bunx prisma migrate deploy",
+    "prisma-migrate": "npx prisma migrate dev --name migration",
+    "prisma-deploy": "npx prisma migrate deploy",
     "lint": "next lint",
     "test": "jest"
   },
