@@ -1,7 +1,7 @@
 # QuickStack 
 
 QuickStack is a open source self-hosted Platform-as-a-Service (PaaS) solution designed to simplify the management of containerized applications on Virtual Private Server (VPS) infrastructures.
-Developed as part of a student project at the [Eastern Switzerland University of Applied Sciences](https://ost.ch/), QuickStack provides a cost-effective alternative to commercial cloud PaaS offerings like Vercel, Digital Ocean App Platform or Azure App Service.
+Developed as part of a student project at the [Eastern Switzerland University of Applied Sciences](https://ost.ch/), QuickStack provides a scalable and cost-effective alternative to commercial cloud PaaS offerings like Vercel, Digital Ocean App Platform or Azure App Service.
 
 ## Key Features
 
@@ -12,7 +12,7 @@ Developed as part of a student project at the [Eastern Switzerland University of
 * **SSL Certificate Management:** Automatic SSL certificate generation via Let's Encrypt.
 * **Resource Management:** Set resource limits (CPU, RAM, storage) for each application.
 * **Monitoring Dashboard:** Track resource consumption and application performance.
-* **Persistent Storage:** Attach persistent storage volumes to applications using Longhorn.
+* **Persistent Storage:** Cluster-wide persistent storage volumes for applications using Longhorn.
 * **Cluster Support:** Scale applications across multiple VPS nodes using Kubernetes.
 
 ## Getting Started

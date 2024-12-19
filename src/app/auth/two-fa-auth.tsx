@@ -30,6 +30,14 @@ export default function TwoFaAuthForm({
     const [errorMessages, setErrorMessages] = useState<string | undefined>(undefined);
     const [loading, setLoading] = useState<boolean>(false);
 
+    function redirectToProjects() {
+        const currentUrl = window.location.href
+        const url = new URL(currentUrl)
+        url.pathname = '/'
+        url.search = ''
+        window.open(url.toString(), '_self')
+    }
+
     const authWith2Fa = async (data: TwoFaInputSchema) => {
         setLoading(true);
         setErrorMessages(undefined);
@@ -38,8 +46,9 @@ export default function TwoFaAuthForm({
                 username: authData.email,
                 password: authData.password,
                 totpToken: data.twoFactorCode,
-                redirect: true,
+                redirect: false,
             });
+            redirectToProjects();
         } catch (e) {
             console.log(e);
             setErrorMessages((e as any).message);
