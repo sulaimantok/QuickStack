@@ -12,6 +12,7 @@ import deploymentService from "./deployment.service";
 import deploymentLogService, { dlog } from "./deployment-logs.service";
 import podService from "./pod.service";
 import stream from "stream";
+import { PathUtils } from "../utils/path.utils";
 
 const kanikoImage = "gcr.io/kaniko-project/executor:latest";
 const REGISTRY_NODE_PORT = 30100;
@@ -59,6 +60,22 @@ class BuildService {
 
         dlog(deploymentId, `Creating build job with name: ${buildName}`);
 
+        const contextPaths = PathUtils.splitPath(app.dockerfilePath);
+
+        const kanikoArgs = [
+            `--dockerfile=${contextPaths.filePath}`,
+            `--insecure`,
+            `--log-format=text`,
+            `--context=${app.gitUrl!.replace("https://", "git://")}#refs/heads/${app.gitBranch}`,
+            `--destination=${this.createInternalContainerRegistryUrlForAppId(app.id)}`
+        ];
+
+        if (contextPaths.folderPath) {
+            kanikoArgs.push(`--context-sub-path=${contextPaths.folderPath}`);
+        }
+
+        dlog(deploymentId, `Dockerfile context path: ${contextPaths.folderPath ?? 'root directory of Git Repository'}. Dockerfile name: ${contextPaths.filePath}`);
+
         const jobDefinition: V1Job = {
             apiVersion: "batch/v1",
             kind: "Job",
@@ -80,13 +97,7 @@ class BuildService {
                             {
                                 name: buildName,
                                 image: kanikoImage,
-                                args: [
-                                    `--dockerfile=${app.dockerfilePath}`,
-                                    `--insecure`,
-                                    `--log-format=text`,
-                                    `--context=${app.gitUrl!.replace("https://", "git://")}#refs/heads/${app.gitBranch}`, // todo change to shared folder
-                                    `--destination=${this.createInternalContainerRegistryUrlForAppId(app.id)}`
-                                ]
+                                args: kanikoArgs
                             },
                         ],
                         restartPolicy: "Never",

@@ -39,6 +39,22 @@ export class PathUtils {
         return path.join(this.tempVolumeDownloadPath, `${volumeId}.tar.gz`);
     }
 
+    static splitPath(relativePath: string): { folderPath: string | undefined; filePath: string } {
+        if (!relativePath.includes('/')) {
+            return { folderPath: undefined, filePath: relativePath };
+        }
+
+        const lastSlashIndex = relativePath.lastIndexOf('/');
+
+        let folderPath = relativePath.substring(0, lastSlashIndex) || undefined;
+        if (folderPath === '.') {
+            folderPath = undefined;
+        }
+        const filePath = relativePath.substring(lastSlashIndex + 1);
+
+        return { folderPath, filePath };
+    }
+
     private static convertIdToFolderFriendlyName(id: string): string {
         // remove all special characters
         return id.replace(/[^a-zA-Z0-9]/g, '_');

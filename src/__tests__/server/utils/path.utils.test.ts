@@ -88,5 +88,42 @@ describe('PathUtils', () => {
             const id = 'test@123!';
             expect(PathUtils['convertIdToFolderFriendlyName'](id)).toBe('test_123_');
         });
+
+
     });
+
+
+    describe('splitPath', () => {
+        it('should split the path correctly when there is a folder', () => {
+            const relativePath = 'folder/file.txt';
+            const result = PathUtils.splitPath(relativePath);
+            expect(result).toEqual({ folderPath: 'folder', filePath: 'file.txt' });
+        });
+
+        it('should split the path correctly when there is a folder 2', () => {
+            const relativePath = '.backend/Dockerfile';
+            const result = PathUtils.splitPath(relativePath);
+            expect(result).toEqual({ folderPath: '.backend', filePath: 'Dockerfile' });
+        });
+
+        it('should split the path correctly when there is are 2 folders', () => {
+            const relativePath = './cats/backend/Dockerfile';
+            const result = PathUtils.splitPath(relativePath);
+            expect(result).toEqual({ folderPath: './cats/backend', filePath: 'Dockerfile' });
+        });
+
+        it('should split the path correctly when there is no folder', () => {
+            const relativePath = 'file.txt';
+            const result = PathUtils.splitPath(relativePath);
+            expect(result).toEqual({ folderPath: undefined, filePath: 'file.txt' });
+        });
+
+
+        it('should split the path correctly when there is no folder 2', () => {
+            const relativePath = './file.txt';
+            const result = PathUtils.splitPath(relativePath);
+            expect(result).toEqual({ folderPath: undefined, filePath: 'file.txt' });
+        });
+    });
+
 });
