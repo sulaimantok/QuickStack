@@ -21,7 +21,7 @@ interface OCIManifest {
 class RegistryApiAdapter {
 
     private registryBaseUrl = process.env.NODE_ENV === 'production' ?
-        'http://registry-svc.registry-and-build.svc.cluster.local' :
+        'http://registry-svc.registry-and-build.svc.cluster.local:5000' :
         'http://localhost:5000';
 
     async getAllImages() {
