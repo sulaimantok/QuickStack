@@ -6,6 +6,8 @@ import { QsIngressSettingsModel, qsIngressSettingsZodModel } from "@/shared/mode
 import { QsLetsEncryptSettingsModel, qsLetsEncryptSettingsZodModel } from "@/shared/model/qs-letsencrypt-settings.model";
 import quickStackService from "@/server/services/qs.service";
 import { ServerActionResult, SuccessActionResult } from "@/shared/model/server-action-error-return.model";
+import registryService from "@/server/services/registry.service";
+import { StringUtils } from "@/shared/utils/string.utils";
 
 export const updateIngressSettings = async (prevState: any, inputData: QsIngressSettingsModel) =>
   saveFormAction(inputData, qsIngressSettingsZodModel, async (validatedData) => {
@@ -51,4 +53,18 @@ export const updateQuickstack = async () =>
     await getAuthUserSession();
     await quickStackService.updateQuickStack();
     return new SuccessActionResult(undefined, 'QuickStack will be updated, refresh the page in a few seconds.');
+  });
+
+export const updateRegistry = async () =>
+  simpleAction(async () => {
+    await getAuthUserSession();
+    await registryService.deployRegistry(true);
+    return new SuccessActionResult(undefined, 'Registry will be updated, this might take a few seconds.');
+  });
+
+export const purgeRegistryImages = async () =>
+  simpleAction(async () => {
+    await getAuthUserSession();
+    const deletedSize = await registryService.purgeRegistryImages();
+    return new SuccessActionResult(undefined, `Successfully purged ${StringUtils.convertBytesToReadableSize(deletedSize)} of images.`);
   });

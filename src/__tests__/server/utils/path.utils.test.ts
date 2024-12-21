@@ -124,6 +124,12 @@ describe('PathUtils', () => {
             const result = PathUtils.splitPath(relativePath);
             expect(result).toEqual({ folderPath: undefined, filePath: 'file.txt' });
         });
+
+        it('should split the path correctly when there are two points in the path', () => {
+            const relativePath = './InnoSwipe.WebApi/Dockerfile';
+            const result = PathUtils.splitPath(relativePath);
+            expect(result).toEqual({ folderPath: './InnoSwipe.WebApi', filePath: 'Dockerfile' });
+        });
     });
 
 });

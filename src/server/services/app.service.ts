@@ -7,7 +7,7 @@ import { AppExtendedModel } from "@/shared/model/app-extended.model";
 import { ServiceException } from "@/shared/model/service.exception.model";
 import { KubeObjectNameUtils } from "../utils/kube-object-name.utils";
 import deploymentService from "./deployment.service";
-import buildService, { BUILD_NAMESPACE } from "./build.service";
+import buildService from "./build.service";
 import namespaceService from "./namespace.service";
 import ingressService from "./ingress.service";
 import pvcService from "./pvc.service";

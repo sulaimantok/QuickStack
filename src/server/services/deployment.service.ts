@@ -6,14 +6,13 @@ import { ListUtils } from "../../shared/utils/list.utils";
 import { DeploymentInfoModel, DeplyomentStatus } from "@/shared/model/deployment-info.model";
 import { BuildJobStatus } from "@/shared/model/build-job";
 import { ServiceException } from "@/shared/model/service.exception.model";
-import { PodsInfoModel } from "@/shared/model/pods-info.model";
-import { KubeObjectNameUtils } from "../utils/kube-object-name.utils";
 import pvcService from "./pvc.service";
 import ingressService from "./ingress.service";
 import namespaceService from "./namespace.service";
 import { Constants } from "../../shared/utils/constants";
 import svcService from "./svc.service";
 import { dlog } from "./deployment-logs.service";
+import registryService from "./registry.service";
 
 class DeploymentService {
 
@@ -90,7 +89,7 @@ class DeploymentService {
                         containers: [
                             {
                                 name: app.id,
-                                image: !!buildJobName ? buildService.createContainerRegistryUrlForAppId(app.id) : app.containerImageSource as string,
+                                image: !!buildJobName ? registryService.createContainerRegistryUrlForAppId(app.id) : app.containerImageSource as string,
                                 imagePullPolicy: 'Always',
                                 ...(envVars.length > 0 ? { env: envVars } : {}),
                                 ...(volumeMounts.length > 0 ? { volumeMounts: volumeMounts } : {}),
