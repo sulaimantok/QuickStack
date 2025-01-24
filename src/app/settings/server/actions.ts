@@ -15,7 +15,7 @@ import { KubeSizeConverter } from "@/shared/utils/kubernetes-size-converter.util
 import buildService from "@/server/services/build.service";
 import { PathUtils } from "@/server/utils/path.utils";
 import { FsUtils } from "@/server/utils/fs.utils";
-import traefikMeDomainService from "@/server/services/standalone-services/traefik-me-domain.service";
+import traefikMeDomainStandaloneService from "@/server/services/standalone-services/traefik-me-domain-standalone.service";
 
 export const updateIngressSettings = async (prevState: any, inputData: QsIngressSettingsModel) =>
   saveFormAction(inputData, qsIngressSettingsZodModel, async (validatedData) => {
@@ -115,7 +115,7 @@ export const updateRegistry = async () =>
 export const updateTraefikMeCertificates = async () =>
   simpleAction(async () => {
     await getAuthUserSession();
-    await traefikMeDomainService.updateTraefikMeCertificate();
+    await traefikMeDomainStandaloneService.updateTraefikMeCertificate();
     return new SuccessActionResult(undefined, 'Certificates will be updated, this might take a few seconds.');
   });
 

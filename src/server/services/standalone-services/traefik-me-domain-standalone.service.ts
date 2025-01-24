@@ -1,5 +1,3 @@
-import { ServiceException } from "../../../shared/model/service.exception.model";
-import paramService, { ParamService } from "../param.service";
 import traefikMeAdapter from "../../adapter/traefik-me.adapter";
 import { V1Secret } from "@kubernetes/client-node";
 import secretService from "../secret.service";
@@ -7,19 +5,7 @@ import { Constants } from "../../../shared/utils/constants";
 import dataAccess from "../../adapter/db.client";
 import scheduleService from "./schedule.service";
 
-class TraefikMeDomainService {
-
-    async getDomainForApp(appId: string, prefix?: string) {
-        const publicIpv4 = await paramService.getString(ParamService.PUBLIC_IPV4_ADDRESS);
-        if (!publicIpv4) {
-            throw new ServiceException('Please set the main public IPv4 address in the QuickStack settings first.');
-        }
-        const traefikFriendlyIpv4 = publicIpv4.split('.').join('-');
-        if (prefix) {
-            return `${prefix}-${appId}-${traefikFriendlyIpv4}.traefik.me`;
-        }
-        return `${appId}-${traefikFriendlyIpv4}.traefik.me`;
-    }
+class TraefikMeDomainStandaloneService {
 
     async updateTraefikMeCertificate() {
         const fullChainCert = await traefikMeAdapter.getFullChainCertificate();
@@ -50,5 +36,5 @@ class TraefikMeDomainService {
     }
 }
 
-const traefikMeDomainService = new TraefikMeDomainService();
-export default traefikMeDomainService;
+const traefikMeDomainStandaloneService = new TraefikMeDomainStandaloneService();
+export default traefikMeDomainStandaloneService;

@@ -1,6 +1,6 @@
 import { V1Deployment, V1Ingress } from "@kubernetes/client-node";
 import dataAccess from "../adapter/db.client";
-import traefikMeDomainService from "./standalone-services/traefik-me-domain.service";
+import traefikMeDomainStandaloneService from "./standalone-services/traefik-me-domain-standalone.service";
 import { Constants } from "@/shared/utils/constants";
 import { KubeObjectNameUtils } from "../utils/kube-object-name.utils";
 import deploymentService from "./deployment.service";
@@ -10,6 +10,7 @@ import svcService from "./svc.service";
 import { randomBytes } from "crypto";
 import podService from "./pod.service";
 import bcrypt from "bcrypt";
+import traefikMeDomainService from "./traefik-me-domain.service";
 
 class FileBrowserService {
 
