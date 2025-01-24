@@ -2,6 +2,7 @@ import k3s from "../../adapter/kubernetes-api.adapter";
 import fs from 'fs';
 import stream from 'stream';
 import * as k8s from '@kubernetes/client-node';
+import dataAccess from "../../../server/adapter/db.client";
 
 class SetupPodService {
 
@@ -226,7 +227,18 @@ class SetupPodService {
                 }, 5000);
             });
         });
+    }
 
+    async deleteAllFailedAndSuccededPods() {
+        const projects = await dataAccess.client.project.findMany();
+
+        for (const project of projects) {
+            const podsOfNamespace = await k3s.core.listNamespacedPod(project.id);
+            const failedPods = podsOfNamespace.body.items.filter((pod) => ['Failed', 'Succeeded'].includes(pod.status?.phase!));
+            for (const pod of failedPods) {
+                await k3s.core.deleteNamespacedPod(pod.metadata?.name!, project.id);
+            }
+        }
     }
 }
 

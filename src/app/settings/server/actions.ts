@@ -16,6 +16,7 @@ import buildService from "@/server/services/build.service";
 import { PathUtils } from "@/server/utils/path.utils";
 import { FsUtils } from "@/server/utils/fs.utils";
 import traefikMeDomainStandaloneService from "@/server/services/standalone-services/traefik-me-domain-standalone.service";
+import standalonePodService from "@/server/services/standalone-services/standalone-pod.service";
 
 export const updateIngressSettings = async (prevState: any, inputData: QsIngressSettingsModel) =>
   saveFormAction(inputData, qsIngressSettingsZodModel, async (validatedData) => {
@@ -117,6 +118,13 @@ export const updateTraefikMeCertificates = async () =>
     await getAuthUserSession();
     await traefikMeDomainStandaloneService.updateTraefikMeCertificate();
     return new SuccessActionResult(undefined, 'Certificates will be updated, this might take a few seconds.');
+  });
+
+export const deleteAllFailedAndSuccededPods = async () =>
+  simpleAction(async () => {
+    await getAuthUserSession();
+    await standalonePodService.deleteAllFailedAndSuccededPods();
+    return new SuccessActionResult(undefined, 'Successfully deleted all failed and succeeded pods.');
   });
 
 export const purgeRegistryImages = async () =>

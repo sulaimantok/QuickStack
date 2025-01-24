@@ -1,7 +1,7 @@
 'use client';
 
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { cleanupOldBuildJobs, cleanupOldTmpFiles, purgeRegistryImages, updateRegistry, updateTraefikMeCertificates } from "../server/actions";
+import { cleanupOldBuildJobs, cleanupOldTmpFiles, deleteAllFailedAndSuccededPods, purgeRegistryImages, updateRegistry, updateTraefikMeCertificates } from "../server/actions";
 import { Button } from "@/components/ui/button";
 import { Toast } from "@/frontend/utils/toast.utils";
 import { useConfirmDialog } from "@/frontend/states/zustand.states";
@@ -86,6 +86,16 @@ export default function QuickStackMaintenanceSettings({
                         Toast.fromAction(() => updateTraefikMeCertificates());
                     }
                 }}><RotateCcw />Update Traefik.me SSL Certificates</Button>
+
+                <Button variant="secondary" onClick={async () => {
+                    if (await useConfirm.openConfirmDialog({
+                        title: 'Delete Orphaned Containers',
+                        description: 'This action deletes all unused pods (failed or succeded). Use this action to free up resources.',
+                        okButton: "Delete Orphaned Containers"
+                    })) {
+                        Toast.fromAction(() => deleteAllFailedAndSuccededPods());
+                    }
+                }}><Trash /> Delete Orphaned Containers</Button>
 
             </CardContent>
         </Card>
