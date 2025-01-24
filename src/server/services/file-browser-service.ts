@@ -1,6 +1,6 @@
 import { V1Deployment, V1Ingress } from "@kubernetes/client-node";
 import dataAccess from "../adapter/db.client";
-import traefikMeDomainService from "./traefik-me-domain.service";
+import traefikMeDomainService from "./standalone-services/traefik-me-domain.service";
 import { Constants } from "@/shared/utils/constants";
 import { KubeObjectNameUtils } from "../utils/kube-object-name.utils";
 import deploymentService from "./deployment.service";
@@ -32,7 +32,7 @@ class FileBrowserService {
         await deploymentService.setReplicasToZeroAndWaitForShutdown(projectId, appId);
 
         console.log(`Deploying filebrowser for volume ${volumeId}`);
-        const traefikHostname = await traefikMeDomainService.getDomainForApp(volume.appId, volume.id);
+        const traefikHostname = await traefikMeDomainService.getDomainForApp(volume.id);
 
         const pvcName = KubeObjectNameUtils.toPvcName(volume.id);
 
@@ -40,7 +40,6 @@ class FileBrowserService {
 
         const randomPassword = randomBytes(15).toString('hex');
         await this.createOrUpdateFilebrowserDeployment(kubeAppName, appId, projectId, pvcName, randomPassword);
-
 
         console.log(`Creating service for filebrowser for volume ${volumeId}`);
         await svcService.createOrUpdateService(projectId, kubeAppName, [{
@@ -101,8 +100,6 @@ class FileBrowserService {
                 annotations: {
                     [Constants.QS_ANNOTATION_APP_ID]: appId,
                     [Constants.QS_ANNOTATION_PROJECT_ID]: projectId,
-                    ...(true && { 'cert-manager.io/cluster-issuer': 'letsencrypt-production' }),
-                    //   'traefik.ingress.kubernetes.io/router.middlewares': middlewareName,
                 },
             },
             spec: {
@@ -130,7 +127,7 @@ class FileBrowserService {
                 ],
                 tls: [{
                     hosts: [traefikHostname],
-                    secretName: `secret-tls-${kubeAppName}`,
+                    secretName: Constants.TRAEFIK_ME_SECRET_NAME,
                 }],
             },
         };

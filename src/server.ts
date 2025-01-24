@@ -8,6 +8,7 @@ import dataAccess from './server/adapter/db.client'
 import { FancyConsoleUtils } from './shared/utils/fancy-console.utils'
 import { Constants } from './shared/utils/constants'
 import backupService from './server/services/standalone-services/backup.service'
+import traefikMeDomainService from './server/services/standalone-services/traefik-me-domain.service'
 
 // Source: https://nextjs.org/docs/app/building-your-application/configuring/custom-server
 
@@ -52,6 +53,7 @@ async function initializeNextJs() {
     }
 
     await backupService.registerAllBackups();
+    traefikMeDomainService.configureSchedulingForTraefikMeCertificateUpdate();
 
     const app = next({ dev });
     const handle = app.getRequestHandler();

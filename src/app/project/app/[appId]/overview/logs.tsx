@@ -70,7 +70,7 @@ export default function Logs({
                                 <SelectValue placeholder="Pod wählen" />
                             </SelectTrigger>
                             <SelectContent>
-                                {appPods.map(pod => <SelectItem key={pod.podName} value={pod.podName}>{pod.podName}</SelectItem>)}
+                                {appPods.map(pod => <SelectItem key={pod.podName} value={pod.podName}>{pod.podName} ({pod.status})</SelectItem>)}
                             </SelectContent>
                         </Select>
                     </div>
