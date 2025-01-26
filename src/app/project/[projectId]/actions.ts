@@ -7,6 +7,8 @@ import { z } from "zod";
 import appTemplateService from "@/server/services/app-template.service";
 import { AppTemplateModel, appTemplateZodModel } from "@/shared/model/app-template.model";
 import { ServiceException } from "@/shared/model/service.exception.model";
+import dbGateService from "@/server/services/dbgate.service";
+import fileBrowserService from "@/server/services/file-browser-service";
 
 const createAppSchema = z.object({
     appName: z.string().min(1)
@@ -25,7 +27,7 @@ export const createApp = async (appName: string, projectId: string, appId?: stri
         return new SuccessActionResult(returnData, "App created successfully.");
     });
 
-export const createAppFromTemplate = async(prevState: any, inputData: AppTemplateModel, projectId: string) =>
+export const createAppFromTemplate = async (prevState: any, inputData: AppTemplateModel, projectId: string) =>
     saveFormAction(inputData, appTemplateZodModel, async (validatedData) => {
         await getAuthUserSession();
         if (validatedData.templates.some(x => x.inputSettings.some(y => !y.randomGeneratedIfEmpty && !y.value))) {
@@ -38,6 +40,13 @@ export const createAppFromTemplate = async(prevState: any, inputData: AppTemplat
 export const deleteApp = async (appId: string) =>
     simpleAction(async () => {
         await getAuthUserSession();
+        const app = await appService.getExtendedById(appId);
+        // First delete external services wich might be running
+        await dbGateService.deleteDbGatDeploymentForAppIfExists(appId);
+        for (const volume of app.appVolumes) {
+            await fileBrowserService.deleteFileBrowserForVolumeIfExists(volume.id);
+        }
+        // delete the app drom database and all kubernetes objects
         await appService.deleteById(appId);
         return new SuccessActionResult(undefined, "App deleted successfully.");
     });
