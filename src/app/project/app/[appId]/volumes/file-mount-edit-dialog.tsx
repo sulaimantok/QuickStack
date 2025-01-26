@@ -24,11 +24,6 @@ import { AppExtendedModel } from "@/shared/model/app-extended.model"
 import { FileMountEditModel, fileMountEditZodModel } from "@/shared/model/file-mount-edit.model"
 import { Textarea } from "@/components/ui/textarea"
 
-const accessModes = [
-  { label: "ReadWriteOnce", value: "ReadWriteOnce" },
-  { label: "ReadWriteMany", value: "ReadWriteMany" },
-] as const
-
 export default function FileMountEditDialog({ children, fileMount, app }: { children: React.ReactNode; fileMount?: AppFileMount; app: AppExtendedModel; }) {
 
   const [isOpen, setIsOpen] = useState<boolean>(false);

@@ -21,11 +21,20 @@ import podService from "./pod.service";
 
 class DeploymentService {
 
-    async getDeployment(projectId: string, appId: string) {
-        const allDeployments = await k3s.apps.listNamespacedDeployment(projectId);
-        if (allDeployments.body?.items?.some((item) => item.metadata?.name === appId)) {
-            const res = await k3s.apps.readNamespacedDeployment(appId, projectId);
+    async getDeployment(namespace: string, appName: string) {
+        const allDeployments = await k3s.apps.listNamespacedDeployment(namespace);
+        if (allDeployments.body?.items?.some((item) => item.metadata?.name === appName)) {
+            const res = await k3s.apps.readNamespacedDeployment(appName, namespace);
             return res.body;
+        }
+    }
+
+    async applyDeployment(namespace: string, appName: string, body: V1Deployment) {
+        const existingDeployment = await this.getDeployment(namespace, appName);
+        if (existingDeployment) {
+            await k3s.apps.replaceNamespacedDeployment(appName, namespace, body);
+        } else {
+            await k3s.apps.createNamespacedDeployment(namespace, body);
         }
     }
 

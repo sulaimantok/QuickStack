@@ -34,10 +34,6 @@ export default function DbCredentials({
         }
     }, [app]);
 
-    if (!databaseCredentials) {
-        return <FullLoadingSpinner />;
-    }
-
     return <>
         <Card>
             <CardHeader>
@@ -45,37 +41,39 @@ export default function DbCredentials({
                 <CardDescription>Use these credentials to connect to your database from other apps within the same project.</CardDescription>
             </CardHeader>
             <CardContent>
-                <div className="grid grid-cols-2 gap-4">
-                    <CopyInputField
-                        label="Database Name"
-                        value={databaseCredentials?.databaseName || ''} />
+                {!databaseCredentials ? <FullLoadingSpinner /> : <>
+                    <div className="grid grid-cols-2 gap-4">
+                        <CopyInputField
+                            label="Database Name"
+                            value={databaseCredentials?.databaseName || ''} />
 
-                    <div></div>
+                        <div></div>
 
-                    <CopyInputField
-                        label="Username"
-                        value={databaseCredentials?.username || ''} />
+                        <CopyInputField
+                            label="Username"
+                            value={databaseCredentials?.username || ''} />
 
-                    <CopyInputField
-                        label="Password"
-                        secret={true}
-                        value={databaseCredentials?.password || ''} />
+                        <CopyInputField
+                            label="Password"
+                            secret={true}
+                            value={databaseCredentials?.password || ''} />
 
 
-                    <CopyInputField
-                        label="Internal Hostname"
-                        value={databaseCredentials?.hostname || ''} />
+                        <CopyInputField
+                            label="Internal Hostname"
+                            value={databaseCredentials?.hostname || ''} />
 
-                    <CopyInputField
-                        label="Internal Port"
-                        value={(databaseCredentials?.port + '')} />
-                </div>
-                <div className="grid grid-cols-1 gap-4 pt-4">
-                    <CopyInputField
-                        label="Internal Connection URL"
-                        secret={true}
-                        value={databaseCredentials?.internalConnectionUrl || ''} />
-                </div>
+                        <CopyInputField
+                            label="Internal Port"
+                            value={(databaseCredentials?.port + '')} />
+                    </div>
+                    <div className="grid grid-cols-1 gap-4 pt-4">
+                        <CopyInputField
+                            label="Internal Connection URL"
+                            secret={true}
+                            value={databaseCredentials?.internalConnectionUrl || ''} />
+                    </div>
+                </>}
             </CardContent>
         </Card>
     </>;

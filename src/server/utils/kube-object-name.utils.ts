@@ -68,4 +68,8 @@ export class KubeObjectNameUtils {
     static toSecretId(id: string): `secret-${string}` {
         return `secret-${id}`;
     }
+
+    static toDbGateId(appId: string): `dbgate-${string}` {
+        return `dbgate-${appId}`;
+    }
 }
