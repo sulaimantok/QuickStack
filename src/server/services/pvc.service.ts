@@ -10,6 +10,7 @@ import dataAccess from "../adapter/db.client";
 import podService from "./pod.service";
 import path from "path";
 import { KubeSizeConverter } from "../../shared/utils/kubernetes-size-converter.utils";
+import { AppVolume } from "@prisma/client";
 
 class PvcService {
 
@@ -62,6 +63,11 @@ class PvcService {
         return res.body.items.filter((item) => item.metadata?.annotations?.[Constants.QS_ANNOTATION_APP_ID] === appId);
     }
 
+    async getExistingPvcByVolumeId(namespace: string, volumeId: string) {
+        const allVolumes = await k3s.core.listNamespacedPersistentVolumeClaim(namespace);
+        return allVolumes.body.items.find(pvc => pvc.metadata?.name === KubeObjectNameUtils.toPvcName(volumeId));
+    }
+
     async getAllPvc() {
         const res = await k3s.core.listPersistentVolumeClaimForAllNamespaces();
         return res.body.items;
@@ -89,34 +95,26 @@ class PvcService {
         }
     }
 
+    async createPvcForVolumeIfNotExists(projectId: string, app: AppVolume) {
+        const pvcName = KubeObjectNameUtils.toPvcName(app.id);
+        const existingPvc = await this.getExistingPvcByVolumeId(projectId, app.id);
+
+        if (existingPvc) {
+            console.log(`PVC ${pvcName} for app ${app.id} already exists, no need to create it`);
+            return;
+        }
+
+        const pvcDefinition = this.mapVolumeToPvcDefinition(projectId, app);
+        await k3s.core.createNamespacedPersistentVolumeClaim(projectId, pvcDefinition);
+        console.log(`Created PVC ${pvcName} for app ${app.id}`);
+    }
+
     async createOrUpdatePvc(app: AppExtendedModel) {
         const existingPvcs = await this.getAllPvcForApp(app.projectId, app.id);
 
         for (const appVolume of app.appVolumes) {
             const pvcName = KubeObjectNameUtils.toPvcName(appVolume.id);
-
-            const pvcDefinition: V1PersistentVolumeClaim = {
-                apiVersion: 'v1',
-                kind: 'PersistentVolumeClaim',
-                metadata: {
-                    name: pvcName,
-                    namespace: app.projectId,
-                    annotations: {
-                        [Constants.QS_ANNOTATION_APP_ID]: app.id,
-                        [Constants.QS_ANNOTATION_PROJECT_ID]: app.projectId,
-                        'qs-app-volume-id': appVolume.id,
-                    }
-                },
-                spec: {
-                    accessModes: [appVolume.accessMode],
-                    storageClassName: 'longhorn',
-                    resources: {
-                        requests: {
-                            storage: KubeSizeConverter.megabytesToKubeFormat(appVolume.size),
-                        },
-                    },
-                },
-            };
+            const pvcDefinition = this.mapVolumeToPvcDefinition(app.projectId, appVolume);
 
             const existingPvc = existingPvcs.find(pvc => pvc.metadata?.name === pvcName);
             if (existingPvc) {
@@ -158,6 +156,31 @@ class PvcService {
             }));
 
         return { volumes, volumeMounts };
+    }
+
+    private mapVolumeToPvcDefinition(projectId: string, appVolume: AppVolume): V1PersistentVolumeClaim {
+        return {
+            apiVersion: 'v1',
+            kind: 'PersistentVolumeClaim',
+            metadata: {
+                name: KubeObjectNameUtils.toPvcName(appVolume.id),
+                namespace: projectId,
+                annotations: {
+                    [Constants.QS_ANNOTATION_APP_ID]: appVolume.appId,
+                    [Constants.QS_ANNOTATION_PROJECT_ID]: projectId,
+                    'qs-app-volume-id': appVolume.id,
+                }
+            },
+            spec: {
+                accessModes: [appVolume.accessMode],
+                storageClassName: 'longhorn',
+                resources: {
+                    requests: {
+                        storage: KubeSizeConverter.megabytesToKubeFormat(appVolume.size),
+                    },
+                },
+            },
+        };
     }
 
     private async waitUntilPvResized(persistentVolumeName: string, size: number) {

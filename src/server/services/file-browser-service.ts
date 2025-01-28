@@ -11,6 +11,7 @@ import { randomBytes } from "crypto";
 import podService from "./pod.service";
 import bcrypt from "bcrypt";
 import traefikMeDomainService from "./traefik-me-domain.service";
+import pvcService from "./pvc.service";
 
 class FileBrowserService {
 
@@ -31,6 +32,9 @@ class FileBrowserService {
 
         console.log('Shutting down application with id: ' + appId);
         await deploymentService.setReplicasToZeroAndWaitForShutdown(projectId, appId);
+
+        console.log(`Creating PVC if not already created for volume ${volumeId}`);
+        await pvcService.createPvcForVolumeIfNotExists(volume.app.projectId, volume);
 
         console.log(`Deploying filebrowser for volume ${volumeId}`);
         const traefikHostname = await traefikMeDomainService.getDomainForApp(volume.id);
