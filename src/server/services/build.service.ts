@@ -91,7 +91,7 @@ class BuildService {
                 }
             },
             spec: {
-                ttlSecondsAfterFinished: 2592000, // 30 days
+                ttlSecondsAfterFinished: 86400, // 1 day
                 template: {
                     spec: {
                         containers: [
