@@ -5,12 +5,14 @@ import { Button } from "@/components/ui/button";
 import { useConfirmDialog } from "@/frontend/states/zustand.states";
 import { Toast } from "@/frontend/utils/toast.utils";
 import { Actions } from "@/frontend/utils/nextjs-actions.utils";
-import { deleteDbGatDeploymentForAppIfExists, deployDbGate, getIsDbGateActive, getLoginCredentialsForRunningDbGate } from "./actions";
+import { deleteDbGatDeploymentForAppIfExists, deployDbGate, downloadDbGateFilesForApp, getIsDbGateActive, getLoginCredentialsForRunningDbGate } from "./actions";
 import { Label } from "@/components/ui/label";
 import FullLoadingSpinner from "@/components/ui/full-loading-spinnter";
 import { Switch } from "@/components/ui/switch";
 import { Code } from "@/components/custom/code";
 import LoadingSpinner from "@/components/ui/loading-spinner";
+import { Download } from "lucide-react";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 
 export default function DbGateCard({
     app
@@ -25,6 +27,19 @@ export default function DbGateCard({
     const loadIsDbGateActive = async (appId: string) => {
         const response = await Actions.run(() => getIsDbGateActive(appId));
         setIsDbGateActive(response);
+    }
+
+    const downloadDbGateFilesForAppAsync = async () => {
+        try {
+            setLoading(true);
+            await Toast.fromAction(() => downloadDbGateFilesForApp(app.id)).then(x => {
+                if (x.status === 'success' && x.data) {
+                    window.open('/api/volume-data-download?fileName=' + x.data);
+                }
+            });
+        } finally {
+            setLoading(false);
+        }
     }
 
     const openDbGateAsync = async () => {
@@ -88,9 +103,23 @@ export default function DbGateCard({
                         }} />
                         <Label htmlFor="airplane-mode">DB Gate</Label>
                     </div>
+                    {isDbGateActive && <>
+                        <Button variant='outline' onClick={() => openDbGateAsync()}
+                            disabled={!isDbGateActive || loading}>Open DB Gate</Button>
+
+                        <TooltipProvider>
+                            <Tooltip delayDuration={300}>
+                                <TooltipTrigger>
+                                    <Button onClick={() => downloadDbGateFilesForAppAsync()} disabled={!isDbGateActive || loading}
+                                        variant="ghost"><Download /></Button>
+                                </TooltipTrigger>
+                                <TooltipContent>
+                                    <p>Download the "Files" folder from DB Gate.</p>
+                                </TooltipContent>
+                            </Tooltip>
+                        </TooltipProvider>
+                    </>}
                     {loading && <LoadingSpinner></LoadingSpinner>}
-                    {isDbGateActive && <Button variant='outline' onClick={() => openDbGateAsync()}
-                        disabled={!isDbGateActive || loading}>Open DB Gate</Button>}
                 </div>}
             </CardContent>
         </Card >

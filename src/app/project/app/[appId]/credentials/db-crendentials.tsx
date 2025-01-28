@@ -1,15 +1,9 @@
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { AppExtendedModel } from "@/shared/model/app-extended.model";
 import { useEffect, useState } from "react";
-import { Button } from "@/components/ui/button";
-import { useConfirmDialog } from "@/frontend/states/zustand.states";
-import { Toast } from "@/frontend/utils/toast.utils";
-import { ClipboardCopy } from "lucide-react";
-import { toast } from "sonner";
 import { DatabaseTemplateInfoModel } from "@/shared/model/database-template-info.model";
 import { Actions } from "@/frontend/utils/nextjs-actions.utils";
 import { getDatabaseCredentials } from "./actions";
-import { Label } from "@/components/ui/label";
 import CopyInputField from "@/components/custom/copy-input-field";
 import FullLoadingSpinner from "@/components/ui/full-loading-spinnter";
 

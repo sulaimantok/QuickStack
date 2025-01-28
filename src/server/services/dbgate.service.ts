@@ -13,6 +13,9 @@ import podService from "./pod.service";
 import { AppTemplateUtils } from "../utils/app-template.utils";
 import appService from "./app.service";
 import { AppExtendedModel } from "@/shared/model/app-extended.model";
+import { PathUtils } from "../utils/path.utils";
+import { FsUtils } from "../utils/fs.utils";
+import path from "path";
 
 class DbGateService {
 
@@ -37,6 +40,32 @@ class DbGateService {
         }
 
         return true;
+    }
+
+    async downloadDbGateFilesForApp(appId: string) {
+
+        const app = await appService.getExtendedById(appId);
+        const dbGateAppName = KubeObjectNameUtils.toDbGateId(app.id);
+        const pod = await podService.getPodsForApp(app.projectId, dbGateAppName);
+        if (pod.length === 0) {
+            throw new ServiceException(`There are no running pods for DBGate. Make sure the DB Gate is running.`);
+        }
+        const firstPod = pod[0];
+
+        const continerSourcePath = '/root/.dbgate/files';
+        const continerRootPath = '/root';
+
+        await podService.runCommandInPod(app.projectId, firstPod.podName, firstPod.containerName, ['cp', '-r', continerSourcePath, continerRootPath]);
+
+        const downloadPath = path.join(PathUtils.tempVolumeDownloadPath, dbGateAppName + '.tar.gz');
+        await FsUtils.createDirIfNotExistsAsync(PathUtils.tempVolumeDownloadPath, true);
+        await FsUtils.deleteDirIfExistsAsync(downloadPath, true);
+
+        console.log(`Downloading data from pod ${firstPod.podName} ${continerRootPath} to ${downloadPath}`);
+        await podService.cpFromPod(app.projectId, firstPod.podName, firstPod.containerName, continerRootPath, downloadPath, continerRootPath);
+
+        const fileName = path.basename(downloadPath);
+        return fileName;
     }
 
     async getLoginCredentialsForRunningDbGate(appId: string) {

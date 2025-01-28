@@ -42,3 +42,10 @@ export const deleteDbGatDeploymentForAppIfExists = async (appId: string) =>
         await dbGateService.deleteDbGatDeploymentForAppIfExists(appId);
         return new SuccessActionResult();
     }) as Promise<ServerActionResult<unknown, void>>;
+
+export const downloadDbGateFilesForApp = async (appId: string) =>
+    simpleAction(async () => {
+        await getAuthUserSession();
+        const url = await dbGateService.downloadDbGateFilesForApp(appId);
+        return new SuccessActionResult(url);
+    }) as Promise<ServerActionResult<unknown, string>>;
