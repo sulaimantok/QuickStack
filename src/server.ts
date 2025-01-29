@@ -10,6 +10,7 @@ import { Constants } from './shared/utils/constants'
 import backupService from './server/services/standalone-services/backup.service'
 import traefikMeDomainStandaloneService from './server/services/standalone-services/traefik-me-domain-standalone.service'
 import maintenanceService from './server/services/standalone-services/maintenance.service'
+import passwordChangeService from './server/services/standalone-services/password-change.service'
 
 // Source: https://nextjs.org/docs/app/building-your-application/configuring/custom-server
 
@@ -79,6 +80,8 @@ async function initializeNextJs() {
 
 if (process.env.NODE_ENV === 'production' && process.env.START_MODE === 'setup') {
     setupQuickStack();
+} else if (process.env.NODE_ENV === 'production' && process.env.START_MODE === 'reset-password') {
+    passwordChangeService.changeAdminPasswordAndPrintNewPassword();
 } else {
     initializeNextJs();
 }

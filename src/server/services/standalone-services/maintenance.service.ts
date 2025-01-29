@@ -1,5 +1,5 @@
-import { FsUtils } from "@/server/utils/fs.utils";
-import { PathUtils } from "@/server/utils/path.utils";
+import { FsUtils } from "../../../server/utils/fs.utils";
+import { PathUtils } from "../../../server/utils/path.utils";
 import path from "path";
 import scheduleService from "./schedule.service";
 import standalonePodService from "./standalone-pod.service";

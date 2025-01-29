@@ -361,7 +361,8 @@ class QuickStackService {
         const existingDeployments = allDeployments.body.items.find(d => d.metadata!.name === this.QUICKSTACK_DEPLOYMENT_NAME);
         const nextAuthSecret = existingDeployments?.spec?.template?.spec?.containers?.[0].env?.find(e => e.name === 'NEXTAUTH_SECRET')?.value;
         const nextAuthHostname = existingDeployments?.spec?.template?.spec?.containers?.[0].env?.find(e => e.name === 'NEXTAUTH_URL')?.value;
-        return { existingDeployments, nextAuthSecret, nextAuthHostname };
+        const isCanaryDeployment = existingDeployments?.spec?.template?.spec?.containers?.[0].image?.includes('canary');
+        return { existingDeployments, nextAuthSecret, nextAuthHostname, isCanaryDeployment };
     }
 }
 
