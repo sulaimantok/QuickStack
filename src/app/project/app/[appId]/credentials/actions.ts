@@ -1,11 +1,12 @@
 'use server'
 
 import appService from "@/server/services/app.service";
-import dbGateService from "@/server/services/dbgate.service";
+import dbGateService from "@/server/services/db-tool-services/dbgate.service";
 import { getAuthUserSession, simpleAction } from "@/server/utils/action-wrapper.utils";
 import { AppTemplateUtils } from "@/server/utils/app-template.utils";
 import { DatabaseTemplateInfoModel } from "@/shared/model/database-template-info.model";
 import { ServerActionResult, SuccessActionResult } from "@/shared/model/server-action-error-return.model";
+import { ServiceException } from "@/shared/model/service.exception.model";
 
 export const getDatabaseCredentials = async (appId: string) =>
     simpleAction(async () => {
@@ -18,29 +19,40 @@ export const getDatabaseCredentials = async (appId: string) =>
 export const getIsDbGateActive = async (appId: string) =>
     simpleAction(async () => {
         await getAuthUserSession();
-        const isActive = await dbGateService.isDbGateRunning(appId);
+        const isActive = await dbGateService.isDbToolRunning(appId);
         return new SuccessActionResult(isActive);
     }) as Promise<ServerActionResult<unknown, boolean>>;
 
-export const deployDbGate = async (appId: string) =>
+export const deployDbTool = async (appId: string, dbTool: 'dbgate' | 'phpmyadmin') =>
     simpleAction(async () => {
         await getAuthUserSession();
-        await dbGateService.deployDbGateForDatabase(appId);
-        return new SuccessActionResult();
+        if (dbTool === 'dbgate') {
+            await dbGateService.deploy(appId);
+            return new SuccessActionResult();
+        } else {
+            throw new ServiceException('Unknown db tool');
+        }
     }) as Promise<ServerActionResult<unknown, void>>;
 
-export const getLoginCredentialsForRunningDbGate = async (appId: string) =>
+export const getLoginCredentialsForRunningDbTool = async (appId: string, dbTool: 'dbgate' | 'phpmyadmin') =>
     simpleAction(async () => {
         await getAuthUserSession();
-        const credentials = await dbGateService.getLoginCredentialsForRunningDbGate(appId);
-        return new SuccessActionResult(credentials);
+        if (dbTool === 'dbgate') {
+            return new SuccessActionResult(await dbGateService.getLoginCredentialsForRunningDbGate(appId));
+        } else {
+            throw new ServiceException('Unknown db tool');
+        }
     }) as Promise<ServerActionResult<unknown, { url: string; username: string, password: string }>>;
 
-export const deleteDbGatDeploymentForAppIfExists = async (appId: string) =>
+export const deleteDbToolDeploymentForAppIfExists = async (appId: string, dbTool: 'dbgate' | 'phpmyadmin') =>
     simpleAction(async () => {
         await getAuthUserSession();
-        await dbGateService.deleteDbGatDeploymentForAppIfExists(appId);
-        return new SuccessActionResult();
+        if (dbTool === 'dbgate') {
+            await dbGateService.deleteToolForAppIfExists(appId);
+            return new SuccessActionResult();
+        } else {
+            throw new ServiceException('Unknown db tool');
+        }
     }) as Promise<ServerActionResult<unknown, void>>;
 
 export const downloadDbGateFilesForApp = async (appId: string) =>

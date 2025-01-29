@@ -7,7 +7,7 @@ import { z } from "zod";
 import appTemplateService from "@/server/services/app-template.service";
 import { AppTemplateModel, appTemplateZodModel } from "@/shared/model/app-template.model";
 import { ServiceException } from "@/shared/model/service.exception.model";
-import dbGateService from "@/server/services/dbgate.service";
+import dbGateService from "@/server/services/db-tool-services/dbgate.service";
 import fileBrowserService from "@/server/services/file-browser-service";
 
 const createAppSchema = z.object({
@@ -42,7 +42,7 @@ export const deleteApp = async (appId: string) =>
         await getAuthUserSession();
         const app = await appService.getExtendedById(appId);
         // First delete external services wich might be running
-        await dbGateService.deleteDbGatDeploymentForAppIfExists(appId);
+        await dbGateService.deleteToolForAppIfExists(appId);
         for (const volume of app.appVolumes) {
             await fileBrowserService.deleteFileBrowserForVolumeIfExists(volume.id);
         }

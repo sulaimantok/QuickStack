@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import { useConfirmDialog } from "@/frontend/states/zustand.states";
 import { Toast } from "@/frontend/utils/toast.utils";
 import { Actions } from "@/frontend/utils/nextjs-actions.utils";
-import { deleteDbGatDeploymentForAppIfExists, deployDbGate, downloadDbGateFilesForApp, getIsDbGateActive, getLoginCredentialsForRunningDbGate } from "./actions";
+import { deleteDbToolDeploymentForAppIfExists, deployDbTool, downloadDbGateFilesForApp, getIsDbGateActive, getLoginCredentialsForRunningDbTool } from "./actions";
 import { Label } from "@/components/ui/label";
 import FullLoadingSpinner from "@/components/ui/full-loading-spinnter";
 import { Switch } from "@/components/ui/switch";
@@ -14,7 +14,7 @@ import LoadingSpinner from "@/components/ui/loading-spinner";
 import { Download } from "lucide-react";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 
-export default function DbGateCard({
+export default function DbGateDbTool({
     app
 }: {
     app: AppExtendedModel;
@@ -45,7 +45,7 @@ export default function DbGateCard({
     const openDbGateAsync = async () => {
         try {
             setLoading(true);
-            const credentials = await Actions.run(() => getLoginCredentialsForRunningDbGate(app.id));
+            const credentials = await Actions.run(() => getLoginCredentialsForRunningDbTool(app.id, 'dbgate'));
             setLoading(false);
             await openConfirmDialog({
                 title: "Open DB Gate",
@@ -80,48 +80,40 @@ export default function DbGateCard({
     }, [app]);
 
     return <>
-        <Card>
-            <CardHeader>
-                <CardTitle>Database Access</CardTitle>
-                <CardDescription>Activate one of the following tools to access the database through your browser.</CardDescription>
-            </CardHeader>
-            <CardContent>
-                {isDbGateActive === undefined ? <FullLoadingSpinner /> : <div className="flex gap-4 items-center">
-                    <div className="flex items-center space-x-2">
-                        <Switch id="canary-channel-mode" disabled={loading} checked={isDbGateActive} onCheckedChange={async (checked) => {
-                            try {
-                                setLoading(true);
-                                if (checked) {
-                                    await Toast.fromAction(() => deployDbGate(app.id), 'DB Gate is now activated', 'Activating DB Gate...');
-                                } else {
-                                    await Toast.fromAction(() => deleteDbGatDeploymentForAppIfExists(app.id), 'DB Gate has been deactivated', 'Deactivating DB Gate...');
-                                }
-                                await loadIsDbGateActive(app.id);
-                            } finally {
-                                setLoading(false);
-                            }
-                        }} />
-                        <Label htmlFor="airplane-mode">DB Gate</Label>
-                    </div>
-                    {isDbGateActive && <>
-                        <Button variant='outline' onClick={() => openDbGateAsync()}
-                            disabled={!isDbGateActive || loading}>Open DB Gate</Button>
+        {isDbGateActive === undefined ? <FullLoadingSpinner /> : <div className="flex gap-4 items-center">
+            <div className="flex items-center space-x-2">
+                <Switch id="canary-channel-mode" disabled={loading} checked={isDbGateActive} onCheckedChange={async (checked) => {
+                    try {
+                        setLoading(true);
+                        if (checked) {
+                            await Toast.fromAction(() => deployDbTool(app.id, 'dbgate'), 'DB Gate is now activated', 'Activating DB Gate...');
+                        } else {
+                            await Toast.fromAction(() => deleteDbToolDeploymentForAppIfExists(app.id, 'dbgate'), 'DB Gate has been deactivated', 'Deactivating DB Gate...');
+                        }
+                        await loadIsDbGateActive(app.id);
+                    } finally {
+                        setLoading(false);
+                    }
+                }} />
+                <Label htmlFor="airplane-mode">DB Gate</Label>
+            </div>
+            {isDbGateActive && <>
+                <Button variant='outline' onClick={() => openDbGateAsync()}
+                    disabled={!isDbGateActive || loading}>Open DB Gate</Button>
 
-                        <TooltipProvider>
-                            <Tooltip delayDuration={300}>
-                                <TooltipTrigger>
-                                    <Button onClick={() => downloadDbGateFilesForAppAsync()} disabled={!isDbGateActive || loading}
-                                        variant="ghost"><Download /></Button>
-                                </TooltipTrigger>
-                                <TooltipContent>
-                                    <p>Download the "Files" folder from DB Gate.</p>
-                                </TooltipContent>
-                            </Tooltip>
-                        </TooltipProvider>
-                    </>}
-                    {loading && <LoadingSpinner></LoadingSpinner>}
-                </div>}
-            </CardContent>
-        </Card >
+                <TooltipProvider>
+                    <Tooltip delayDuration={300}>
+                        <TooltipTrigger>
+                            <Button onClick={() => downloadDbGateFilesForAppAsync()} disabled={!isDbGateActive || loading}
+                                variant="ghost"><Download /></Button>
+                        </TooltipTrigger>
+                        <TooltipContent>
+                            <p>Download the "Files" folder from DB Gate.</p>
+                        </TooltipContent>
+                    </Tooltip>
+                </TooltipProvider>
+            </>}
+            {loading && <LoadingSpinner></LoadingSpinner>}
+        </div>}
     </>;
 }
