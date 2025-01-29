@@ -250,6 +250,15 @@ class BackupService {
             await FsUtils.deleteFileIfExists(downloadPath);
         }
     }
+
+    async deleteBackupFromS3(s3TargetId: string, key: string) {
+        const target = await dataAccess.client.s3Target.findFirstOrThrow({
+            where: {
+                id: s3TargetId
+            }
+        });
+        return s3Service.deleteFile(target, key);
+    }
 }
 
 const backupService = new BackupService();
