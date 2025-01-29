@@ -54,6 +54,15 @@ export default function QuickStackMaintenanceSettings({
                     }
                 }}><Trash /> Cleanup Temp Files</Button>
 
+                <Button variant="secondary" onClick={async () => {
+                    if (await useConfirm.openConfirmDialog({
+                        title: 'Delete Orphaned Containers',
+                        description: 'This action deletes all unused pods (failed or succeded). Use this action to free up resources.',
+                        okButton: "Delete Orphaned Containers"
+                    })) {
+                        Toast.fromAction(() => deleteAllFailedAndSuccededPods());
+                    }
+                }}><Trash /> Delete Orphaned Containers</Button>
             </CardContent>
         </Card>
         <Card>
@@ -87,15 +96,6 @@ export default function QuickStackMaintenanceSettings({
                     }
                 }}><RotateCcw />Update Traefik.me SSL Certificates</Button>
 
-                <Button variant="secondary" onClick={async () => {
-                    if (await useConfirm.openConfirmDialog({
-                        title: 'Delete Orphaned Containers',
-                        description: 'This action deletes all unused pods (failed or succeded). Use this action to free up resources.',
-                        okButton: "Delete Orphaned Containers"
-                    })) {
-                        Toast.fromAction(() => deleteAllFailedAndSuccededPods());
-                    }
-                }}><Trash /> Delete Orphaned Containers</Button>
 
             </CardContent>
         </Card>

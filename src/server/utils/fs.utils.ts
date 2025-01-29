@@ -2,6 +2,10 @@ import fs from "fs"
 
 export class FsUtils {
 
+    static getFileStats(file: string) {
+        return fs.promises.stat(file);
+    }
+
     static async fileExists(pathName: string) {
         try {
             await fs.promises.access(pathName, fs.constants.F_OK);
@@ -57,6 +61,7 @@ export class FsUtils {
             });
         }
     }
+
     static async deleteDirIfExistsAsync(pathName: string, recursive = false) {
         let exists = false;
         try {
@@ -70,5 +75,13 @@ export class FsUtils {
         await fs.promises.rm(pathName, {
             recursive
         });
+    }
+
+    static async getAllFilesInDir(pathName: string) {
+        try {
+            return await fs.promises.readdir(pathName);
+        } catch (ex) {
+            return [];
+        }
     }
 }

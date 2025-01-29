@@ -176,7 +176,7 @@ class BuildService {
         const jobs = await k3s.batch.listNamespacedJob(BUILD_NAMESPACE);
         const jobsToDelete = jobs.body.items.filter((job) => {
             const status = this.getJobStatusString(job.status);
-            return status !== 'RUNNING';
+            return !status || status !== 'RUNNING';
         });
         for (const job of jobsToDelete) {
             await this.deleteBuild(job.metadata?.name!);
@@ -284,9 +284,14 @@ class BuildService {
         if ((status.succeeded ?? 0) > 0) {
             return 'SUCCEEDED';
         }
-
         if ((status.failed ?? 0) > 0) {
             return 'FAILED';
+        }
+        if ((status.terminating ?? 0) > 0) {
+            return 'UNKNOWN';
+        }
+        if (!!status.completionTime) {
+            return 'SUCCEEDED';
         }
         return 'UNKNOWN';
     }

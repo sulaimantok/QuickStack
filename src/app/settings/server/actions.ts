@@ -17,6 +17,7 @@ import { PathUtils } from "@/server/utils/path.utils";
 import { FsUtils } from "@/server/utils/fs.utils";
 import traefikMeDomainStandaloneService from "@/server/services/standalone-services/traefik-me-domain-standalone.service";
 import standalonePodService from "@/server/services/standalone-services/standalone-pod.service";
+import maintenanceService from "@/server/services/standalone-services/maintenance.service";
 
 export const updateIngressSettings = async (prevState: any, inputData: QsIngressSettingsModel) =>
   saveFormAction(inputData, qsIngressSettingsZodModel, async (validatedData) => {
@@ -84,9 +85,7 @@ export const getConfiguredHostname: () => Promise<ServerActionResult<unknown, st
 export const cleanupOldTmpFiles = async () =>
   simpleAction(async () => {
     await getAuthUserSession();
-    const tempFilePath = PathUtils.tempDataRoot;
-    await FsUtils.deleteDirIfExistsAsync(tempFilePath, true);
-    await FsUtils.createDirIfNotExistsAsync(tempFilePath);
+    await maintenanceService.deleteAllTempFiles();
     return new SuccessActionResult(undefined, 'Successfully cleaned up temp files.');
   });
 
