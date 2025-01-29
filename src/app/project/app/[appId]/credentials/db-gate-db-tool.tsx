@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import { useConfirmDialog } from "@/frontend/states/zustand.states";
 import { Toast } from "@/frontend/utils/toast.utils";
 import { Actions } from "@/frontend/utils/nextjs-actions.utils";
-import { deleteDbToolDeploymentForAppIfExists, deployDbTool, downloadDbGateFilesForApp, getIsDbGateActive, getLoginCredentialsForRunningDbTool } from "./actions";
+import { deleteDbToolDeploymentForAppIfExists, deployDbTool, downloadDbGateFilesForApp, getIsDbToolActive, getLoginCredentialsForRunningDbTool } from "./actions";
 import { Label } from "@/components/ui/label";
 import FullLoadingSpinner from "@/components/ui/full-loading-spinnter";
 import { Switch } from "@/components/ui/switch";
@@ -25,7 +25,7 @@ export default function DbGateDbTool({
     const [loading, setLoading] = useState(false);
 
     const loadIsDbGateActive = async (appId: string) => {
-        const response = await Actions.run(() => getIsDbGateActive(appId));
+        const response = await Actions.run(() => getIsDbToolActive(appId, 'dbgate'));
         setIsDbGateActive(response);
     }
 
@@ -80,9 +80,9 @@ export default function DbGateDbTool({
     }, [app]);
 
     return <>
-        {isDbGateActive === undefined ? <FullLoadingSpinner /> : <div className="flex gap-4 items-center">
+        <div className="flex gap-4 items-center">
             <div className="flex items-center space-x-2">
-                <Switch id="canary-channel-mode" disabled={loading} checked={isDbGateActive} onCheckedChange={async (checked) => {
+                <Switch id="canary-channel-mode" disabled={loading || isDbGateActive === undefined} checked={isDbGateActive} onCheckedChange={async (checked) => {
                     try {
                         setLoading(true);
                         if (checked) {
@@ -99,7 +99,7 @@ export default function DbGateDbTool({
             </div>
             {isDbGateActive && <>
                 <Button variant='outline' onClick={() => openDbGateAsync()}
-                    disabled={!isDbGateActive || loading}>Open DB Gate</Button>
+                    disabled={loading}>Open DB Gate</Button>
 
                 <TooltipProvider>
                     <Tooltip delayDuration={300}>
@@ -113,7 +113,8 @@ export default function DbGateDbTool({
                     </Tooltip>
                 </TooltipProvider>
             </>}
-            {loading && <LoadingSpinner></LoadingSpinner>}
-        </div>}
+            {(loading || isDbGateActive === undefined) && <LoadingSpinner></LoadingSpinner>}
+        </div>
     </>;
 }
+

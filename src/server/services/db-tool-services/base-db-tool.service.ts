@@ -64,7 +64,7 @@ export class BaseDbToolService {
         return { url: `https://${traefikHostname}`, username, password };
     }
 
-    async deployToolForDatabase(appId: string, deplyomentBuilder: (app: AppExtendedModel) => V1Deployment) {
+    async deployToolForDatabase(appId: string, appPort: number, deplyomentBuilder: (app: AppExtendedModel) => V1Deployment) {
         const app = await appService.getExtendedById(appId);
         const toolAppName = this.appIdToToolNameConverter(appId);
 
@@ -84,7 +84,7 @@ export class BaseDbToolService {
         await svcService.createOrUpdateService(namespace, toolAppName, [{
             name: 'http',
             port: 80,
-            targetPort: 3000,
+            targetPort: appPort,
         }]);
 
         console.log(`Creating ingress for DB Tool ${toolAppName} for app ${appId}`);

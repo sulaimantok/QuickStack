@@ -72,4 +72,8 @@ export class KubeObjectNameUtils {
     static toDbGateId(appId: string): `dbgate-${string}` {
         return `dbgate-${appId}`;
     }
+
+    static toPhpMyAdminId(appId: string): `phpma-${string}` {
+        return `phpma-${appId}`;
+    }
 }

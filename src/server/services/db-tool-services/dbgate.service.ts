@@ -56,7 +56,7 @@ class DbGateService extends BaseDbToolService {
     }
 
     async deploy(appId: string) {
-        await this.deployToolForDatabase(appId, (app) => {
+        await this.deployToolForDatabase(appId, 3000, (app) => {
             const authPassword = randomBytes(15).toString('hex');
             const dbGateAppName = KubeObjectNameUtils.toDbGateId(app.id);
             const projectId = app.projectId;
