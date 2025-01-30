@@ -1,7 +1,7 @@
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { AppExtendedModel } from "@/shared/model/app-extended.model";
 import DbGateDbTool from "./db-gate-db-tool";
-import PhpMyAdminDbTool from "./phpmyadmin-db-tool";
+import DbToolSwitch from "./phpmyadmin-db-tool";
 
 export default function DbToolsCard({
     app
@@ -17,7 +17,9 @@ export default function DbToolsCard({
             </CardHeader>
             <CardContent className="space-y-4">
                 <DbGateDbTool app={app} />
-                {['MYSQL', 'MARIADB'].includes(app.appType) && <PhpMyAdminDbTool app={app} />}
+                {['MYSQL', 'MARIADB'].includes(app.appType) && <DbToolSwitch app={app} toolId="phpmyadmin"
+                    toolNameString="PHP My Admin" />}
+                {app.appType === 'POSTGRES' && <DbToolSwitch app={app} toolId="pgadmin" toolNameString="pgAdmin" />}
             </CardContent>
         </Card >
     </>;

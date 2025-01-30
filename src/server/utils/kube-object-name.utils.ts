@@ -76,4 +76,8 @@ export class KubeObjectNameUtils {
     static toPhpMyAdminId(appId: string): `phpma-${string}` {
         return `phpma-${appId}`;
     }
+
+    static toPgAdminId(appId: string): `pga-${string}` {
+        return `pga-${appId}`;
+    }
 }

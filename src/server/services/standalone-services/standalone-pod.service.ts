@@ -15,7 +15,14 @@ class SetupPodService {
         while (tries < maxTries) {
             const pod = await this.getPodOrUndefined(projectId, podName);
             if (pod && ['Running', 'Failed', 'Succeeded'].includes(pod.status?.phase!)) {
-                return true;
+                // check if running and ready (when passing readiness probe)
+                if (pod.status?.phase === 'Running') {
+                    if (pod.status?.containerStatuses?.[0].ready) {
+                        return true;
+                    }
+                } else {
+                    return true;
+                }
             }
 
             await new Promise(resolve => setTimeout(resolve, interval));

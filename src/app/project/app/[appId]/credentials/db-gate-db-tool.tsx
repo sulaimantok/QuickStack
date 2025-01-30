@@ -81,7 +81,7 @@ export default function DbGateDbTool({
 
     return <>
         <div className="flex gap-4 items-center">
-            <div className="flex items-center space-x-2">
+            <div className="flex items-center space-x-3">
                 <Switch id="canary-channel-mode" disabled={loading || isDbGateActive === undefined} checked={isDbGateActive} onCheckedChange={async (checked) => {
                     try {
                         setLoading(true);

@@ -64,7 +64,7 @@ export class BaseDbToolService {
         return { url: `https://${traefikHostname}`, username, password };
     }
 
-    async deployToolForDatabase(appId: string, appPort: number, deplyomentBuilder: (app: AppExtendedModel) => V1Deployment) {
+    async deployToolForDatabase(appId: string, appPort: number, deplyomentBuilder: (app: AppExtendedModel) => V1Deployment | Promise<V1Deployment>) {
         const app = await appService.getExtendedById(appId);
         const toolAppName = this.appIdToToolNameConverter(appId);
 
@@ -97,8 +97,8 @@ export class BaseDbToolService {
     }
 
 
-    private async createOrUpdateDbGateDeployment(app: AppExtendedModel, deplyomentBuilder: (app: AppExtendedModel) => V1Deployment) {
-        const body = deplyomentBuilder(app);
+    private async createOrUpdateDbGateDeployment(app: AppExtendedModel, deplyomentBuilder: (app: AppExtendedModel) => V1Deployment | Promise<V1Deployment>) {
+        const body = await deplyomentBuilder(app);
         const toolAppName = this.appIdToToolNameConverter(app.id);
         await deploymentService.applyDeployment(app.projectId, toolAppName, body);
     }
