@@ -9,6 +9,8 @@ import { AppTemplateModel, appTemplateZodModel } from "@/shared/model/app-templa
 import { ServiceException } from "@/shared/model/service.exception.model";
 import dbGateService from "@/server/services/db-tool-services/dbgate.service";
 import fileBrowserService from "@/server/services/file-browser-service";
+import phpMyAdminService from "@/server/services/db-tool-services/phpmyadmin.service";
+import pgAdminService from "@/server/services/db-tool-services/pgadmin.service";
 
 const createAppSchema = z.object({
     appName: z.string().min(1)
@@ -43,6 +45,8 @@ export const deleteApp = async (appId: string) =>
         const app = await appService.getExtendedById(appId);
         // First delete external services wich might be running
         await dbGateService.deleteToolForAppIfExists(appId);
+        await phpMyAdminService.deleteToolForAppIfExists(appId);
+        await pgAdminService.deleteToolForAppIfExists(appId);
         for (const volume of app.appVolumes) {
             await fileBrowserService.deleteFileBrowserForVolumeIfExists(volume.id);
         }

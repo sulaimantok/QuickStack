@@ -1,6 +1,5 @@
 'use server'
 
-import { BuildJobModel } from "@/shared/model/build-job";
 import { DeploymentInfoModel } from "@/shared/model/deployment-info.model";
 import { PodsInfoModel } from "@/shared/model/pods-info.model";
 import { ServerActionResult, SuccessActionResult } from "@/shared/model/server-action-error-return.model";
@@ -11,6 +10,8 @@ import monitoringService from "@/server/services/monitoring.service";
 import podService from "@/server/services/pod.service";
 import { getAuthUserSession, simpleAction } from "@/server/utils/action-wrapper.utils";
 import { PodsResourceInfoModel } from "@/shared/model/pods-resource-info.model";
+import appLogsService from "@/server/services/standalone-services/app-logs.service";
+import { DownloadableAppLogsModel } from "@/shared/model/downloadable-app-logs.model";
 
 
 export const getDeploymentsAndBuildsForApp = async (appId: string) =>
@@ -45,3 +46,15 @@ export const createNewWebhookUrl = async (appId: string) =>
         await getAuthUserSession();
         await appService.regenerateWebhookId(appId);
     });
+
+export const getDownloadableLogs = async (appId: string) =>
+    simpleAction(async () => {
+        await getAuthUserSession();
+        return new SuccessActionResult(await appLogsService.getAvailableLogsForApp(appId));
+    }) as Promise<ServerActionResult<unknown, DownloadableAppLogsModel[]>>;
+
+export const exportLogsToFileForToday = async (appId: string) =>
+    simpleAction(async () => {
+        await getAuthUserSession();
+        return new SuccessActionResult(await appLogsService.writeAppLogsToDiskForApp(appId));
+    }) as Promise<ServerActionResult<unknown, DownloadableAppLogsModel | undefined>>;

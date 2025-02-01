@@ -1,7 +1,7 @@
 'use client';
 
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { cleanupOldBuildJobs, cleanupOldTmpFiles, deleteAllFailedAndSuccededPods, purgeRegistryImages, updateRegistry, updateTraefikMeCertificates } from "../server/actions";
+import { cleanupOldBuildJobs, cleanupOldTmpFiles, deleteAllFailedAndSuccededPods, deleteOldAppLogs, purgeRegistryImages, updateRegistry, updateTraefikMeCertificates } from "../server/actions";
 import { Button } from "@/components/ui/button";
 import { Toast } from "@/frontend/utils/toast.utils";
 import { useConfirmDialog } from "@/frontend/states/zustand.states";
@@ -53,6 +53,16 @@ export default function QuickStackMaintenanceSettings({
                         Toast.fromAction(() => cleanupOldTmpFiles());
                     }
                 }}><Trash /> Cleanup Temp Files</Button>
+
+                <Button variant="secondary" onClick={async () => {
+                    if (await useConfirm.openConfirmDialog({
+                        title: 'Delete old App logs',
+                        description: 'This action deletes all old app logs. Use this action to free up disk space.',
+                        okButton: "Delete old App logs"
+                    })) {
+                        Toast.fromAction(() => deleteOldAppLogs());
+                    }
+                }}><Trash /> Delete old App logs</Button>
 
                 <Button variant="secondary" onClick={async () => {
                     if (await useConfirm.openConfirmDialog({

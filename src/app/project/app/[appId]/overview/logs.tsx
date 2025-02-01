@@ -9,8 +9,10 @@ import FullLoadingSpinner from "@/components/ui/full-loading-spinnter";
 import { toast } from "sonner";
 import { LogsDialog } from "@/components/custom/logs-overlay";
 import { Button } from "@/components/ui/button";
-import { Expand, SquareArrowUp, SquareArrowUpRight, Terminal } from "lucide-react";
+import { Download, Expand, Terminal } from "lucide-react";
 import { TerminalDialog } from "./terminal-overlay";
+import { LogsDownloadOverlay } from "./logs-download-overlay";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 
 export default function Logs({
     app
@@ -86,11 +88,34 @@ export default function Logs({
                         </TerminalDialog>
                     </div>
                     <div>
-                        <LogsDialog namespace={app.projectId} podName={selectedPod.podName}>
-                            <Button variant="secondary">
-                                <Expand />
-                            </Button>
-                        </LogsDialog>
+                        <TooltipProvider>
+                            <Tooltip delayDuration={300}>
+                                <TooltipTrigger>
+                                    <LogsDownloadOverlay appId={app.id} >
+                                        <Button variant="secondary">
+                                            <Download />
+                                        </Button>
+                                    </LogsDownloadOverlay>
+                                </TooltipTrigger>
+                                <TooltipContent>
+                                    <p>Download Logs</p>
+                                </TooltipContent>
+                            </Tooltip>
+                        </TooltipProvider>
+                    </div>
+                    <div>
+                        <Tooltip delayDuration={300}>
+                            <TooltipTrigger>
+                                <LogsDialog namespace={app.projectId} podName={selectedPod.podName}>
+                                    <Button variant="secondary">
+                                        <Expand />
+                                    </Button>
+                                </LogsDialog>
+                            </TooltipTrigger>
+                            <TooltipContent>
+                                <p>Fullscreen Logs</p>
+                            </TooltipContent>
+                        </Tooltip>
                     </div>
                 </div>}
                 {app.projectId && selectedPod && <LogsStreamed namespace={app.projectId} podName={selectedPod.podName} />}

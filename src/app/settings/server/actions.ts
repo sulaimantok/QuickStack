@@ -13,11 +13,10 @@ import { QsPublicIpv4SettingsModel, qsPublicIpv4SettingsZodModel } from "@/share
 import ipAddressFinderAdapter from "@/server/adapter/ip-adress-finder.adapter";
 import { KubeSizeConverter } from "@/shared/utils/kubernetes-size-converter.utils";
 import buildService from "@/server/services/build.service";
-import { PathUtils } from "@/server/utils/path.utils";
-import { FsUtils } from "@/server/utils/fs.utils";
 import traefikMeDomainStandaloneService from "@/server/services/standalone-services/traefik-me-domain-standalone.service";
 import standalonePodService from "@/server/services/standalone-services/standalone-pod.service";
 import maintenanceService from "@/server/services/standalone-services/maintenance.service";
+import appLogsService from "@/server/services/standalone-services/app-logs.service";
 
 export const updateIngressSettings = async (prevState: any, inputData: QsIngressSettingsModel) =>
   saveFormAction(inputData, qsIngressSettingsZodModel, async (validatedData) => {
@@ -131,6 +130,13 @@ export const purgeRegistryImages = async () =>
     await getAuthUserSession();
     const deletedSize = await registryService.purgeRegistryImages();
     return new SuccessActionResult(undefined, `Successfully purged ${KubeSizeConverter.convertBytesToReadableSize(deletedSize)} of images.`);
+  });
+
+export const deleteOldAppLogs = async () =>
+  simpleAction(async () => {
+    await getAuthUserSession();
+    await appLogsService.deleteOldAppLogs();
+    return new SuccessActionResult(undefined, `Successfully deletes old app logs.`);
   });
 
 export const setCanaryChannel = async (useCanaryChannel: boolean) =>

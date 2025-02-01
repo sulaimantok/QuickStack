@@ -11,6 +11,7 @@ import backupService from './server/services/standalone-services/backup.service'
 import traefikMeDomainStandaloneService from './server/services/standalone-services/traefik-me-domain-standalone.service'
 import maintenanceService from './server/services/standalone-services/maintenance.service'
 import passwordChangeService from './server/services/standalone-services/password-change.service'
+import appLogsService from './server/services/standalone-services/app-logs.service'
 
 // Source: https://nextjs.org/docs/app/building-your-application/configuring/custom-server
 
@@ -57,6 +58,7 @@ async function initializeNextJs() {
     await backupService.registerAllBackups();
     traefikMeDomainStandaloneService.configureSchedulingForTraefikMeCertificateUpdate();
     maintenanceService.configureMaintenanceCronJobs();
+    appLogsService.configureCronJobs();
 
     const app = next({ dev });
     const handle = app.getRequestHandler();

@@ -31,7 +31,7 @@ export async function GET(request: NextRequest) {
 
         return new NextResponse(buffer, {
             headers: {
-                'Content-Type': 'application/pdf',
+                'Content-Type': 'application/gzip',
                 'Content-Disposition': `attachment; filename="volume-data.tar.gz"`,
             },
         });
