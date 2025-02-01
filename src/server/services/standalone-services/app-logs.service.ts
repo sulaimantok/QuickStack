@@ -119,29 +119,30 @@ class AppLogsService {
         let logPathsWritten = [];
         for (const pod of podInfos) {
             const logPath = await this.writeLogsToFileForPod(pod, app, startOfDay, secondsSinceMidnight);
-            logPathsWritten.push(logPath);
+            if (await FsUtils.fileExists(logPath)) {
+                logPathsWritten.push(logPath);
+            } else {
+                console.error(`Error writing logs to file for pod ${pod.podName} in app ${app.id}. There was no file written!`);
+            }
         }
 
         // create tar.gz file from all log files
         const logFilePath = PathUtils.appLogsFile(app.id, startOfDay);
         await FsUtils.deleteFileIfExists(logFilePath); // delete existing log file --> new one will be created
 
-        /*
-        // this doesn't work, because it doesn't wait for the file to be written
+
         await create({
             gzip: true,
             file: logFilePath,
             cwd: PathUtils.appLogsFolder(app.id)
         }, logPathsWritten);
-*/
 
-        await CommandExecutorUtils.runCommand(`tar -czf ${logFilePath} ${logPathsWritten.join(' ')}`);
         if (!FsUtils.fileExists(logFilePath)) {
             throw new Error(`Error creating tar file for logs of app ${app.id} on path ${logFilePath}`);
         }
 
         for (const logPath of logPathsWritten) {
-            await FsUtils.deleteFileIfExists(logPath);
+            //await FsUtils.deleteFileIfExists(logPath);
         }
 
         return {
@@ -178,7 +179,7 @@ class AppLogsService {
                 });
 
                 logStream.on('error', (error) => {
-                    console.error("Error in log stream:", error);
+                    console.error(`Error fetching logs for pod ${pod.podName} in container ${pod.containerName}`, error);
                     reject(error);
                 });
 
@@ -188,6 +189,7 @@ class AppLogsService {
                     requestWebSocket?.abort();
                 });
             } catch (error) {
+                console.error(`Error fetching logs for pod ${pod.podName} in container ${pod.containerName}`, error);
                 reject(error);
             }
         });
