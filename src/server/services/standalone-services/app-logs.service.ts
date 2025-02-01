@@ -144,7 +144,8 @@ class AppLogsService {
         app: App, startOfDay: Date, secondsSinceMidnight: number) {
 
         console.log(`Fetching logs for pod ${pod.podName} in container ${pod.containerName}`);
-        const textLogFilePath = PathUtils.appLogsFile(app.id, startOfDay) + `_${pod.podName}.log`;
+        const textLogFilePath = path.join(PathUtils.appLogsFolder(app.id),
+            `${startOfDay.toISOString().split('T')[0]}_${pod.podName}.log`);
         await FsUtils.deleteFileIfExists(textLogFilePath); // delete existing log file --> new one will be created
 
         await new Promise<void>(async (resolve, reject) => {
@@ -182,7 +183,6 @@ class AppLogsService {
         });
 
         return textLogFilePath;
-
     }
 }
 
