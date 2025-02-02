@@ -12,6 +12,7 @@ import { getAuthUserSession, simpleAction } from "@/server/utils/action-wrapper.
 import { PodsResourceInfoModel } from "@/shared/model/pods-resource-info.model";
 import appLogsService from "@/server/services/standalone-services/app-logs.service";
 import { DownloadableAppLogsModel } from "@/shared/model/downloadable-app-logs.model";
+import { ServiceException } from "@/shared/model/service.exception.model";
 
 
 export const getDeploymentsAndBuildsForApp = async (appId: string) =>
@@ -56,5 +57,9 @@ export const getDownloadableLogs = async (appId: string) =>
 export const exportLogsToFileForToday = async (appId: string) =>
     simpleAction(async () => {
         await getAuthUserSession();
-        return new SuccessActionResult(await appLogsService.writeAppLogsToDiskForApp(appId));
+        const result = await appLogsService.writeAppLogsToDiskForApp(appId);
+        if (!result) {
+            throw new ServiceException('There are no logs available for today.');
+        }
+        return new SuccessActionResult(result);
     }) as Promise<ServerActionResult<unknown, DownloadableAppLogsModel | undefined>>;

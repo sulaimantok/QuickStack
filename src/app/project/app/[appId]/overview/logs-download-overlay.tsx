@@ -64,8 +64,6 @@ export function LogsDownloadOverlay({
         item = logsToOpen.data;
       }
       window.open(`/api/logs-download?appId=${appId}&date=${item.date.toISOString()}`, '_blank');
-    } catch (error) {
-      toast.error('Error while loading log files');
     } finally {
       setIsLoading(false);
     }

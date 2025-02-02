@@ -130,6 +130,9 @@ class AppLogsService {
         const logFilePath = PathUtils.appLogsFile(app.id, startOfDay);
         await FsUtils.deleteFileIfExists(logFilePath); // delete existing log file --> new one will be created
 
+        if (logPathsWritten.length === 0) {
+            return;
+        }
 
         await create({
             gzip: true,
@@ -142,7 +145,7 @@ class AppLogsService {
         }
 
         for (const logPath of logPathsWritten) {
-            //await FsUtils.deleteFileIfExists(logPath);
+            await FsUtils.deleteFileIfExists(logPath);
         }
 
         return {
