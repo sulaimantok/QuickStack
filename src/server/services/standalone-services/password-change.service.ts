@@ -30,13 +30,22 @@ class PasswordChangeService {
             }
         });
 
-        console.log(' ******* Password change *******');
+        console.log(``);
+        console.log(``);
+        console.log('*******************************');
+        console.log('******* Password change *******');
+        console.log('*******************************');
         console.log(``);
         console.log(`New password for user ${firstCreatedUser.email} is: ${generatedPassword}`);
         console.log(``);
-        console.log(' *******************************');
+        console.log('*******************************');
+        console.log('*******************************');
+        console.log('*******************************');
+        console.log(``);
         console.log(``);
         console.log(`Restarting QuickStack, please wait...`);
+        console.log(``);
+        console.log(``);
 
         const existingDeployment = await quickStackService.getExistingDeployment();
         await quickStackService.createOrUpdateDeployment(existingDeployment.nextAuthSecret, existingDeployment.isCanaryDeployment ? 'canary' : 'latest');

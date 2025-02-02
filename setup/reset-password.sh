@@ -1,4 +1,6 @@
-#!/bin/bash
+#!/bin/sh
+
+# curl -sfL https://get.quickstack.dev/reset-password.sh | sh -
 
 DEPLOYMENT="quickstack"
 NAMESPACE="quickstack"
@@ -25,17 +27,16 @@ kubectl patch deployment "$DEPLOYMENT" -n "$NAMESPACE" --type='json' -p='[
 
 echo "Initialized password change successfully, please wait..."
 
-# Wait for a new pod to be created
+sleep 2
+
+echo "Waiting for the new pod to be in Running status..."
+kubectl wait --for=condition=Ready pod -l app="$DEPLOYMENT" -n "$NAMESPACE" --timeout=300s
+
+# Retreive the new pod name
 NEW_POD=""
-while [[ -z "$NEW_POD" || "$NEW_POD" == "$OLD_POD" ]]; do
+while [ -z "$NEW_POD" ] || [ "$NEW_POD" = "$OLD_POD" ]; do
     sleep 2
     NEW_POD=$(kubectl get pods -n "$NAMESPACE" -l app="$DEPLOYMENT" -o jsonpath="{.items[-1].metadata.name}")
 done
-
-echo "New pod detected: $NEW_POD"
-
-# Wait until the new pod is in Running state
-echo "Waiting for pod $NEW_POD to be in Running state..."
-kubectl wait --for=condition=ready pod "$NEW_POD" -n "$NAMESPACE" --timeout=60s
 
 kubectl logs -f "$NEW_POD" -n "$NAMESPACE"

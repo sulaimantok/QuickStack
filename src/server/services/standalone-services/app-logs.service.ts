@@ -93,7 +93,11 @@ class AppLogsService {
     async writeLogsToDiskForAllRunningApps(date?: Date) {
         const apps = await dataAccess.client.app.findMany();
         for (const app of apps) {
-            await this.writeAppLogsToDiskForApp(app.id, date);
+            try {
+                await this.writeAppLogsToDiskForApp(app.id, date);
+            } catch (error) {
+                console.error(`Error writing logs to disk for app ${app.id}`, error);
+            }
         }
     }
 
