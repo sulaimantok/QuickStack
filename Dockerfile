@@ -1,12 +1,12 @@
 FROM node:18-alpine AS base
 
 ARG VERSION_ARG
+RUN apk add --no-cache openssl
 
-# Install dependencies only when needed
 FROM base AS deps
 
-# Install necessary packages
-RUN apk add --no-cache libc6-compat openssl python3 make g++
+# Install necessary packages for building
+RUN apk add --no-cache libc6-compat python3 make g++
 
 WORKDIR /app
 
