@@ -28,7 +28,7 @@ class QuickStackService {
         await namespaceService.createNamespaceIfNotExists(this.QUICKSTACK_NAMESPACE)
         const nextAuthSecret = await this.deleteExistingDeployment();
         await this.createOrUpdatePvc();
-        await this.createOrUpdateDeployment(nextAuthSecret);
+        await this.createOrUpdateDeployment(nextAuthSecret, process.env.VERSION_ARG?.includes('canary') ? 'canary' : 'latest');
         await this.createOrUpdateService(true);
         await this.waitUntilQuickstackIsRunning();
         console.log('QuickStack successfully initialized');
