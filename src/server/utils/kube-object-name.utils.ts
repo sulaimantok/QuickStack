@@ -68,4 +68,16 @@ export class KubeObjectNameUtils {
     static toSecretId(id: string): `secret-${string}` {
         return `secret-${id}`;
     }
+
+    static toDbGateId(appId: string): `dbgate-${string}` {
+        return `dbgate-${appId}`;
+    }
+
+    static toPhpMyAdminId(appId: string): `phpma-${string}` {
+        return `phpma-${appId}`;
+    }
+
+    static toPgAdminId(appId: string): `pga-${string}` {
+        return `pga-${appId}`;
+    }
 }

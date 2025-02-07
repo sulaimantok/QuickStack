@@ -44,20 +44,13 @@ class SecretService {
             type: 'kubernetes.io/dockerconfigjson',
         };
 
-        const existingSecret = await this.getExistingSecret(namespace, app.id);
-        if (existingSecret) {
-            console.log(`Updating existing Docker registry secret ${secretName}...`);
-            await k3s.core.replaceNamespacedSecret(secretName, namespace, secretManifest);
-        } else {
-            console.log(`Creating new Docker registry secret ${secretName}...`);
-            await k3s.core.createNamespacedSecret(namespace, secretManifest);
-        }
+        await this.saveSecret(namespace, secretName, secretManifest);
         return secretName;
     }
 
     async delteUnusedSecrets(app: AppExtendedModel) {
         if (this.appNeedsNoSecret(app)) {
-            const existingSecret = await this.getExistingSecret(app.projectId, app.id);
+            const existingSecret = await this.getExistingSecret(app.projectId, KubeObjectNameUtils.toSecretId(app.id));
             if (existingSecret) {
                 console.log(`Deleting secret ${existingSecret.metadata?.name}...`);
                 await k3s.core.deleteNamespacedSecret(existingSecret.metadata?.name!, app.projectId);
@@ -69,9 +62,20 @@ class SecretService {
         return app.sourceType === 'GIT' || !app.containerImageSource || !app.containerRegistryUsername || !app.containerRegistryPassword;
     }
 
-    async getExistingSecret(namespace: string, appId: string) {
+    async saveSecret(namespace: string, secretName: string, secretManifest: V1Secret) {
+        const existingSecret = await this.getExistingSecret(namespace, secretName);
+        if (existingSecret) {
+            console.log(`Updating existing Docker registry secret ${secretName}...`);
+            await k3s.core.replaceNamespacedSecret(secretName, namespace, secretManifest);
+        } else {
+            console.log(`Creating new Docker registry secret ${secretName}...`);
+            await k3s.core.createNamespacedSecret(namespace, secretManifest);
+        }
+    }
+
+    async getExistingSecret(namespace: string, secretName: string) {
         const existingSecrets = await k3s.core.listNamespacedSecret(namespace);
-        const existingSecret = existingSecrets.body.items.find(s => s.metadata?.name === KubeObjectNameUtils.toSecretId(appId));
+        const existingSecret = existingSecrets.body.items.find(s => s.metadata?.name === secretName);
         return existingSecret;
     }
 }

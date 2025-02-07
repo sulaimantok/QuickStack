@@ -6,6 +6,7 @@ import { KubeObjectNameUtils } from "../utils/kube-object-name.utils";
 import deploymentService from "./deployment.service";
 import namespaceService from "./namespace.service";
 import buildService from "./build.service";
+import traefikMeDomainStandaloneService from "./standalone-services/traefik-me-domain-standalone.service";
 
 class ProjectService {
 
@@ -28,7 +29,7 @@ class ProjectService {
     }
 
     async getAllProjects() {
-        return await unstable_cache(() =>  dataAccess.client.project.findMany({
+        return await unstable_cache(() => dataAccess.client.project.findMany({
             include: {
                 apps: true
             },
@@ -69,6 +70,7 @@ class ProjectService {
         } finally {
             revalidateTag(Tags.projects());
         }
+        await traefikMeDomainStandaloneService.updateTraefikMeCertificate();
         return savedItem;
     }
 }

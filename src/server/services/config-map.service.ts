@@ -18,8 +18,6 @@ class ConfigMapService {
 
     async createOrUpdateConfigMapForApp(app: AppExtendedModel) {
 
-        const existingConfigMaps = await this.getConfigMapsForApp(app.projectId, app.id);
-
         if (app.appFileMounts.length === 0) {
             return { fileVolumeMounts: [], fileVolumes: [] };
         }
@@ -52,30 +50,49 @@ class ConfigMapService {
                 },
             };
 
-            if (existingConfigMaps.some(cm => cm.metadata!.name === currentConfigMapName)) {
-                await k3s.core.replaceNamespacedConfigMap(currentConfigMapName, app.projectId, configMapManifest);
-            } else {
-                await k3s.core.createNamespacedConfigMap(app.projectId, configMapManifest);
-            }
+            await this.createOrUpdateConfigMap(app.projectId, configMapManifest);
+            const containerMountPath = fileMount.containerMountPath;
 
-            fileVolumeMounts.push({
-                name: currentConfigMapName,
-                mountPath: fileMount.containerMountPath,
-                subPath: filePath,
-                readOnly: true
-            });
+            const { fileVolumeMount, fileVolume } = this.createFileVolumeConfig(currentConfigMapName, containerMountPath, filePath);
 
-            fileVolumes.push({
-                name: currentConfigMapName,
-                configMap: {
-                    name: currentConfigMapName,
-                }
-            });
+            fileVolumeMounts.push(fileVolumeMount);
+            fileVolumes.push(fileVolume);
         }
 
         return { fileVolumeMounts, fileVolumes };
     }
 
+    createFileVolumeConfig(currentConfigMapName: string, containerMountPath: string, fileName: string, readOnly = true) {
+        const fileVolumeMount = {
+            name: currentConfigMapName,
+            mountPath: containerMountPath,
+            subPath: fileName,
+            readOnly
+        } as k8s.V1VolumeMount;
+
+        const fileVolume = {
+            name: currentConfigMapName,
+            configMap: {
+                name: currentConfigMapName,
+            }
+        } as k8s.V1Volume;
+        return { fileVolumeMount, fileVolume };
+    }
+
+    async getExistingConfigMap(namespace: string, configMapName: string) {
+        const configMaps = await k3s.core.listNamespacedConfigMap(namespace);
+        return configMaps.body.items.find(cm => cm.metadata?.name === configMapName);
+    }
+
+    async createOrUpdateConfigMap(namespace: string, configMapManifest: k8s.V1ConfigMap) {
+        const currentConfigMapName = configMapManifest.metadata!.name!;
+        const existingConfigMaps = await this.getExistingConfigMap(namespace, currentConfigMapName);
+        if (!!existingConfigMaps) {
+            await k3s.core.replaceNamespacedConfigMap(currentConfigMapName, namespace, configMapManifest);
+        } else {
+            await k3s.core.createNamespacedConfigMap(namespace, configMapManifest);
+        }
+    }
 
     async deleteUnusedConfigMaps(app: AppExtendedModel) {
         const existingConfigMaps = await this.getConfigMapsForApp(app.projectId, app.id);
@@ -83,6 +100,13 @@ class ConfigMapService {
             if (!app.appFileMounts.some(fm => KubeObjectNameUtils.getConfigMapName(fm.id) === cm.metadata?.name)) {
                 await k3s.core.deleteNamespacedConfigMap(cm.metadata!.name!, app.projectId);
             }
+        }
+    }
+
+    async deleteConfigMapIfExists(namespace: string, configMapName: string) {
+        const existingConfigMap = await this.getExistingConfigMap(namespace, configMapName);
+        if (!!existingConfigMap) {
+            await k3s.core.deleteNamespacedConfigMap(configMapName, namespace);
         }
     }
 }

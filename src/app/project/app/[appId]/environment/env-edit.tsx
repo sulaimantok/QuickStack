@@ -38,26 +38,30 @@ export default function EnvEdit({ app }: {
         <Card>
             <CardHeader>
                 <CardTitle>Environment Variables</CardTitle>
-                <CardDescription>Provide optional environment variables for your application.</CardDescription>
+                <CardDescription>
+                    Provide optional environment variables for your application.
+                    {app.appType !== 'APP' && <div className="text-sm text-red-500 pt-2">You should not change ENV variables for databases.</div>}
+
+                </CardDescription>
             </CardHeader>
             <Form {...form}>
                 <form action={(e) => form.handleSubmit((data) => {
                     return formAction(data);
                 })()}>
                     <CardContent className="space-y-4">
-                            <FormField
-                                control={form.control}
-                                name="envVars"
-                                render={({ field }) => (
-                                    <FormItem>
-                                        <FormLabel>Env Variables</FormLabel>
-                                        <FormControl>
-                                            <Textarea className="h-96" placeholder="NAME=VALUE..." {...field} value={field.value} />
-                                        </FormControl>
-                                        <FormMessage />
-                                    </FormItem>
-                                )}
-                            />
+                        <FormField
+                            control={form.control}
+                            name="envVars"
+                            render={({ field }) => (
+                                <FormItem>
+                                    <FormLabel>Env Variables</FormLabel>
+                                    <FormControl>
+                                        <Textarea className="h-96" placeholder="NAME=VALUE..." {...field} value={field.value} />
+                                    </FormControl>
+                                    <FormMessage />
+                                </FormItem>
+                            )}
+                        />
                     </CardContent>
                     <CardFooter>
                         <SubmitButton>Save</SubmitButton>

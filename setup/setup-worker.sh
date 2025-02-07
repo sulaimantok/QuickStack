@@ -35,7 +35,7 @@ select_network_interface() {
             i=$((i + 1))
         done
 
-        printf "Please enter the number of the interface to use (1-%d): " "$((i-1))"
+        printf "Please enter the number of the interface to use: "
         # Change read to use /dev/tty explicitly
         read -r choice </dev/tty
 

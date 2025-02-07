@@ -1,20 +1,12 @@
-import { Button } from "@/components/ui/button"
 import {
   Dialog,
   DialogContent,
-  DialogDescription,
-  DialogFooter,
   DialogHeader,
   DialogTitle,
-  DialogTrigger,
 } from "@/components/ui/dialog"
 import { Input } from "@/components/ui/input"
-import { Label } from "@/components/ui/label"
-import React, { useEffect } from "react";
-import { set } from "date-fns";
-import { DeploymentInfoModel } from "@/shared/model/deployment-info.model";
+import React from "react";
 
-import { formatDateTime } from "@/frontend/utils/format.utils";
 import LogsStreamed from "@/components/custom/logs-streamed";
 
 export function LogsDialog({
@@ -33,16 +25,16 @@ export function LogsDialog({
   const [linesCount, setLinesCount] = React.useState<number>(100);
   const [isOpen, setIsOpen] = React.useState(false);
 
-  return (
+  return (<>
+    <div onClick={() => setIsOpen(true)}>
+      {children}
+    </div>
     <Dialog open={isOpen} onOpenChange={(isO) => {
       setIsOpen(isO);
       if (onClose && !isO) {
         onClose();
       }
     }}>
-      <DialogTrigger asChild>
-        {children}
-      </DialogTrigger>
       <DialogContent className="sm:max-w-[1300px]">
         <DialogHeader>
           <DialogTitle>Logs</DialogTitle>
@@ -59,5 +51,6 @@ export function LogsDialog({
         </div>
       </DialogContent>
     </Dialog>
+  </>
   )
 }

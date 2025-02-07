@@ -20,6 +20,7 @@ import VolumeBackupList from "./volumes/volume-backup";
 import { VolumeBackupExtendedModel } from "@/shared/model/volume-backup-extended.model";
 import BasicAuth from "./advanced/basic-auth";
 import { ScrollArea, ScrollBar } from "@/components/ui/scroll-area";
+import DbToolsCard from "./credentials/db-tools";
 
 export default function AppTabs({
     app,
@@ -60,6 +61,7 @@ export default function AppTabs({
                 <WebhookDeploymentInfo app={app} />
             </TabsContent>
             {app.appType !== 'APP' && <TabsContent value="credentials" className="space-y-4">
+                <DbToolsCard app={app} />
                 <DbCredentials app={app} />
             </TabsContent>}
             <TabsContent value="general" className="space-y-4">

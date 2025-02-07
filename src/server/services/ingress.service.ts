@@ -7,6 +7,7 @@ import { Constants } from "../../shared/utils/constants";
 import ingressSetupService from "./setup-services/ingress-setup.service";
 import { dlog } from "./deployment-logs.service";
 import { createHash } from "crypto";
+import { TraefikMeUtils } from "@/shared/utils/traefik-me.utils";
 
 class IngressService {
 
@@ -67,6 +68,7 @@ class IngressService {
         const hostname = domain.hostname;
         const ingressName = KubeObjectNameUtils.getIngressName(domain.id);
         const existingIngress = await this.getIngressByName(app.projectId, domain.id);
+        const isATraefikMeDomain = TraefikMeUtils.isValidTraefikMeDomain(hostname);
 
         const middlewares = [
             basicAuthMiddlewareName,
@@ -82,7 +84,7 @@ class IngressService {
                 annotations: {
                     [Constants.QS_ANNOTATION_APP_ID]: app.id,
                     [Constants.QS_ANNOTATION_PROJECT_ID]: app.projectId,
-                    ...(domain.useSsl === true && { 'cert-manager.io/cluster-issuer': 'letsencrypt-production' }),
+                    ...(!isATraefikMeDomain && domain.useSsl === true && { 'cert-manager.io/cluster-issuer': 'letsencrypt-production' }),
                     ...(middlewares && { 'traefik.ingress.kubernetes.io/router.middlewares': middlewares }),
                     ...(domain.useSsl === false && { 'traefik.ingress.kubernetes.io/router.entrypoints': 'web' }), // disable requests from https --> only http
                 },
@@ -114,7 +116,7 @@ class IngressService {
                     tls: [
                         {
                             hosts: [hostname],
-                            secretName: `secret-tls-${domain.id}`,
+                            secretName: isATraefikMeDomain ? Constants.TRAEFIK_ME_SECRET_NAME : `secret-tls-${domain.id}`,
                         },
                     ],
                 }),

@@ -26,7 +26,7 @@ class BackupService {
         const groupedByCron = ListUtils.groupBy(allVolumeBackups, vb => vb.cron);
 
         for (const [cron, volumeBackups] of Array.from(groupedByCron.entries())) {
-            scheduleService.scheduleJob(cron, cron, async () => {
+            scheduleService.scheduleJob(`backup-${cron}`, cron, async () => {
                 console.log(`Running backup for ${volumeBackups.length} volumes...`);
                 for (const volumeBackup of volumeBackups) {
                     try {
@@ -43,7 +43,8 @@ class BackupService {
 
     async unregisterAllBackups() {
         const allJobs = scheduleService.getAlJobs();
-        for (const jobName of allJobs) {
+        const backupJobs = allJobs.filter(j => j.startsWith('backup-'));
+        for (const jobName of backupJobs) {
             scheduleService.cancelJob(jobName);
         }
     }
@@ -248,6 +249,15 @@ class BackupService {
         } finally {
             await FsUtils.deleteFileIfExists(downloadPath);
         }
+    }
+
+    async deleteBackupFromS3(s3TargetId: string, key: string) {
+        const target = await dataAccess.client.s3Target.findFirstOrThrow({
+            where: {
+                id: s3TargetId
+            }
+        });
+        return s3Service.deleteFile(target, key);
     }
 }
 

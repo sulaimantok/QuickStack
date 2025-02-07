@@ -1,6 +1,7 @@
 import { ServiceException } from "@/shared/model/service.exception.model";
 import paramService, { ParamService } from "./param.service";
 
+
 class TraefikMeDomainService {
 
     async getDomainForApp(appId: string, prefix?: string) {
@@ -8,10 +9,11 @@ class TraefikMeDomainService {
         if (!publicIpv4) {
             throw new ServiceException('Please set the main public IPv4 address in the QuickStack settings first.');
         }
+        const traefikFriendlyIpv4 = publicIpv4.split('.').join('-');
         if (prefix) {
-            return `${prefix}.${appId}.${publicIpv4}.traefik.me`;
+            return `${prefix}-${appId}-${traefikFriendlyIpv4}.traefik.me`;
         }
-        return `${appId}.${publicIpv4}.traefik.me`;
+        return `${appId}-${traefikFriendlyIpv4}.traefik.me`;
     }
 }
 

@@ -2,6 +2,7 @@ import k3s from "../../adapter/kubernetes-api.adapter";
 import fs from 'fs';
 import stream from 'stream';
 import * as k8s from '@kubernetes/client-node';
+import dataAccess from "../../../server/adapter/db.client";
 
 class SetupPodService {
 
@@ -14,7 +15,14 @@ class SetupPodService {
         while (tries < maxTries) {
             const pod = await this.getPodOrUndefined(projectId, podName);
             if (pod && ['Running', 'Failed', 'Succeeded'].includes(pod.status?.phase!)) {
-                return true;
+                // check if running and ready (when passing readiness probe)
+                if (pod.status?.phase === 'Running') {
+                    if (pod.status?.containerStatuses?.[0].ready) {
+                        return true;
+                    }
+                } else {
+                    return true;
+                }
             }
 
             await new Promise(resolve => setTimeout(resolve, interval));
@@ -52,12 +60,14 @@ class SetupPodService {
         podName: string;
         containerName: string;
         uid?: string;
+        status?: string;
     }[]> {
         const res = await k3s.core.listNamespacedPod(projectId, undefined, undefined, undefined, undefined, `app=${appId}`);
         return res.body.items.map((item) => ({
             podName: item.metadata?.name!,
             containerName: item.spec?.containers?.[0].name!,
             uid: item.metadata?.uid,
+            status: item.status?.phase,
         })).filter((item) => !!item.podName && !!item.containerName);
     }
 
@@ -224,7 +234,18 @@ class SetupPodService {
                 }, 5000);
             });
         });
+    }
 
+    async deleteAllFailedAndSuccededPods() {
+        const projects = await dataAccess.client.project.findMany();
+
+        for (const project of projects) {
+            const podsOfNamespace = await k3s.core.listNamespacedPod(project.id);
+            const failedPods = podsOfNamespace.body.items.filter((pod) => ['Failed', 'Succeeded'].includes(pod.status?.phase!));
+            for (const pod of failedPods) {
+                await k3s.core.deleteNamespacedPod(pod.metadata?.name!, project.id);
+            }
+        }
     }
 }
 
