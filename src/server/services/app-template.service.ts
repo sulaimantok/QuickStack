@@ -57,6 +57,13 @@ class AppTemplateService {
             });
         }));
 
+        const savedFileMounts = await Promise.all(template.appFileMounts.map(async x => {
+            return await appService.saveFileMount({
+                ...x,
+                appId: createdApp.id
+            });
+        }));
+
         const savedPorts = await Promise.all(template.appPorts.map(async x => {
             return await appService.savePort({
                 ...x,

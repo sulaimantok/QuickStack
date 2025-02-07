@@ -1,6 +1,6 @@
 #!/bin/bash
 
-# curl -sfL https://get.quickstack.dev/setup.sh | sh -
+# curl -sfL https://get.quickstack.dev/setup-canary.sh | sh -
 
 select_network_interface() {
   if [ -z "$INSTALL_K3S_INTERFACE" ]; then
@@ -158,7 +158,7 @@ spec:
       serviceAccountName: qs-service-account
       containers:
       - name: quickstack-container
-        image: quickstack/quickstack:latest
+        image: quickstack/quickstack:canary
         env:
         - name: START_MODE
           value: "setup"
