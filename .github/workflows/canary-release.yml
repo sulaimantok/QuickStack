@@ -3,7 +3,7 @@ name: Canary - Build and Push Docker Image
 on:
   push:
     branches:
-      - canary
+      - main
 
 permissions:
   contents: read
