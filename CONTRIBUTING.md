@@ -59,11 +59,13 @@ BREAKING CHANGE: this is a breaking change
 ### Submitting Pull Requests
 
 If you would like to contribute code to QuickStack, please follow these steps:
-1. Fork the repository and create your branch from `canary`.
+1. Fork the repository and create your branch from `main`.
 2. If you have added code that should be tested, add tests.
 3. Ensure the test suite passes.
 4. Make sure your code lints.
-5. Submit a pull request to the `canary` branch.
+5. Submit a pull request to the `main` branch.
+
+For each merged pull request a docker image for the canary tag will be created.
 
 ### Running Tests
 
