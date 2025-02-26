@@ -23,6 +23,7 @@ export class RoleService {
             }
         } finally {
             revalidateTag(Tags.roles());
+            revalidateTag(Tags.users());
         }
     }
 
@@ -43,6 +44,7 @@ export class RoleService {
             });
         } finally {
             revalidateTag(Tags.roles());
+            revalidateTag(Tags.users());
         }
     }
 
@@ -79,6 +81,19 @@ export class RoleService {
                 data: {
                     roleId,
                 },
+            });
+        } finally {
+            revalidateTag(Tags.roles());
+            revalidateTag(Tags.users());
+        }
+    }
+
+    async deleteById(id: string) {
+        try {
+            await dataAccess.client.role.delete({
+                where: {
+                    id
+                }
             });
         } finally {
             revalidateTag(Tags.roles());

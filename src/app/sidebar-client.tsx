@@ -17,7 +17,7 @@ import {
   SidebarMenuAction,
   useSidebar
 } from "@/components/ui/sidebar"
-import { BookOpen, Boxes, ChartNoAxesCombined, ChevronDown, ChevronRight, ChevronUp, Dot, FolderClosed, History, Info, Plus, Server, Settings, Settings2, User } from "lucide-react"
+import { BookOpen, Boxes, ChartNoAxesCombined, ChevronDown, ChevronRight, ChevronUp, Dot, FolderClosed, History, Info, Plus, Server, Settings, Settings2, User, User2 } from "lucide-react"
 import Link from "next/link"
 import { EditProjectDialog } from "./projects/edit-project-dialog"
 import { SidebarLogoutButton } from "./sidebar-logout-button"
@@ -38,6 +38,11 @@ const settingsMenu = [
     title: "Profile",
     url: "/settings/profile",
     icon: User,
+  },
+  {
+    title: "Users & Roles",
+    url: "/settings/users",
+    icon: User2,
   },
   {
     title: "S3 Targets",
