@@ -2,13 +2,41 @@ import { Prisma } from "@prisma/client";
 import dataAccess from "../adapter/db.client";
 import { revalidateTag, unstable_cache } from "next/cache";
 import { Tags } from "../utils/cache-tag-generator.utils";
+import { ServiceException } from "@/shared/model/service.exception.model";
 
-const adminRoleName = 'Admin';
+
+export const adminRoleName = "admin";
+export enum RolePersmission {
+    READ = "READ",
+    READWRITE = "READWRITE",
+}
 
 export class RoleService {
 
+    async getRoleByUserId(userId: string) {
+        return await unstable_cache(async (uId: string) => await dataAccess.client.role.findFirst({
+            select: {
+                id: true,
+                name: true,
+            },
+            where: {
+                users: {
+                    some: {
+                        id: uId
+                    }
+                }
+            }
+        }),
+            [Tags.roles(), Tags.users()], {
+            tags: [Tags.roles(), Tags.users()]
+        })(userId);
+    }
+
     async save(item: Prisma.RoleUncheckedCreateInput | Prisma.RoleUncheckedUpdateInput) {
         try {
+            if (item.name === adminRoleName) {
+                throw new ServiceException("You cannot assign the name 'admin' to a role");
+            }
             if (item.id) {
                 await dataAccess.client.role.update({
                     where: {
@@ -99,6 +127,22 @@ export class RoleService {
             revalidateTag(Tags.roles());
             revalidateTag(Tags.users());
         }
+    }
+
+    async getOrCreateAdminRole() {
+        let adminRole = await dataAccess.client.role.findFirst({
+            where: {
+                name: adminRoleName
+            }
+        });
+        if (!adminRole) {
+            adminRole = await dataAccess.client.role.create({
+                data: {
+                    name: adminRoleName
+                }
+            });
+        }
+        return adminRole;
     }
 }
 

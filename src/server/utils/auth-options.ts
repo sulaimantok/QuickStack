@@ -8,6 +8,7 @@ import dataAccess from "@/server/adapter/db.client";
 import CredentialsProvider from "next-auth/providers/credentials";
 import bcrypt from "bcrypt";
 import userService from "@/server/services/user.service";
+import roleService from "@/server/services/role.service";
 
 
 const saltRounds = 10;
@@ -54,6 +55,20 @@ export const authOptions: NextAuthOptions = {
             }
         })
     ],
+    callbacks: {
+        async jwt({ token, user }) {
+            // Initial sign in
+            return token;
+        },
+        async session({ session, token, user }) {
+            if (token?.sub) {
+                const role = await roleService.getRoleByUserId(token.sub);
+                (session.user as any).roleName = role?.name;
+                (session.user as any).roleId = role?.id;
+            }
+            return session;
+        },
+    },
     adapter: PrismaAdapter(dataAccess.client),
 };
 

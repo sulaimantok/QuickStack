@@ -1,5 +1,5 @@
 import * as z from "zod"
-import * as imports from "../../../../prisma/null"
+
 import { CompleteApp, RelatedAppModel } from "./index"
 
 export const AppDomainModel = z.object({

@@ -7,6 +7,7 @@ import { ServerActionResult } from "@/shared/model/server-action-error-return.mo
 import { FormValidationException } from "@/shared/model/form-validation-exception.model";
 import { authOptions } from "@/server/utils/auth-options";
 import { NextResponse } from "next/server";
+import roleService, { adminRoleName, RolePersmission } from "../services/role.service";
 
 /**
  * THIS FUNCTION RETURNS NULL IF NO USER IS LOGGED IN
@@ -18,7 +19,9 @@ export async function getUserSession(): Promise<UserSession | null> {
         return null;
     }
     return {
-        email: session?.user?.email as string
+        email: session?.user?.email as string,
+        roleId: (session?.user as any)?.roleId as string,
+        roleName: (session?.user as any)?.roleName as string
     };
 }
 
@@ -27,6 +30,71 @@ export async function getAuthUserSession(): Promise<UserSession> {
     if (!session) {
         console.error('User is not authenticated.');
         redirect('/auth');
+    }
+    return session;
+}
+
+export async function getAdminUserSession(): Promise<UserSession> {
+    const session = await getAuthUserSession();
+    if (!isAdmin(session)) {
+        console.error('User is not admin.');
+        throw new ServiceException('User is not authorized for this action.');
+    }
+    return session;
+}
+
+function isAdmin(session: UserSession) {
+    return session.roleName === adminRoleName;
+}
+
+export async function isAuthorizedForRoleId(roleId: string) {
+    const session = await getAuthUserSession();
+    if (!isAdmin(session) && session.roleId !== roleId) {
+        console.error('User is not authorized for role: ' + roleId);
+        throw new ServiceException('User is not authorized for this action.');
+    }
+    return session;
+}
+
+export async function isAuthorizedForRoleName(roleName: string) {
+    const session = await getAuthUserSession();
+    if (!isAdmin(session) && session.roleName !== roleName) {
+        console.error('User is not authorized for role: ' + roleName);
+        throw new ServiceException('User is not authorized for this action.');
+    }
+    return session;
+}
+
+export async function isAuthorizedReadForApp(appId: string) {
+    const session = await getAuthUserSession();
+    if (isAdmin(session)) {
+        return session;
+    }
+    if (!session.roleId) {
+        console.error('User is not authorized for app: ' + appId);
+        throw new ServiceException('User is not authorized for this action.');
+    }
+    const role = await roleService.getById(session.roleId);
+    if (!isAdmin(session) && !role.roleAppPermissions.some(app => app.appId === appId && app.permission === RolePersmission.READ)) {
+        console.error('User is not authorized for app: ' + appId);
+        throw new ServiceException('User is not authorized for this action.');
+    }
+    return session;
+}
+
+export async function isAuthorizedWriteForApp(appId: string) {
+    const session = await getAuthUserSession();
+    if (isAdmin(session)) {
+        return session;
+    }
+    if (!session.roleId) {
+        console.error('User is not authorized for app: ' + appId);
+        throw new ServiceException('User is not authorized for this action.');
+    }
+    const role = await roleService.getById(session.roleId);
+    if (!isAdmin(session) && !role.roleAppPermissions.some(app => app.appId === appId && app.permission === RolePersmission.READWRITE)) {
+        console.error('User is not authorized for app: ' + appId);
+        throw new ServiceException('User is not authorized for this action.');
     }
     return session;
 }

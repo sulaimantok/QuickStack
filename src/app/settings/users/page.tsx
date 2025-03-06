@@ -44,7 +44,6 @@ export default async function S3TargetsPage() {
                     <RolesTable roles={roles} />
                 </TabsContent>
             </Tabs>
-
         </div>
     )
 }

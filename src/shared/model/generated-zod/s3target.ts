@@ -1,5 +1,5 @@
 import * as z from "zod"
-import * as imports from "../../../../prisma/null"
+
 import { CompleteVolumeBackup, RelatedVolumeBackupModel } from "./index"
 
 export const S3TargetModel = z.object({
