@@ -10,9 +10,11 @@ import { formatDateTime } from "@/frontend/utils/format.utils";
 import { deleteRole } from "./actions";
 import { RoleExtended } from "@/shared/model/role-extended.model.ts";
 import RoleEditOverlay from "./role-edit-overlay";
+import { App } from "@prisma/client";
 
-export default function RolesTable({ roles }: {
+export default function RolesTable({ roles, apps }: {
     roles: RoleExtended[];
+    apps: App[];
 }) {
 
     const { openConfirmDialog: openDialog } = useConfirmDialog();
@@ -42,7 +44,7 @@ export default function RolesTable({ roles }: {
                 <>
                     <div className="flex">
                         <div className="flex-1"></div>
-                        <RoleEditOverlay role={item} >
+                        <RoleEditOverlay apps={apps} role={item} >
                             <Button variant="ghost"><EditIcon /></Button>
                         </RoleEditOverlay>
                         <Button variant="ghost" onClick={() => asyncDeleteItem(item.id)}>
@@ -51,7 +53,7 @@ export default function RolesTable({ roles }: {
                     </div>
                 </>}
         />
-        <RoleEditOverlay >
+        <RoleEditOverlay apps={apps} >
             <Button variant="secondary"><Plus /> Create Role</Button>
         </RoleEditOverlay>
     </>;

@@ -22,15 +22,23 @@ import { ScrollArea } from "@/components/ui/scroll-area"
 import { saveRole } from "./actions"
 import { RoleExtended } from "@/shared/model/role-extended.model.ts"
 import { RoleEditModel, roleEditZodModel } from "@/shared/model/role-edit.model"
+import { App } from "@prisma/client"
+import { Checkbox } from "@/components/ui/checkbox"
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 
-
-export default function RoleEditOverlay({ children, role }: {
+export default function RoleEditOverlay({ children, role, apps }: {
   children: React.ReactNode;
   role?: RoleExtended;
+  apps: App[]
 }) {
 
   const [isOpen, setIsOpen] = useState<boolean>(false);
-  
+  const [appPermissions, setAppPermissions] = useState<{
+    appId: string;
+    read: boolean;
+    readwrite: boolean;
+  }[]>([]);
+
   const form = useForm<RoleEditModel>({
     resolver: zodResolver(roleEditZodModel),
     defaultValues: role
@@ -40,7 +48,14 @@ export default function RoleEditOverlay({ children, role }: {
     payload: RoleEditModel) =>
       saveRole(state, {
       ...payload,
-      id: role?.id
+      id: role?.id,
+      roleAppPermissions: appPermissions.flatMap(perm => {
+        if (!perm.read && !perm.readwrite) return [];
+        return [{
+          appId: perm.appId,
+          permission: perm.readwrite ? 'READWRITE' : 'READ'
+        }];
+      })
     }), FormUtils.getInitialFormState<typeof roleEditZodModel>());
 
   useEffect(() => {
@@ -55,21 +70,70 @@ export default function RoleEditOverlay({ children, role }: {
   useEffect(() => {
     if (role) {
       form.reset(role);
+
+      // Initialize app permissions based on role data
+      const initialPermissions = apps.map(app => {
+        const existingPermission = role.roleAppPermissions?.find(p => p.appId === app.id);
+        return {
+          appId: app.id,
+          read: !!existingPermission && existingPermission.permission === 'READ',
+          readwrite: !!existingPermission && existingPermission.permission === 'READWRITE'
+        };
+      });
+
+      setAppPermissions(initialPermissions);
+    } else {
+      // Initialize with all apps having no permissions
+      const initialPermissions = apps.map(app => ({
+        appId: app.id,
+        read: false,
+        readwrite: false
+      }));
+
+      setAppPermissions(initialPermissions);
     }
-  }, [role]);
+  }, [role, apps]);
+
+  const handleReadChange = (appId: string, checked: boolean) => {
+    setAppPermissions(prev => prev.map(perm => {
+      if (perm.appId === appId) {
+        // If read is being turned off, also turn off readwrite
+        if (!checked) {
+          return { ...perm, read: false, readwrite: false };
+        }
+        // If read is being turned on, just update read
+        return { ...perm, read: checked };
+      }
+      return perm;
+    }));
+  };
+
+  const handleReadWriteChange = (appId: string, checked: boolean) => {
+    setAppPermissions(prev => prev.map(perm => {
+      if (perm.appId === appId) {
+        // If readwrite is being turned on, also turn on read
+        if (checked) {
+          return { ...perm, read: true, readwrite: true };
+        }
+        // If readwrite is being turned off, just update readwrite
+        return { ...perm, readwrite: false };
+      }
+      return perm;
+    }));
+  };
 
   return (
     <>
       <div onClick={() => setIsOpen(true)}>
         {children}
       </div>
-      <Dialog open={!!isOpen} onOpenChange={(isOpened) => setIsOpen(false)}>
-        <DialogContent className="sm:max-w-[425px]">
+      <Dialog open={!!isOpen} onOpenChange={(isOpened) => setIsOpen(isOpened)}>
+        <DialogContent className="sm:max-w-[600px]">
           <DialogHeader>
             <DialogTitle>{role?.id ? 'Edit' : 'Create'} Role</DialogTitle>
           </DialogHeader>
           <ScrollArea className="max-h-[70vh]">
-            <div className="px-2">
+            <div className="px-3">
               <Form {...form}>
                 <form action={(e) => form.handleSubmit((data) => {
                   return formAction(data);
@@ -89,6 +153,43 @@ export default function RoleEditOverlay({ children, role }: {
                       )}
                     />
 
+                    <div className="pt-3">
+                      <h3 className="text-sm font-medium mb-2">App Permissions</h3>
+                      <Table>
+                        <TableHeader>
+                          <TableRow>
+                            <TableHead>App</TableHead>
+                            <TableHead>Read</TableHead>
+                            <TableHead>ReadWrite</TableHead>
+                          </TableRow>
+                        </TableHeader>
+                        <TableBody>
+                          {apps.map((app) => {
+                            const permission = appPermissions.find(p => p.appId === app.id);
+                            return (
+                              <TableRow key={app.id}>
+                                <TableCell>{app.name}</TableCell>
+                                <TableCell>
+                                  <Checkbox
+                                    id={`read-${app.id}`}
+                                    disabled={permission?.readwrite}
+                                    checked={permission?.read || false}
+                                    onCheckedChange={(checked) => handleReadChange(app.id, !!checked)}
+                                  />
+                                </TableCell>
+                                <TableCell>
+                                  <Checkbox
+                                    id={`readwrite-${app.id}`}
+                                    checked={permission?.readwrite || false}
+                                    onCheckedChange={(checked) => handleReadWriteChange(app.id, !!checked)}
+                                  />
+                                </TableCell>
+                              </TableRow>
+                            );
+                          })}
+                        </TableBody>
+                      </Table>
+                    </div>
 
                     <p className="text-red-500">{state.message}</p>
                     <SubmitButton>Save</SubmitButton>
@@ -101,7 +202,4 @@ export default function RoleEditOverlay({ children, role }: {
       </Dialog>
     </>
   )
-
-
-
 }

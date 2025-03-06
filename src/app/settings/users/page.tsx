@@ -17,12 +17,14 @@ import {
     TabsTrigger,
 } from "@/components/ui/tabs"
 import RolesTable from "./roles-table";
+import appService from "@/server/services/app.service";
 
 export default async function S3TargetsPage() {
 
     await getAuthUserSession(); // todo only admins
     const users = await userService.getAllUsers();
     const roles = await roleService.getAll();
+    const allApps = await appService.getAll();
     return (
         <div className="flex-1 space-y-4 pt-6">
             <PageTitle
@@ -41,7 +43,7 @@ export default async function S3TargetsPage() {
                     <UsersTable users={users} roles={roles} />
                 </TabsContent>
                 <TabsContent value="roles">
-                    <RolesTable roles={roles} />
+                    <RolesTable apps={allApps} roles={roles} />
                 </TabsContent>
             </Tabs>
         </div>

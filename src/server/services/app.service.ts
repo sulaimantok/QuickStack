@@ -468,6 +468,14 @@ class AppService {
             revalidateTag(Tags.apps(existingItem.app.projectId));
         }
     }
+
+    async getAll() {
+        return await dataAccess.client.app.findMany({
+            orderBy: {
+                name: 'asc'
+            }
+        });
+    }
 }
 
 const appService = new AppService();
