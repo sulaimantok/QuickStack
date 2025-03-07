@@ -47,7 +47,7 @@ export default function RoleEditOverlay({ children, role, apps }: {
 
   const [state, formAction] = useFormState((state: ServerActionResult<any, any>,
     payload: RoleEditModel) =>
-      saveRole(state, {
+    saveRole(state, {
       ...payload,
       id: role?.id,
       roleAppPermissions: appPermissions.flatMap(perm => {
@@ -150,6 +150,38 @@ export default function RoleEditOverlay({ children, role, apps }: {
                             <Input placeholder="" {...field} />
                           </FormControl>
                           <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+
+                    <FormField
+                      control={form.control}
+                      name="canCreateNewApps"
+                      render={({ field }) => (
+                        <FormItem className="flex gap-4">
+                          <FormLabel className="pt-2">Can create new apps</FormLabel>
+                          <FormControl>
+                            <Checkbox
+                              checked={field.value}
+                              onCheckedChange={field.onChange}
+                            />
+                          </FormControl>
+                        </FormItem>
+                      )}
+                    />
+
+                    <FormField
+                      control={form.control}
+                      name="canAccessBackups"
+                      render={({ field }) => (
+                        <FormItem className="flex gap-4">
+                          <FormLabel className="pt-2">Can access backups</FormLabel>
+                          <FormControl>
+                            <Checkbox
+                              checked={field.value}
+                              onCheckedChange={field.onChange}
+                            />
+                          </FormControl>
                         </FormItem>
                       )}
                     />

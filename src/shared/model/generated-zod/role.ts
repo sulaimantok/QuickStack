@@ -6,6 +6,8 @@ export const RoleModel = z.object({
   id: z.string(),
   name: z.string(),
   description: z.string().nullish(),
+  canCreateNewApps: z.boolean(),
+  canAccessBackups: z.boolean(),
   createdAt: z.date(),
   updatedAt: z.date(),
 })

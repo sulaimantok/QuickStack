@@ -6,6 +6,8 @@ export interface UserSession {
     email: string;
     roleName?: string;
     roleId?: string;
+    canAccessBackups?: boolean;
+    canCreateNewApps?: boolean;
     permissions?: {
         appId: string,
         permission: RolePermissionEnum

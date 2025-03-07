@@ -15,6 +15,8 @@ export class RoleService {
                     select: {
                         name: true,
                         id: true,
+                        canAccessBackups: true,
+                        canCreateNewApps: true,
                         roleAppPermissions: {
                             select: {
                                 appId: true,
@@ -47,6 +49,8 @@ export class RoleService {
                     },
                     data: {
                         name: item.name,
+                        canAccessBackups: item.canAccessBackups,
+                        canCreateNewApps: item.canCreateNewApps,
                         roleAppPermissions: {
                             deleteMany: {},
                             createMany: {

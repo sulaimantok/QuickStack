@@ -31,6 +31,7 @@ import { usePathname } from "next/navigation"
 import { useRouter } from "next/router"
 import { useEffect, useState } from "react"
 import QuickStackLogo from "@/components/custom/quickstack-logo"
+import { RoleUtils } from "@/server/utils/role.utils"
 
 
 const settingsMenu = [
@@ -43,26 +44,28 @@ const settingsMenu = [
     title: "Users & Roles",
     url: "/settings/users",
     icon: User2,
+    adminOnly: true,
   },
   {
     title: "S3 Targets",
     url: "/settings/s3-targets",
     icon: Settings,
+    adminOnly: true,
   },
   {
     title: "QuickStack Settings",
     url: "/settings/server",
-    icon: Settings,
+    adminOnly: true,
   },
   {
     title: "Cluster",
     url: "/settings/cluster",
-    icon: Server,
+    adminOnly: true,
   },
   {
     title: "Maintenance",
     url: "/settings/maintenance",
-    icon: Settings,
+    adminOnly: true,
   },
 ]
 
@@ -118,7 +121,7 @@ export function SidebarCient({
                 <SidebarMenuButton size="lg"
                   className="data-[state=open]:bg-sidebar-accent data-[state=open]:text-sidebar-accent-foreground">
                   <div className="flex aspect-square size-8 items-center justify-center rounded-lg bg-qs-500 text-sidebar-primary-foreground">
-                    <QuickStackLogo className="size-5"  color="light-all" />
+                    <QuickStackLogo className="size-5" color="light-all" />
                   </div>
                   <div className="grid flex-1 text-left text-sm leading-tight my-4">
                     <span className="truncate font-semibold">QuickStack</span>
@@ -231,12 +234,12 @@ export function SidebarCient({
         </SidebarGroup>
 
 
-        <SidebarGroup>
+        {RoleUtils.sessionHasAccessToBackups(session) && <SidebarGroup>
           <SidebarGroupContent>
             <SidebarMenu>
               <SidebarMenuItem>
                 <SidebarMenuButton asChild tooltip={{
-                  children: 'Monitoring',
+                  children: 'Backups',
                   hidden: open,
                 }}
                   isActive={path.startsWith('/backups')}>
@@ -248,7 +251,7 @@ export function SidebarCient({
               </SidebarMenuItem>
             </SidebarMenu>
           </SidebarGroupContent>
-        </SidebarGroup>
+        </SidebarGroup>}
 
 
         <SidebarGroup>
@@ -265,16 +268,16 @@ export function SidebarCient({
                   </Link>
                 </SidebarMenuButton>
                 <SidebarMenuSub>
-                  {settingsMenu.map((item) => (
-                    <SidebarMenuSubItem key={item.title}>
-                      <SidebarMenuButton asChild>
-                        <Link href={item.url}>
-
-                          <span>{item.title}</span>
-                        </Link>
-                      </SidebarMenuButton>
-                    </SidebarMenuSubItem>
-                  ))}
+                  {(RoleUtils.isAdmin(session) ? settingsMenu :
+                    settingsMenu.filter(x => !x.adminOnly)).map((item) => (
+                      <SidebarMenuSubItem key={item.title}>
+                        <SidebarMenuButton asChild>
+                          <Link href={item.url}>
+                            <span>{item.title}</span>
+                          </Link>
+                        </SidebarMenuButton>
+                      </SidebarMenuSubItem>
+                    ))}
                 </SidebarMenuSub>
               </SidebarMenuItem>
             </SidebarMenu>

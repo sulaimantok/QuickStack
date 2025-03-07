@@ -118,14 +118,13 @@ model Authenticator {
 // *** FROM HERE CUSTOM CLASSES
 
 model Role {
-  id          String  @id @default(uuid())
-  name        String  @unique
-  description String?
+  id               String  @id @default(uuid())
+  name             String  @unique
+  description      String?
+  canCreateNewApps Boolean @default(false)
+  canAccessBackups Boolean @default(false)
 
-  // A Role can be assigned to multiple users
-  users User[]
-
-  // A Role defines permissions on apps via the join model below
+  users              User[]
   roleAppPermissions RoleAppPermission[]
 
   createdAt DateTime @default(now())

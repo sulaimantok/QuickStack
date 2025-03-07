@@ -7,7 +7,7 @@ import { ServerActionResult } from "@/shared/model/server-action-error-return.mo
 import { FormValidationException } from "@/shared/model/form-validation-exception.model";
 import { authOptions } from "@/server/utils/auth-options";
 import { NextResponse } from "next/server";
-import roleService, { adminRoleName } from "../services/role.service";
+import roleService from "../services/role.service";
 import { Role } from "@prisma/client";
 import { RolePermissionEnum } from "@/shared/model/role-extended.model.ts";
 import { RoleUtils } from "./role.utils";
@@ -28,6 +28,8 @@ export async function getUserSession(): Promise<UserSession | null> {
     let role: {
         id: string;
         name: string;
+        canAccessBackups: boolean,
+        canCreateNewApps: boolean,
         roleAppPermissions: {
             appId: string;
             permission: string;
@@ -40,6 +42,8 @@ export async function getUserSession(): Promise<UserSession | null> {
         email: session?.user?.email as string,
         roleId: role?.id,
         roleName: role?.name,
+        canAccessBackups: role?.canAccessBackups,
+        canCreateNewApps: role?.canCreateNewApps,
         permissions: role?.roleAppPermissions as roleAppPermissions[],
     };
 }
@@ -57,6 +61,15 @@ export async function getAdminUserSession(): Promise<UserSession> {
     const session = await getAuthUserSession();
     if (!RoleUtils.isAdmin(session)) {
         console.error('User is not admin.');
+        throw new ServiceException('User is not authorized for this action.');
+    }
+    return session;
+}
+
+export async function isAuthorizedForBackups() {
+    const session = await getAuthUserSession();
+    if (!RoleUtils.sessionHasAccessToBackups(session)) {
+        console.error('User is not authorized for backups.');
         throw new ServiceException('User is not authorized for this action.');
     }
     return session;
@@ -89,7 +102,7 @@ export async function isAuthorizedReadForApp(appId: string) {
         console.error('User is not authorized for app: ' + appId);
         throw new ServiceException('User is not authorized for this action.');
     }
-    const roleHasReadAccessForApp =  RoleUtils.sessionHasReadAccessForApp(session, appId);
+    const roleHasReadAccessForApp = RoleUtils.sessionHasReadAccessForApp(session, appId);
     if (!roleHasReadAccessForApp) {
         console.error('User is not authorized for app: ' + appId);
         throw new ServiceException('User is not authorized for this action.');
@@ -106,7 +119,7 @@ export async function isAuthorizedWriteForApp(appId: string) {
         console.error('User is not authorized for app: ' + appId);
         throw new ServiceException('User is not authorized for this action.');
     }
-    const roleHasReadAccessForApp =  RoleUtils.sessionHasWriteAccessForApp(session, appId);
+    const roleHasReadAccessForApp = RoleUtils.sessionHasWriteAccessForApp(session, appId);
     if (!roleHasReadAccessForApp) {
         console.error('User is not authorized for app: ' + appId);
         throw new ServiceException('User is not authorized for this action.');

@@ -6,6 +6,20 @@ export class RoleUtils {
         return (session.permissions?.find(app => app.appId === appId)?.permission ?? null) as RolePermissionEnum | null;
     }
 
+    static sessionHasAccessToBackups(session: UserSession) {
+        if (this.isAdmin(session)) {
+            return true;
+        }
+        return !!session.canAccessBackups;
+    }
+
+    static sessionCanCreateNewApps(session: UserSession) {
+        if (this.isAdmin(session)) {
+            return true;
+        }
+        return !!session.canCreateNewApps;
+    }
+
     static sessionIsReadOnlyForApp(session: UserSession, appId: string) {
         if (this.isAdmin(session)) {
             return false;
