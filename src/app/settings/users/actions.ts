@@ -1,7 +1,7 @@
 'use server'
 
 import { SuccessActionResult } from "@/shared/model/server-action-error-return.model";
-import { getAuthUserSession, saveFormAction, simpleAction } from "@/server/utils/action-wrapper.utils";
+import { getAdminUserSession, getAuthUserSession, saveFormAction, simpleAction } from "@/server/utils/action-wrapper.utils";
 import { ServiceException } from "@/shared/model/service.exception.model";
 import userService from "@/server/services/user.service";
 import { UserEditModel, userEditZodModel } from "@/shared/model/user-edit.model";
@@ -10,7 +10,7 @@ import { RoleEditModel, roleEditZodModel } from "@/shared/model/role-edit.model"
 
 export const saveUser = async (prevState: any, inputData: UserEditModel) =>
     saveFormAction(inputData, userEditZodModel, async (validatedData) => {
-        const { email } = await getAuthUserSession(); // check admin permission
+        const { email } = await getAdminUserSession();
         if (validatedData.email === email) {
             throw new ServiceException('Please edit your profile in the profile settings');
         }
@@ -33,22 +33,21 @@ export const saveUser = async (prevState: any, inputData: UserEditModel) =>
 
 export const saveRole = async (prevState: any, inputData: RoleEditModel) =>
     saveFormAction(inputData, roleEditZodModel, async (validatedData) => {
-        const { email } = await getAuthUserSession(); // check admin permission
-
-        await roleService.save(validatedData);
+        await getAdminUserSession();
+        await roleService.saveWithPermissions(validatedData);
         return new SuccessActionResult();
     });
 
 export const deleteUser = async (userId: string) =>
     simpleAction(async () => {
-        await getAuthUserSession(); // todo check admin permission
+        await getAdminUserSession();
         await userService.deleteUserById(userId);
         return new SuccessActionResult();
     });
 
 export const deleteRole = async (roleId: string) =>
     simpleAction(async () => {
-        await getAuthUserSession(); // todo check admin permission
+        await getAdminUserSession();
         await roleService.deleteById(roleId);
         return new SuccessActionResult();
     });

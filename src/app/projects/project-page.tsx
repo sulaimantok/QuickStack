@@ -18,11 +18,16 @@ import {
 import { useBreadcrumbs } from "@/frontend/states/zustand.states";
 import ProjectsBreadcrumbs from "./projects-breadcrumbs";
 import { Plus } from "lucide-react";
+import { RoleUtils } from "@/server/utils/role.utils";
 
 export default async function ProjectPage() {
 
-    await getAuthUserSession();
+    const session = await getAuthUserSession();
     const data = await projectService.getAllProjects();
+    const relevantProjectsForUser = data.filter((project) =>
+        project.apps.some((app) => RoleUtils.sessionHasReadAccessForApp(session, app.id)));
+
+
 
     return (
         <div className="flex-1 space-y-4 pt-6">
@@ -32,7 +37,7 @@ export default async function ProjectPage() {
                     <Button><Plus /> Create Project</Button>
                 </EditProjectDialog>
             </div>
-            <ProjectsTable data={data} />
+            <ProjectsTable data={relevantProjectsForUser} />
             <ProjectsBreadcrumbs />
         </div>
     )

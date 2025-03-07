@@ -55,20 +55,6 @@ export const authOptions: NextAuthOptions = {
             }
         })
     ],
-    callbacks: {
-        async jwt({ token, user }) {
-            // Initial sign in
-            return token;
-        },
-        async session({ session, token, user }) {
-            if (token?.sub) {
-                const role = await roleService.getRoleByUserId(token.sub);
-                (session.user as any).roleName = role?.name;
-                (session.user as any).roleId = role?.id;
-            }
-            return session;
-        },
-    },
     adapter: PrismaAdapter(dataAccess.client),
 };
 

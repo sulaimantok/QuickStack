@@ -3,33 +3,80 @@ import dataAccess from "../adapter/db.client";
 import { revalidateTag, unstable_cache } from "next/cache";
 import { Tags } from "../utils/cache-tag-generator.utils";
 import { ServiceException } from "@/shared/model/service.exception.model";
-
-
-export const adminRoleName = "admin";
-export enum RolePersmission {
-    READ = "READ",
-    READWRITE = "READWRITE",
-}
+import { RoleEditModel } from "@/shared/model/role-edit.model";
+import { adminRoleName } from "@/shared/model/role-extended.model.ts";
 
 export class RoleService {
 
-    async getRoleByUserId(userId: string) {
-        return await unstable_cache(async (uId: string) => await dataAccess.client.role.findFirst({
+    async getRoleByUserMail(email: string) {
+        return await unstable_cache(async (mail: string) => await dataAccess.client.user.findFirst({
             select: {
-                id: true,
-                name: true,
-            },
-            where: {
-                users: {
-                    some: {
-                        id: uId
+                role: {
+                    select: {
+                        name: true,
+                        id: true,
+                        roleAppPermissions: {
+                            select: {
+                                appId: true,
+                                permission: true
+                            }
+                        }
                     }
                 }
+            },
+            where: {
+                email: mail
             }
+        }).then(user => {
+            return user?.role ?? null;
         }),
             [Tags.roles(), Tags.users()], {
             tags: [Tags.roles(), Tags.users()]
-        })(userId);
+        })(email);
+    }
+
+    async saveWithPermissions(item: RoleEditModel) {
+        try {
+            if (item.name === adminRoleName) {
+                throw new ServiceException("You cannot assign the name 'admin' to a role");
+            }
+            if (item.id) {
+                await dataAccess.client.role.update({
+                    where: {
+                        id: item.id as string
+                    },
+                    data: {
+                        name: item.name,
+                        roleAppPermissions: {
+                            deleteMany: {},
+                            createMany: {
+                                data: item.roleAppPermissions?.map(p => ({
+                                    appId: p.appId,
+                                    permission: p.permission
+                                })) || []
+                            }
+                        }
+                    }
+                });
+            } else {
+                await dataAccess.client.role.create({
+                    data: {
+                        name: item.name,
+                        roleAppPermissions: {
+                            createMany: {
+                                data: item.roleAppPermissions?.map(p => ({
+                                    appId: p.appId,
+                                    permission: p.permission
+                                })) || []
+                            }
+                        }
+                    }
+                });
+            }
+        } finally {
+            revalidateTag(Tags.roles());
+            revalidateTag(Tags.users());
+        }
     }
 
     async save(item: Prisma.RoleUncheckedCreateInput | Prisma.RoleUncheckedUpdateInput) {
@@ -79,7 +126,15 @@ export class RoleService {
     async getAll() {
         return await unstable_cache(async () => await dataAccess.client.role.findMany({
             include: {
-                roleAppPermissions: true
+                roleAppPermissions: {
+                    include: {
+                        app: {
+                            select: {
+                                name: true
+                            }
+                        }
+                    }
+                }
             }
         }),
             [Tags.roles()], {

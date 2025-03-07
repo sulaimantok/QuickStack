@@ -20,16 +20,17 @@ import { ServerActionResult } from "@/shared/model/server-action-error-return.mo
 import { toast } from "sonner"
 import { ScrollArea } from "@/components/ui/scroll-area"
 import { saveRole } from "./actions"
-import { RoleExtended } from "@/shared/model/role-extended.model.ts"
+import { RoleExtended, RolePermissionEnum } from "@/shared/model/role-extended.model.ts"
 import { RoleEditModel, roleEditZodModel } from "@/shared/model/role-edit.model"
 import { App } from "@prisma/client"
 import { Checkbox } from "@/components/ui/checkbox"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
+import { AppWithProjectModel } from "@/shared/model/app-extended.model"
 
 export default function RoleEditOverlay({ children, role, apps }: {
   children: React.ReactNode;
   role?: RoleExtended;
-  apps: App[]
+  apps: AppWithProjectModel[]
 }) {
 
   const [isOpen, setIsOpen] = useState<boolean>(false);
@@ -53,7 +54,7 @@ export default function RoleEditOverlay({ children, role, apps }: {
         if (!perm.read && !perm.readwrite) return [];
         return [{
           appId: perm.appId,
-          permission: perm.readwrite ? 'READWRITE' : 'READ'
+          permission: perm.readwrite ? RolePermissionEnum.READWRITE : RolePermissionEnum.READ
         }];
       })
     }), FormUtils.getInitialFormState<typeof roleEditZodModel>());
@@ -76,8 +77,8 @@ export default function RoleEditOverlay({ children, role, apps }: {
         const existingPermission = role.roleAppPermissions?.find(p => p.appId === app.id);
         return {
           appId: app.id,
-          read: !!existingPermission && existingPermission.permission === 'READ',
-          readwrite: !!existingPermission && existingPermission.permission === 'READWRITE'
+          read: !!existingPermission && (existingPermission.permission === RolePermissionEnum.READ || existingPermission.permission === RolePermissionEnum.READWRITE),
+          readwrite: !!existingPermission && existingPermission.permission === RolePermissionEnum.READWRITE
         };
       });
 
@@ -128,7 +129,7 @@ export default function RoleEditOverlay({ children, role, apps }: {
         {children}
       </div>
       <Dialog open={!!isOpen} onOpenChange={(isOpened) => setIsOpen(isOpened)}>
-        <DialogContent className="sm:max-w-[600px]">
+        <DialogContent className="sm:max-w-[700px]">
           <DialogHeader>
             <DialogTitle>{role?.id ? 'Edit' : 'Create'} Role</DialogTitle>
           </DialogHeader>
@@ -158,6 +159,7 @@ export default function RoleEditOverlay({ children, role, apps }: {
                       <Table>
                         <TableHeader>
                           <TableRow>
+                            <TableHead>Project</TableHead>
                             <TableHead>App</TableHead>
                             <TableHead>Read</TableHead>
                             <TableHead>ReadWrite</TableHead>
@@ -168,6 +170,7 @@ export default function RoleEditOverlay({ children, role, apps }: {
                             const permission = appPermissions.find(p => p.appId === app.id);
                             return (
                               <TableRow key={app.id}>
+                                <TableCell>{app.project.name}</TableCell>
                                 <TableCell>{app.name}</TableCell>
                                 <TableCell>
                                   <Checkbox

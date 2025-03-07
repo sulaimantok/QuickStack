@@ -8,13 +8,13 @@ import React from "react";
 import { SimpleDataTable } from "@/components/custom/simple-data-table";
 import { formatDateTime } from "@/frontend/utils/format.utils";
 import { deleteRole } from "./actions";
-import { RoleExtended } from "@/shared/model/role-extended.model.ts";
+import { adminRoleName, RoleExtended, RolePermissionEnum } from "@/shared/model/role-extended.model.ts";
 import RoleEditOverlay from "./role-edit-overlay";
-import { App } from "@prisma/client";
+import { AppWithProjectModel } from "@/shared/model/app-extended.model";
 
 export default function RolesTable({ roles, apps }: {
     roles: RoleExtended[];
-    apps: App[];
+    apps: AppWithProjectModel[];
 }) {
 
     const { openConfirmDialog: openDialog } = useConfirmDialog();
@@ -34,8 +34,8 @@ export default function RolesTable({ roles, apps }: {
         <SimpleDataTable columns={[
             ['id', 'ID', false],
             ['name', 'Name', true],
-            ['roleReadPermissions', 'Read Permissions', true],
-            ['roleWritePermissions', 'Write Permissions', true],
+            ['roleReadPermissions', 'Read Permissions', true, (item) => item.roleAppPermissions.filter(x => x.permission === RolePermissionEnum.READ).map(p => p.app.name).join(', ')],
+            ['roleWritePermissions', 'Write Permissions', true, (item) => item.roleAppPermissions.filter(x => x.permission === RolePermissionEnum.READWRITE).map(p => p.app.name).join(', ')],
             ["createdAt", "Created At", true, (item) => formatDateTime(item.createdAt)],
             ["updatedAt", "Updated At", false, (item) => formatDateTime(item.updatedAt)],
         ]}
@@ -43,13 +43,15 @@ export default function RolesTable({ roles, apps }: {
             actionCol={(item) =>
                 <>
                     <div className="flex">
-                        <div className="flex-1"></div>
-                        <RoleEditOverlay apps={apps} role={item} >
-                            <Button variant="ghost"><EditIcon /></Button>
-                        </RoleEditOverlay>
-                        <Button variant="ghost" onClick={() => asyncDeleteItem(item.id)}>
-                            <TrashIcon />
-                        </Button>
+                        {item.name !== adminRoleName && <>
+                            <div className="flex-1"></div>
+                            <RoleEditOverlay apps={apps} role={item} >
+                                <Button variant="ghost"><EditIcon /></Button>
+                            </RoleEditOverlay>
+                            <Button variant="ghost" onClick={() => asyncDeleteItem(item.id)}>
+                                <TrashIcon />
+                            </Button>
+                        </>}
                     </div>
                 </>}
         />

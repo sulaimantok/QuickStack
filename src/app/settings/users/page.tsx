@@ -1,6 +1,6 @@
 'use server'
 
-import { getAuthUserSession } from "@/server/utils/action-wrapper.utils";
+import { getAdminUserSession, getAuthUserSession } from "@/server/utils/action-wrapper.utils";
 import PageTitle from "@/components/custom/page-title";
 import S3TargetEditOverlay from "./user-edit-overlay";
 import { Button } from "@/components/ui/button";
@@ -8,7 +8,6 @@ import BreadcrumbSetter from "@/components/breadcrumbs-setter";
 import UsersTable from "./users-table";
 import userService from "@/server/services/user.service";
 import roleService from "@/server/services/role.service";
-import UserEditOverlay from "./user-edit-overlay";
 import { CircleUser, Plus, User, UserRoundCog } from "lucide-react";
 import {
     Tabs,
@@ -19,9 +18,9 @@ import {
 import RolesTable from "./roles-table";
 import appService from "@/server/services/app.service";
 
-export default async function S3TargetsPage() {
+export default async function UsersAndRolesPage() {
 
-    await getAuthUserSession(); // todo only admins
+    await getAdminUserSession();
     const users = await userService.getAllUsers();
     const roles = await roleService.getAll();
     const allApps = await appService.getAll();

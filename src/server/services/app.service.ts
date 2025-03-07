@@ -3,7 +3,7 @@ import dataAccess from "../adapter/db.client";
 import { Tags } from "../utils/cache-tag-generator.utils";
 import { App, AppBasicAuth, AppDomain, AppFileMount, AppPort, AppVolume, Prisma } from "@prisma/client";
 import { DefaultArgs } from "@prisma/client/runtime/library";
-import { AppExtendedModel } from "@/shared/model/app-extended.model";
+import { AppExtendedModel, AppWithProjectModel } from "@/shared/model/app-extended.model";
 import { ServiceException } from "@/shared/model/service.exception.model";
 import { KubeObjectNameUtils } from "../utils/kube-object-name.utils";
 import deploymentService from "./deployment.service";
@@ -470,10 +470,29 @@ class AppService {
     }
 
     async getAll() {
-        return await dataAccess.client.app.findMany({
+        const apps = await dataAccess.client.app.findMany({
             orderBy: {
                 name: 'asc'
+            },
+            include: {
+                project: true,
             }
+        }) as AppWithProjectModel[];
+
+        return apps.toSorted((a, b) => {
+            if (a.project.name.toLocaleLowerCase() < b.project.name.toLocaleLowerCase()) {
+                return -1;
+            }
+            if (a.project.name.toLocaleLowerCase() > b.project.name.toLocaleLowerCase()) {
+                return 1;
+            }
+            if (a.name.toLocaleLowerCase() < b.name.toLocaleLowerCase()) {
+                return -1;
+            }
+            if (a.name.toLocaleLowerCase() > b.name.toLocaleLowerCase()) {
+                return 1;
+            }
+            return 0;
         });
     }
 }
