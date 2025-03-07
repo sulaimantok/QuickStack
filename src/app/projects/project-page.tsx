@@ -27,8 +27,6 @@ export default async function ProjectPage() {
     const relevantProjectsForUser = data.filter((project) =>
         project.apps.some((app) => RoleUtils.sessionHasReadAccessForApp(session, app.id)));
 
-
-
     return (
         <div className="flex-1 space-y-4 pt-6">
             <div className="flex gap-4">

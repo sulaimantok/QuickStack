@@ -6,6 +6,16 @@ export class RoleUtils {
         return (session.permissions?.find(app => app.appId === appId)?.permission ?? null) as RolePermissionEnum | null;
     }
 
+    static sessionIsReadOnlyForApp(session: UserSession, appId: string) {
+        if (this.isAdmin(session)) {
+            return false;
+        }
+        const rolePermission = this.getRolePermissionForApp(session, appId);
+        const roleHasReadAccessForApp = rolePermission === RolePermissionEnum.READ;
+        const roleHasWriteAccessForApp = rolePermission === RolePermissionEnum.READWRITE;
+        return !!roleHasReadAccessForApp && !roleHasWriteAccessForApp;
+    }
+
     static sessionHasReadAccessForApp(session: UserSession, appId: string) {
         if (this.isAdmin(session)) {
             return true;

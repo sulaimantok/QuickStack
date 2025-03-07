@@ -208,6 +208,14 @@ class AppService {
         return savedItem;
     }
 
+    async getDomainById(id: string) {
+        return await dataAccess.client.appDomain.findFirstOrThrow({
+            where: {
+                id
+            }
+        });
+    }
+
     async deleteDomainById(id: string) {
         const existingDomain = await dataAccess.client.appDomain.findFirst({
             where: {
@@ -399,6 +407,14 @@ class AppService {
         return savedItem;
     }
 
+    async getPortById(portId: string) {
+        return await dataAccess.client.appPort.findFirstOrThrow({
+            where: {
+                id: portId
+            }
+        });
+    }
+
     async deletePortById(id: string) {
         const existingPort = await dataAccess.client.appPort.findFirst({
             where: {
@@ -467,6 +483,14 @@ class AppService {
             revalidateTag(Tags.app(existingItem.appId));
             revalidateTag(Tags.apps(existingItem.app.projectId));
         }
+    }
+
+    async getBasicAuthById(id: string) {
+        return await dataAccess.client.appBasicAuth.findFirstOrThrow({
+            where: {
+                id
+            }
+        });
     }
 
     async getAll() {
