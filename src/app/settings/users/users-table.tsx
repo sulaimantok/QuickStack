@@ -12,10 +12,12 @@ import { UserExtended } from "@/shared/model/user-extended.model";
 import UserEditOverlay from "./user-edit-overlay";
 import { deleteUser } from "./actions";
 import { RoleExtended } from "@/shared/model/role-extended.model.ts";
+import { UserSession } from "@/shared/model/sim-session.model";
 
-export default function UsersTable({ users, roles }: {
+export default function UsersTable({ users, roles, session }: {
     users: UserExtended[];
     roles: RoleExtended[];
+    session: UserSession;
 }) {
 
     const { openConfirmDialog: openDialog } = useConfirmDialog();
@@ -44,12 +46,13 @@ export default function UsersTable({ users, roles }: {
                 <>
                     <div className="flex">
                         <div className="flex-1"></div>
-                        <UserEditOverlay user={item} roles={roles}>
+                        {session.email !== item.email && <><UserEditOverlay user={item} roles={roles}>
                             <Button variant="ghost"><EditIcon /></Button>
                         </UserEditOverlay>
-                        <Button variant="ghost" onClick={() => asyncDeleteItem(item.id)}>
-                            <TrashIcon />
-                        </Button>
+                            <Button variant="ghost" onClick={() => asyncDeleteItem(item.id)}>
+                                <TrashIcon />
+                            </Button>
+                        </>}
                     </div>
                 </>}
         />

@@ -20,7 +20,7 @@ import appService from "@/server/services/app.service";
 
 export default async function UsersAndRolesPage() {
 
-    await getAdminUserSession();
+    const session = await getAdminUserSession();
     const users = await userService.getAllUsers();
     const roles = await roleService.getAll();
     const allApps = await appService.getAll();
@@ -36,10 +36,10 @@ export default async function UsersAndRolesPage() {
             <Tabs defaultValue="users" >
                 <TabsList className="">
                     <TabsTrigger className="px-8 gap-1.5" value="users"><CircleUser className="w-3.5 h-3.5" /> Users</TabsTrigger>
-                    <TabsTrigger className="px-8 gap-1.5" value="roles"><UserRoundCog className="w-3.5 h-3.5"/> Roles</TabsTrigger>
+                    <TabsTrigger className="px-8 gap-1.5" value="roles"><UserRoundCog className="w-3.5 h-3.5" /> Roles</TabsTrigger>
                 </TabsList>
                 <TabsContent value="users">
-                    <UsersTable users={users} roles={roles} />
+                    <UsersTable session={session} users={users} roles={roles} />
                 </TabsContent>
                 <TabsContent value="roles">
                     <RolesTable apps={allApps} roles={roles} />

@@ -4,6 +4,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/u
 import {
   Form,
   FormControl,
+  FormDescription,
   FormField,
   FormItem,
   FormLabel,
@@ -158,14 +159,21 @@ export default function RoleEditOverlay({ children, role, apps }: {
                       control={form.control}
                       name="canCreateNewApps"
                       render={({ field }) => (
-                        <FormItem className="flex gap-4">
-                          <FormLabel className="pt-2">Can create new apps</FormLabel>
+                        <FormItem className="flex flex-row items-start space-x-3 space-y-0 rounded-md border p-4">
                           <FormControl>
                             <Checkbox
                               checked={field.value}
                               onCheckedChange={field.onChange}
                             />
                           </FormControl>
+                          <div className="space-y-1 leading-none">
+                            <FormLabel>
+                              Can create new apps
+                            </FormLabel>
+                            <FormDescription>
+                              If enabled, users with this role can create new apps. Projects can only be created by admins.
+                            </FormDescription>
+                          </div>
                         </FormItem>
                       )}
                     />
@@ -174,14 +182,21 @@ export default function RoleEditOverlay({ children, role, apps }: {
                       control={form.control}
                       name="canAccessBackups"
                       render={({ field }) => (
-                        <FormItem className="flex gap-4">
-                          <FormLabel className="pt-2">Can access backups</FormLabel>
+                        <FormItem className="flex flex-row items-start space-x-3 space-y-0 rounded-md border p-4">
                           <FormControl>
                             <Checkbox
                               checked={field.value}
                               onCheckedChange={field.onChange}
                             />
                           </FormControl>
+                          <div className="space-y-1 leading-none">
+                            <FormLabel>
+                              Can access backups
+                            </FormLabel>
+                            <FormDescription>
+                              If enabled, users can access the backups page and download backups from all apps.
+                            </FormDescription>
+                          </div>
                         </FormItem>
                       )}
                     />
@@ -234,7 +249,7 @@ export default function RoleEditOverlay({ children, role, apps }: {
             </div>
           </ScrollArea>
         </DialogContent>
-      </Dialog>
+      </Dialog >
     </>
   )
 }

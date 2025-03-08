@@ -63,6 +63,8 @@ class AppService {
             revalidateTag(Tags.apps(existingApp.projectId));
             revalidateTag(Tags.app(existingApp.id));
             revalidateTag(Tags.projects());
+            revalidateTag(Tags.roles());
+            revalidateTag(Tags.users());
         }
     }
 

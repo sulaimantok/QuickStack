@@ -25,15 +25,15 @@ export default async function ProjectPage() {
     const session = await getAuthUserSession();
     const data = await projectService.getAllProjects();
     const relevantProjectsForUser = data.filter((project) =>
-        project.apps.some((app) => RoleUtils.sessionHasReadAccessForApp(session, app.id)));
+        RoleUtils.sessionHasReadAccessToProject(session, project));
 
     return (
         <div className="flex-1 space-y-4 pt-6">
             <div className="flex gap-4">
                 <h2 className="text-3xl font-bold tracking-tight flex-1">Projects</h2>
-                <EditProjectDialog>
+                {RoleUtils.isAdmin(session) && <EditProjectDialog>
                     <Button><Plus /> Create Project</Button>
-                </EditProjectDialog>
+                </EditProjectDialog>}
             </div>
             <ProjectsTable data={relevantProjectsForUser} />
             <ProjectsBreadcrumbs />

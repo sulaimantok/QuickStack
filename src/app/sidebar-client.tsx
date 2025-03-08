@@ -165,11 +165,11 @@ export function SidebarCient({
                     <span>Projects</span>
                   </Link>
                 </SidebarMenuButton>
-                <EditProjectDialog>
+                {RoleUtils.isAdmin(session) && <EditProjectDialog>
                   <SidebarMenuAction>
                     <Plus />
                   </SidebarMenuAction>
-                </EditProjectDialog>
+                </EditProjectDialog>}
                 <SidebarMenu>
                   {projects.map((item) => (
                     <DropdownMenu key={item.id}>
