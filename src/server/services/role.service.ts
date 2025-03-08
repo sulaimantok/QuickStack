@@ -203,6 +203,32 @@ export class RoleService {
         }
         return adminRole;
     }
+
+    async createDefaultRolesIfNotExists() {
+        try {
+            const roles = await dataAccess.client.role.findMany({
+                where: {
+                    name: {
+                        in: [adminRoleName]
+                    }
+                }
+            });
+            if (roles.length === 0) {
+                const adminRole = await this.getOrCreateAdminRole();
+                await dataAccess.client.user.updateMany({
+                    where: {
+                        roleId: null
+                    },
+                    data: {
+                        roleId: adminRole.id
+                    }
+                });
+            }
+        } finally {
+            revalidateTag(Tags.roles());
+            revalidateTag(Tags.users());
+        }
+    }
 }
 
 const roleService = new RoleService();
