@@ -11,7 +11,7 @@ import dbGateService from "@/server/services/db-tool-services/dbgate.service";
 import fileBrowserService from "@/server/services/file-browser-service";
 import phpMyAdminService from "@/server/services/db-tool-services/phpmyadmin.service";
 import pgAdminService from "@/server/services/db-tool-services/pgadmin.service";
-import { RoleUtils } from "@/server/utils/role.utils";
+import { RoleUtils } from "@/shared/utils/role.utils";
 
 const createAppSchema = z.object({
     appName: z.string().min(1)

@@ -8,7 +8,7 @@ import appService from "@/server/services/app.service";
 import PageTitle from "@/components/custom/page-title";
 import ProjectBreadcrumbs from "./project-breadcrumbs";
 import CreateProjectActions from "./create-project-actions";
-import { RoleUtils } from "@/server/utils/role.utils";
+import { RoleUtils } from "@/shared/utils/role.utils";
 
 export default async function AppsPage({
     searchParams,

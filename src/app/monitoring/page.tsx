@@ -10,7 +10,7 @@ import monitoringService from "@/server/services/monitoring.service";
 import AppRessourceMonitoring from "./app-monitoring";
 import AppVolumeMonitoring from "./app-volumes-monitoring";
 import { AppMonitoringUsageModel } from "@/shared/model/app-monitoring-usage.model";
-import { RoleUtils } from "@/server/utils/role.utils";
+import { RoleUtils } from "@/shared/utils/role.utils";
 
 export default async function ResourceNodesInfoPage() {
 

@@ -10,7 +10,7 @@ import { NextResponse } from "next/server";
 import roleService from "../services/role.service";
 import { Role } from "@prisma/client";
 import { RolePermissionEnum } from "@/shared/model/role-extended.model.ts";
-import { RoleUtils } from "./role.utils";
+import { RoleUtils } from "../../shared/utils/role.utils";
 
 /**
  * THIS FUNCTION RETURNS NULL IF NO USER IS LOGGED IN

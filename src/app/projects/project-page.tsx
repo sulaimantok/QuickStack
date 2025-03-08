@@ -18,7 +18,7 @@ import {
 import { useBreadcrumbs } from "@/frontend/states/zustand.states";
 import ProjectsBreadcrumbs from "./projects-breadcrumbs";
 import { Plus } from "lucide-react";
-import { RoleUtils } from "@/server/utils/role.utils";
+import { RoleUtils } from "@/shared/utils/role.utils";
 
 export default async function ProjectPage() {
 

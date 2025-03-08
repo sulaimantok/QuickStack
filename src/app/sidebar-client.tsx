@@ -31,7 +31,7 @@ import { usePathname } from "next/navigation"
 import { useRouter } from "next/router"
 import { useEffect, useState } from "react"
 import QuickStackLogo from "@/components/custom/quickstack-logo"
-import { RoleUtils } from "@/server/utils/role.utils"
+import { RoleUtils } from "@/shared/utils/role.utils"
 
 
 const settingsMenu = [

@@ -1,7 +1,7 @@
 import projectService from "@/server/services/project.service"
 import { getUserSession } from "@/server/utils/action-wrapper.utils"
 import { SidebarCient } from "./sidebar-client"
-import { RoleUtils } from "@/server/utils/role.utils";
+import { RoleUtils } from "@/shared/utils/role.utils";
 
 export async function AppSidebar() {
 

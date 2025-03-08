@@ -4,7 +4,7 @@ import AppTabs from "./app-tabs";
 import AppBreadcrumbs from "./app-breadcrumbs";
 import s3TargetService from "@/server/services/s3-target.service";
 import volumeBackupService from "@/server/services/volume-backup.service";
-import { RoleUtils } from "@/server/utils/role.utils";
+import { RoleUtils } from "@/shared/utils/role.utils";
 
 export default async function AppPage({
     searchParams,

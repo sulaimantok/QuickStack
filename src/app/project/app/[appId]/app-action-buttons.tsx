@@ -10,7 +10,7 @@ import { ExternalLink, Hammer, Pause, Play, Rocket } from "lucide-react";
 import { AppEventsDialog } from "./app-events-dialog";
 import { ScrollArea, ScrollBar } from "@/components/ui/scroll-area";
 import { UserSession } from "@/shared/model/sim-session.model";
-import { RoleUtils } from "@/server/utils/role.utils";
+import { RoleUtils } from "@/shared/utils/role.utils";
 
 export default function AppActionButtons({
     app,

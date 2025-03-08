@@ -3,7 +3,7 @@
 import monitoringService from "@/server/services/monitoring.service";
 import clusterService from "@/server/services/node.service";
 import { getAuthUserSession, simpleAction } from "@/server/utils/action-wrapper.utils";
-import { RoleUtils } from "@/server/utils/role.utils";
+import { RoleUtils } from "@/shared/utils/role.utils";
 import { AppMonitoringUsageModel } from "@/shared/model/app-monitoring-usage.model";
 import { AppVolumeMonitoringUsageModel } from "@/shared/model/app-volume-monitoring-usage.model";
 import { NodeResourceModel } from "@/shared/model/node-resource.model";
