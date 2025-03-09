@@ -505,7 +505,7 @@ class AppService {
             }
         }) as AppWithProjectModel[];
 
-        return apps.toSorted((a, b) => {
+        apps.sort((a, b) => {
             if (a.project.name.toLocaleLowerCase() < b.project.name.toLocaleLowerCase()) {
                 return -1;
             }
@@ -520,6 +520,7 @@ class AppService {
             }
             return 0;
         });
+        return apps;
     }
 }
 
