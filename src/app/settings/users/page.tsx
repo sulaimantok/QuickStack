@@ -17,13 +17,14 @@ import {
 } from "@/components/ui/tabs"
 import RolesTable from "./roles-table";
 import appService from "@/server/services/app.service";
+import projectService from "@/server/services/project.service";
 
 export default async function UsersAndRolesPage() {
 
     const session = await getAdminUserSession();
     const users = await userService.getAllUsers();
     const roles = await roleService.getAll();
-    const allApps = await appService.getAll();
+    const allApps = await projectService.getAllProjects();
     return (
         <div className="flex-1 space-y-4 pt-6">
             <PageTitle
@@ -42,7 +43,7 @@ export default async function UsersAndRolesPage() {
                     <UsersTable session={session} users={users} roles={roles} />
                 </TabsContent>
                 <TabsContent value="roles">
-                    <RolesTable apps={allApps} roles={roles} />
+                    <RolesTable projects={allApps} roles={roles} />
                 </TabsContent>
             </Tabs>
         </div>

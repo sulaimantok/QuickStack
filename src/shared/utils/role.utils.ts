@@ -3,32 +3,77 @@ import { UserSession } from "@/shared/model/sim-session.model";
 
 export class RoleUtils {
 
-    static sessionHasReadAccessToProject(session: UserSession, project: { apps: { id: string; }[] }) {
-        if (project.apps.length === 0 && RoleUtils.sessionCanCreateNewApps(session)) {
+    static sessionHasReadAccessToProject(session: UserSession, projectId: string) {
+        if (this.isAdmin(session)) {
             return true;
         }
-        return project.apps.some((app) => RoleUtils.sessionHasReadAccessForApp(session, app.id))
+
+        const projectPermission = RoleUtils.getProjectPermissionForProjectId(session, projectId);
+        if (!projectPermission) {
+            return false;
+        }
+
+        return projectPermission.readApps;
     }
 
-    static getRolePermissionForApp(session: UserSession, appId: string) {
+    private static getProjectPermissionForProjectId(session: UserSession, projectId: string) {
+        return session.role?.roleProjectPermissions?.find((projectPermission) => projectPermission.projectId === projectId);
+    }
+
+    private static getProjectPermissionForAppId(session: UserSession, appId: string) {
+        return session.role?.roleProjectPermissions?.find((projectPermission) => {
+            return projectPermission.project?.apps?.some(app => app.id === appId);
+        });
+    }
+
+    static getRolePermissionForApp(session: UserSession, appId: string): RolePermissionEnum | null {
         if (this.isAdmin(session)) {
             return RolePermissionEnum.READWRITE;
         }
-        return (session.permissions?.find(app => app.appId === appId)?.permission ?? null) as RolePermissionEnum | null;
+        const projectPermission = this.getProjectPermissionForAppId(session, appId);
+        if (!projectPermission) {
+            return null;
+        }
+        if (projectPermission?.roleAppPermissions.length > 0) {
+            return (projectPermission.roleAppPermissions.find(app => app.appId === appId)?.permission ?? null) as RolePermissionEnum | null;
+        }
+        // If no roleAppPermissions are defined, we fallback to the projectPermission
+        if (projectPermission.writeApps) {
+            return RolePermissionEnum.READWRITE;
+        }
+        if (projectPermission.readApps) {
+            return RolePermissionEnum.READ;
+        }
+        return null;
     }
 
     static sessionHasAccessToBackups(session: UserSession) {
         if (this.isAdmin(session)) {
             return true;
         }
-        return !!session.canAccessBackups;
+        return !!session.role?.canAccessBackups;
     }
 
-    static sessionCanCreateNewApps(session: UserSession) {
+    static sessionCanCreateNewAppsForProject(session: UserSession, projectId: string) {
         if (this.isAdmin(session)) {
             return true;
         }
-        return !!session.canCreateNewApps;
+        const projectPermission = this.getProjectPermissionForProjectId(session, projectId);
+        if (!projectPermission) {
+            return false;
+        }
+        return !!projectPermission.createApps;
+    }
+
+    static sessionCanDeleteAppsForProject(session: UserSession, projectId: string) {
+        if (this.isAdmin(session)) {
+            return true;
+        }
+        const projectPermission = this.getProjectPermissionForProjectId(session, projectId);
+        if (!projectPermission) {
+            return false;
+        }
+        return !!projectPermission.deleteApps;
     }
 
     static sessionIsReadOnlyForApp(session: UserSession, appId: string) {
@@ -60,6 +105,6 @@ export class RoleUtils {
     }
 
     static isAdmin(session: UserSession) {
-        return session.roleName === adminRoleName;
+        return session.role?.name === adminRoleName;
     }
 }

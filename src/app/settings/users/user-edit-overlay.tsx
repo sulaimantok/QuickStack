@@ -26,11 +26,12 @@ import { UserExtended } from "@/shared/model/user-extended.model"
 import { saveUser } from "./actions"
 import SelectFormField from "@/components/custom/select-form-field"
 import { RoleExtended } from "@/shared/model/role-extended.model.ts"
+import { UserRole } from "@/shared/model/sim-session.model"
 
 
 export default function UserEditOverlay({ children, user, roles }: {
   children: React.ReactNode;
-  roles: RoleExtended[];
+  roles: UserRole[];
   user?: UserExtended;
 }) {
 

@@ -121,34 +121,53 @@ model Role {
   id               String  @id @default(uuid())
   name             String  @unique
   description      String?
-  canCreateNewApps Boolean @default(false)
   canAccessBackups Boolean @default(false)
 
-  users              User[]
-  roleAppPermissions RoleAppPermission[]
+  users                  User[]
+  roleProjectPermissions RoleProjectPermission[]
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 }
 
 model RoleAppPermission {
-  id         String @id @default(uuid())
-  role       Role   @relation(fields: [roleId], references: [id], onDelete: Cascade)
-  roleId     String
-  app        App    @relation(fields: [appId], references: [id], onDelete: Cascade)
-  appId      String
-  permission String // READ, READWRITE
+  id                      String                 @id @default(uuid())
+  app                     App                    @relation(fields: [appId], references: [id], onDelete: Cascade)
+  appId                   String
+  permission              String // READ, READWRITE
+  roleProjectPermission   RoleProjectPermission? @relation(fields: [roleProjectPermissionId], references: [id])
+  roleProjectPermissionId String?
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  @@unique([roleId, appId])
+  @@unique([roleProjectPermissionId, appId])
+}
+
+model RoleProjectPermission {
+  id         String  @id @default(uuid())
+  role       Role    @relation(fields: [roleId], references: [id], onDelete: Cascade)
+  roleId     String
+  project    Project @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  projectId  String
+  createApps Boolean @default(false)
+  deleteApps Boolean @default(false)
+  writeApps  Boolean @default(false)
+  readApps   Boolean @default(false)
+
+  roleAppPermissions RoleAppPermission[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([roleId, projectId])
 }
 
 model Project {
-  id   String @id @default(uuid())
-  name String
-  apps App[]
+  id                     String                  @id @default(uuid())
+  name                   String
+  apps                   App[]
+  roleProjectPermissions RoleProjectPermission[]
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt

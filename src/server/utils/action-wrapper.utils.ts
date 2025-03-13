@@ -1,5 +1,5 @@
 import { ServiceException } from "@/shared/model/service.exception.model";
-import { UserSession } from "@/shared/model/sim-session.model";
+import { UserRole, UserSession } from "@/shared/model/sim-session.model";
 import { getServerSession } from "next-auth";
 import { ZodRawShape, ZodObject, objectUtil, baseObjectOutputType, z, ZodType } from "zod";
 import { redirect } from "next/navigation";
@@ -21,30 +21,13 @@ export async function getUserSession(): Promise<UserSession | null> {
     if (!session) {
         return null;
     }
-    type roleAppPermissions = {
-        appId: string;
-        permission: RolePermissionEnum;
-    };
-    let role: {
-        id: string;
-        name: string;
-        canAccessBackups: boolean,
-        canCreateNewApps: boolean,
-        roleAppPermissions: {
-            appId: string;
-            permission: string;
-        }[];
-    } | null = null;
+    let role: UserRole | null = null;
     if (!!session?.user?.email) {
         role = await roleService.getRoleByUserMail(session.user.email);
     }
     return {
         email: session?.user?.email as string,
-        roleId: role?.id,
-        roleName: role?.name,
-        canAccessBackups: role?.canAccessBackups,
-        canCreateNewApps: role?.canCreateNewApps,
-        permissions: role?.roleAppPermissions as roleAppPermissions[],
+        role: role ?? undefined,
     };
 }
 
@@ -75,30 +58,12 @@ export async function isAuthorizedForBackups() {
     return session;
 }
 
-export async function isAuthorizedForRoleId(roleId: string) {
-    const session = await getAuthUserSession();
-    if (!RoleUtils.isAdmin(session) && session.roleId !== roleId) {
-        console.error('User is not authorized for role: ' + roleId);
-        throw new ServiceException('User is not authorized for this action.');
-    }
-    return session;
-}
-
-export async function isAuthorizedForRoleName(roleName: string) {
-    const session = await getAuthUserSession();
-    if (!RoleUtils.isAdmin(session) && session.roleName !== roleName) {
-        console.error('User is not authorized for role: ' + roleName);
-        throw new ServiceException('User is not authorized for this action.');
-    }
-    return session;
-}
-
 export async function isAuthorizedReadForApp(appId: string) {
     const session = await getAuthUserSession();
     if (RoleUtils.isAdmin(session)) {
         return session;
     }
-    if (!session.roleId) {
+    if (!session.role) {
         console.error('User is not authorized for app: ' + appId);
         throw new ServiceException('User is not authorized for this action.');
     }
@@ -115,7 +80,7 @@ export async function isAuthorizedWriteForApp(appId: string) {
     if (RoleUtils.isAdmin(session)) {
         return session;
     }
-    if (!session.roleId) {
+    if (!session.role) {
         console.error('User is not authorized for app: ' + appId);
         throw new ServiceException('User is not authorized for this action.');
     }

@@ -4,12 +4,25 @@ import { RolePermissionEnum } from "./role-extended.model.ts";
 
 export interface UserSession {
     email: string;
-    roleName?: string;
-    roleId?: string;
-    canAccessBackups?: boolean;
-    canCreateNewApps?: boolean;
-    permissions?: {
-        appId: string,
-        permission: RolePermissionEnum
-    }[];
+    role?: UserRole;
 }
+
+export type UserRole = {
+    name: string;
+    id: string;
+    canAccessBackups: boolean;
+    roleProjectPermissions: {
+        projectId: string;
+        project: {
+            apps: {
+                id: string;
+                name: string;
+            }[];
+        };
+        createApps: boolean;
+        deleteApps: boolean;
+        writeApps: boolean;
+        readApps: boolean;
+        roleAppPermissions: RoleAppPermission[];
+    }[];
+};

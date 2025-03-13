@@ -12,11 +12,11 @@ import { UserExtended } from "@/shared/model/user-extended.model";
 import UserEditOverlay from "./user-edit-overlay";
 import { deleteUser } from "./actions";
 import { RoleExtended } from "@/shared/model/role-extended.model.ts";
-import { UserSession } from "@/shared/model/sim-session.model";
+import { UserRole, UserSession } from "@/shared/model/sim-session.model";
 
 export default function UsersTable({ users, roles, session }: {
     users: UserExtended[];
-    roles: RoleExtended[];
+    roles: UserRole[];
     session: UserSession;
 }) {
 

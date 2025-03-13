@@ -21,25 +21,35 @@ import { ServerActionResult } from "@/shared/model/server-action-error-return.mo
 import { toast } from "sonner"
 import { ScrollArea } from "@/components/ui/scroll-area"
 import { saveRole } from "./actions"
-import { RoleExtended, RolePermissionEnum } from "@/shared/model/role-extended.model.ts"
+import { RolePermissionEnum } from "@/shared/model/role-extended.model.ts"
 import { RoleEditModel, roleEditZodModel } from "@/shared/model/role-edit.model"
-import { App } from "@prisma/client"
 import { Checkbox } from "@/components/ui/checkbox"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
-import { AppWithProjectModel } from "@/shared/model/app-extended.model"
+import { ProjectExtendedModel } from "@/shared/model/project-extended.model"
+import { UserRole } from "@/shared/model/sim-session.model"
 
-export default function RoleEditOverlay({ children, role, apps }: {
+
+type UiProjectPermission = {
+  projectId: string;
+  createApps: boolean;
+  deleteApps: boolean;
+  writeApps: boolean;
+  readApps: boolean;
+  roleAppPermissions: {
+    appId: string;
+    permission: RolePermissionEnum;
+  }[];
+};
+
+export default function RoleEditOverlay({ children, role, projects }: {
   children: React.ReactNode;
-  role?: RoleExtended;
-  apps: AppWithProjectModel[]
+  role?: UserRole;
+  projects: ProjectExtendedModel[]
 }) {
 
   const [isOpen, setIsOpen] = useState<boolean>(false);
-  const [appPermissions, setAppPermissions] = useState<{
-    appId: string;
-    read: boolean;
-    readwrite: boolean;
-  }[]>([]);
+
+  const [projectPermissions, setProjectPermissions] = useState<UiProjectPermission[]>([]);
 
   const form = useForm<RoleEditModel>({
     resolver: zodResolver(roleEditZodModel),
@@ -51,13 +61,19 @@ export default function RoleEditOverlay({ children, role, apps }: {
     saveRole(state, {
       ...payload,
       id: role?.id,
-      roleAppPermissions: appPermissions.flatMap(perm => {
-        if (!perm.read && !perm.readwrite) return [];
-        return [{
-          appId: perm.appId,
-          permission: perm.readwrite ? RolePermissionEnum.READWRITE : RolePermissionEnum.READ
-        }];
-      })
+      /* roleProjectPermissions: projects.map((project) => ({
+         projectId: project.id,
+         createApps: appPermissions.some((perm) => perm.appId === project.id && perm.readwrite),
+         deleteApps: appPermissions.some((perm) => perm.appId === project.id && perm.readwrite),
+         writeApps: appPermissions.some((perm) => perm.appId === project.id && perm.readwrite),
+         readApps: appPermissions.some((perm) => perm.appId === project.id && (perm.read || perm.readwrite)),
+         roleAppPermissions: appPermissions
+           .filter((perm) => perm.appId === project.id)
+           .map((perm) => ({
+             appId: perm.appId,
+             permission: perm.readwrite ? RolePermissionEnum.READWRITE : (perm.read ? RolePermissionEnum.READ : '')
+           }))
+       }))*/
     }), FormUtils.getInitialFormState<typeof roleEditZodModel>());
 
   useEffect(() => {
@@ -72,53 +88,76 @@ export default function RoleEditOverlay({ children, role, apps }: {
   useEffect(() => {
     if (role) {
       form.reset(role);
-
       // Initialize app permissions based on role data
-      const initialPermissions = apps.map(app => {
-        const existingPermission = role.roleAppPermissions?.find(p => p.appId === app.id);
+      const initialPermissions = projects.map(project => {
+        const existingPermission = role.roleProjectPermissions?.find(p => p.projectId === project.id);
         return {
-          appId: app.id,
-          read: !!existingPermission && (existingPermission.permission === RolePermissionEnum.READ || existingPermission.permission === RolePermissionEnum.READWRITE),
-          readwrite: !!existingPermission && existingPermission.permission === RolePermissionEnum.READWRITE
-        };
+          projectId: project.id,
+          createApps: existingPermission?.createApps || false,
+          deleteApps: existingPermission?.deleteApps || false,
+          writeApps: existingPermission?.writeApps || false,
+          readApps: existingPermission?.readApps || false,
+          roleAppPermissions: existingPermission?.roleAppPermissions || []
+        } as UiProjectPermission;
       });
-
-      setAppPermissions(initialPermissions);
+      setProjectPermissions(initialPermissions);
     } else {
       // Initialize with all apps having no permissions
-      const initialPermissions = apps.map(app => ({
-        appId: app.id,
-        read: false,
-        readwrite: false
-      }));
+      const initialPermissions = projects.map(project => ({
+        projectId: project.id,
+        createApps: false,
+        deleteApps: false,
+        writeApps: false,
+        readApps: false,
+        roleAppPermissions: []
+      } as UiProjectPermission));
+      setProjectPermissions(initialPermissions);
 
-      setAppPermissions(initialPermissions);
     }
-  }, [role, apps]);
+  }, [role, projects]);
 
-  const handleReadChange = (appId: string, checked: boolean) => {
-    setAppPermissions(prev => prev.map(perm => {
-      if (perm.appId === appId) {
+
+  const handleReadChange = (projectId: string, checked: boolean) => {
+    setProjectPermissions(prev => prev.map(perm => {
+      if (perm.projectId === projectId) {
         // If read is being turned off, also turn off readwrite
         if (!checked) {
-          return { ...perm, read: false, readwrite: false };
+          return { ...perm, readApps: false, readwrite: false };
         }
         // If read is being turned on, just update read
-        return { ...perm, read: checked };
+        return { ...perm, readApps: checked };
       }
       return perm;
     }));
   };
 
-  const handleReadWriteChange = (appId: string, checked: boolean) => {
-    setAppPermissions(prev => prev.map(perm => {
-      if (perm.appId === appId) {
-        // If readwrite is being turned on, also turn on read
+  const handleReadWriteChange = (projectId: string, checked: boolean) => {
+    setProjectPermissions(prev => prev.map(perm => {
+      if (perm.projectId === projectId) {
+        // If readwrite is being turned on, turn off read
         if (checked) {
-          return { ...perm, read: true, readwrite: true };
+          return { ...perm, readApps: true, writeApps: true } as UiProjectPermission;
         }
-        // If readwrite is being turned off, just update readwrite
-        return { ...perm, readwrite: false };
+        // If readwrite is being turned off, just update read
+        return { ...perm, readApps: perm.readApps, writeApps: checked } as UiProjectPermission;
+      }
+      return perm;
+    }));
+  };
+
+  const handleCreateChange = (projectId: string, checked: boolean) => {
+    setProjectPermissions(prev => prev.map(perm => {
+      if (perm.projectId === projectId) {
+        return { ...perm, createApps: checked };
+      }
+      return perm;
+    }));
+  };
+
+  const handleDeleteChange = (projectId: string, checked: boolean) => {
+    setProjectPermissions(prev => prev.map(perm => {
+      if (perm.projectId === projectId) {
+        return { ...perm, deleteApps: checked };
       }
       return perm;
     }));
@@ -157,29 +196,6 @@ export default function RoleEditOverlay({ children, role, apps }: {
 
                     <FormField
                       control={form.control}
-                      name="canCreateNewApps"
-                      render={({ field }) => (
-                        <FormItem className="flex flex-row items-start space-x-3 space-y-0 rounded-md border p-4">
-                          <FormControl>
-                            <Checkbox
-                              checked={field.value}
-                              onCheckedChange={field.onChange}
-                            />
-                          </FormControl>
-                          <div className="space-y-1 leading-none">
-                            <FormLabel>
-                              Can create new apps
-                            </FormLabel>
-                            <FormDescription>
-                              If enabled, users with this role can create new apps. Projects can only be created by admins.
-                            </FormDescription>
-                          </div>
-                        </FormItem>
-                      )}
-                    />
-
-                    <FormField
-                      control={form.control}
                       name="canAccessBackups"
                       render={({ field }) => (
                         <FormItem className="flex flex-row items-start space-x-3 space-y-0 rounded-md border p-4">
@@ -207,31 +223,44 @@ export default function RoleEditOverlay({ children, role, apps }: {
                         <TableHeader>
                           <TableRow>
                             <TableHead>Project</TableHead>
-                            <TableHead>App</TableHead>
-                            <TableHead>Read</TableHead>
-                            <TableHead>ReadWrite</TableHead>
+                            <TableHead>Read Apps</TableHead>
+                            <TableHead>Write Apps</TableHead>
+                            <TableHead>Create Apps</TableHead>
+                            <TableHead>Delete Apps</TableHead>
                           </TableRow>
                         </TableHeader>
                         <TableBody>
-                          {apps.map((app) => {
-                            const permission = appPermissions.find(p => p.appId === app.id);
+                          {projects.map((project) => {
+                            const permission = projectPermissions.find(p => p.projectId === project.id);
                             return (
-                              <TableRow key={app.id}>
-                                <TableCell>{app.project.name}</TableCell>
-                                <TableCell>{app.name}</TableCell>
+                              <TableRow key={project.id}>
+                                <TableCell>{project.name}</TableCell>
                                 <TableCell>
                                   <Checkbox
-                                    id={`read-${app.id}`}
-                                    disabled={permission?.readwrite}
-                                    checked={permission?.read || false}
-                                    onCheckedChange={(checked) => handleReadChange(app.id, !!checked)}
+                                    id={`read-${project.id}`}
+                                    checked={permission?.readApps || false}
+                                    onCheckedChange={(checked) => handleReadChange(project.id, !!checked)}
                                   />
                                 </TableCell>
                                 <TableCell>
                                   <Checkbox
-                                    id={`readwrite-${app.id}`}
-                                    checked={permission?.readwrite || false}
-                                    onCheckedChange={(checked) => handleReadWriteChange(app.id, !!checked)}
+                                    id={`write-${project.id}`}
+                                    checked={permission?.writeApps || false}
+                                    onCheckedChange={(checked) => handleReadWriteChange(project.id, !!checked)}
+                                  />
+                                </TableCell>
+                                <TableCell>
+                                  <Checkbox
+                                    id={`create-${project.id}`}
+                                    checked={permission?.createApps || false}
+                                    onCheckedChange={(checked) => handleCreateChange(project.id, !!checked)}
+                                  />
+                                </TableCell>
+                                <TableCell>
+                                  <Checkbox
+                                    id={`delete-${project.id}`}
+                                    checked={permission?.deleteApps || false}
+                                    onCheckedChange={(checked) => handleDeleteChange(project.id, !!checked)}
                                   />
                                 </TableCell>
                               </TableRow>

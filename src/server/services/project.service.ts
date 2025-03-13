@@ -7,6 +7,7 @@ import deploymentService from "./deployment.service";
 import namespaceService from "./namespace.service";
 import buildService from "./build.service";
 import traefikMeDomainStandaloneService from "./standalone-services/traefik-me-domain-standalone.service";
+import { ProjectExtendedModel } from "@/shared/model/project-extended.model";
 
 class ProjectService {
 
@@ -30,7 +31,7 @@ class ProjectService {
         }
     }
 
-    async getAllProjects() {
+    async getAllProjects(): Promise<ProjectExtendedModel[]> {
         return await unstable_cache(() => dataAccess.client.project.findMany({
             include: {
                 apps: true

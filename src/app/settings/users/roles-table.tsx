@@ -11,10 +11,12 @@ import { deleteRole } from "./actions";
 import { adminRoleName, RoleExtended, RolePermissionEnum } from "@/shared/model/role-extended.model.ts";
 import RoleEditOverlay from "./role-edit-overlay";
 import { AppWithProjectModel } from "@/shared/model/app-extended.model";
+import { ProjectExtendedModel } from "@/shared/model/project-extended.model";
+import { UserRole } from "@/shared/model/sim-session.model";
 
-export default function RolesTable({ roles, apps }: {
-    roles: RoleExtended[];
-    apps: AppWithProjectModel[];
+export default function RolesTable({ roles, projects }: {
+    roles: UserRole[];
+    projects: ProjectExtendedModel[];
 }) {
 
     const { openConfirmDialog: openDialog } = useConfirmDialog();
@@ -34,10 +36,10 @@ export default function RolesTable({ roles, apps }: {
         <SimpleDataTable columns={[
             ['id', 'ID', false],
             ['name', 'Name', true],
-            ['roleReadPermissions', 'Read Permissions', true, (item) => item.roleAppPermissions.filter(x => x.permission === RolePermissionEnum.READ).map(p => p.app.name).join(', ')],
-            ['roleWritePermissions', 'Write Permissions', true, (item) => item.roleAppPermissions.filter(x => x.permission === RolePermissionEnum.READWRITE).map(p => p.app.name).join(', ')],
-            ["createdAt", "Created At", true, (item) => formatDateTime(item.createdAt)],
-            ["updatedAt", "Updated At", false, (item) => formatDateTime(item.updatedAt)],
+           // ['roleReadPermissions', 'Read Permissions', true, (item) => item.roleAppPermissions.filter(x => x.permission === RolePermissionEnum.READ).map(p => p.app.name).join(', ')],
+            //['roleWritePermissions', 'Write Permissions', true, (item) => item.roleAppPermissions.filter(x => x.permission === RolePermissionEnum.READWRITE).map(p => p.app.name).join(', ')],
+           // ["createdAt", "Created At", true, (item) => formatDateTime(item.createdAt)],
+           // ["updatedAt", "Updated At", false, (item) => formatDateTime(item.updatedAt)],
         ]}
             data={roles}
             actionCol={(item) =>
@@ -45,7 +47,7 @@ export default function RolesTable({ roles, apps }: {
                     <div className="flex">
                         {item.name !== adminRoleName && <>
                             <div className="flex-1"></div>
-                            <RoleEditOverlay apps={apps} role={item} >
+                            <RoleEditOverlay projects={projects} role={item} >
                                 <Button variant="ghost"><EditIcon /></Button>
                             </RoleEditOverlay>
                             <Button variant="ghost" onClick={() => asyncDeleteItem(item.id)}>
@@ -55,7 +57,7 @@ export default function RolesTable({ roles, apps }: {
                     </div>
                 </>}
         />
-        <RoleEditOverlay apps={apps} >
+        <RoleEditOverlay projects={projects} >
             <Button variant="secondary"><Plus /> Create Role</Button>
         </RoleEditOverlay>
     </>;

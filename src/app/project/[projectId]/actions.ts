@@ -20,7 +20,7 @@ const createAppSchema = z.object({
 export const createApp = async (appName: string, projectId: string, appId?: string) =>
     saveFormAction({ appName }, createAppSchema, async (validatedData) => {
         const session = await getAuthUserSession();
-        if (!RoleUtils.sessionCanCreateNewApps(session)) {
+        if (!RoleUtils.sessionCanCreateNewAppsForProject(session, projectId)) {
             throw new ServiceException("You are not allowed to create new apps.");
         }
 
@@ -36,7 +36,7 @@ export const createApp = async (appName: string, projectId: string, appId?: stri
 export const createAppFromTemplate = async (prevState: any, inputData: AppTemplateModel, projectId: string) =>
     saveFormAction(inputData, appTemplateZodModel, async (validatedData) => {
         const session = await getAuthUserSession();
-        if (!RoleUtils.sessionCanCreateNewApps(session)) {
+        if (!RoleUtils.sessionCanCreateNewAppsForProject(session, projectId)) {
             throw new ServiceException("You are not allowed to create new apps.");
         }
         if (validatedData.templates.some(x => x.inputSettings.some(y => !y.randomGeneratedIfEmpty && !y.value))) {

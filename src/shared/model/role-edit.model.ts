@@ -1,15 +1,28 @@
 import { stringToNumber } from "@/shared/utils/zod.utils";
 import { z } from "zod";
 
+
+const roleAppPermissionZodModle = z.object({
+  appId: z.string(),
+  permission: z.string(),
+});
+
+const RoleProjectPermissionSchema = z.object({
+  projectId: z.string(),
+  createApps: z.boolean(),
+  deleteApps: z.boolean(),
+  writeApps: z.boolean(),
+  readApps: z.boolean(),
+  roleAppPermissions: z.array(roleAppPermissionZodModle).optional().default([]),
+});
+
+// Schema for UserRole.
 export const roleEditZodModel = z.object({
   id: z.string().trim().optional(),
   name: z.string().trim().min(1),
-  canCreateNewApps: z.boolean().optional().default(false),
   canAccessBackups: z.boolean().optional().default(false),
-  roleAppPermissions: z.array(z.object({
-    appId: z.string(),
-    permission: z.string(),
-  })).optional(),
-})
+  roleProjectPermissions: z.array(RoleProjectPermissionSchema),
+});
+
 
 export type RoleEditModel = z.infer<typeof roleEditZodModel>;

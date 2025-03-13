@@ -14,10 +14,7 @@ const createProjectSchema = z.object({
 
 export const createProject = async (projectName: string, projectId?: string) =>
     saveFormAction({ projectName, projectId }, createProjectSchema, async (validatedData) => {
-       const session = await getAuthUserSession();
-        if (!RoleUtils.sessionCanCreateNewApps(session)) {
-            throw new ServiceException("You are not allowed to create new projects.");
-        }
+        const session = await getAdminUserSession();
         await projectService.save({
             id: validatedData.projectId ?? undefined,
             name: validatedData.projectName
