@@ -159,6 +159,8 @@ class AppService {
             revalidateTag(Tags.apps(item.projectId as string));
             revalidateTag(Tags.app(item.id as string));
             revalidateTag(Tags.projects());
+            revalidateTag(Tags.roles());
+            revalidateTag(Tags.users());
         }
         return savedItem;
     }

@@ -13,6 +13,10 @@ export class RoleUtils {
             return false;
         }
 
+        if (projectPermission.roleAppPermissions.length > 0) {
+            return true;
+        }
+
         return projectPermission.readApps;
     }
 

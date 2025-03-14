@@ -48,8 +48,11 @@ export const createAppFromTemplate = async (prevState: any, inputData: AppTempla
 
 export const deleteApp = async (appId: string) =>
     simpleAction(async () => {
-        await isAuthorizedWriteForApp(appId);
+        const session = await getAuthUserSession();
         const app = await appService.getExtendedById(appId);
+        if (!RoleUtils.sessionCanDeleteAppsForProject(session, app.projectId)) {
+            throw new ServiceException("You are not allowed to delete apps in this project.");
+        }
         // First delete external services wich might be running
         await dbGateService.deleteToolForAppIfExists(appId);
         await phpMyAdminService.deleteToolForAppIfExists(appId);

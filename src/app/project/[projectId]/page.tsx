@@ -33,9 +33,10 @@ export default async function AppsPage({
             <PageTitle
                 title="Apps"
                 subtitle={`All Apps for Project "${project.name}"`}>
-                <CreateProjectActions projectId={projectId} />
+                {RoleUtils.sessionCanCreateNewAppsForProject(session, params.projectId) &&
+                    <CreateProjectActions projectId={projectId} />}
             </PageTitle>
-            <AppTable app={relevantApps} projectId={project.id} />
+            <AppTable session={session} app={relevantApps} projectId={project.id} />
             <ProjectBreadcrumbs project={project} />
         </div>
     )

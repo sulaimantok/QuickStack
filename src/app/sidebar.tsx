@@ -14,7 +14,7 @@ export async function AppSidebar() {
   const projects = await projectService.getAllProjects();
 
   const relevantProjectsForUser = projects.filter((project) =>
-    RoleUtils.sessionHasReadAccessToProject(session, project));
+    RoleUtils.sessionHasReadAccessToProject(session, project.id));
   for (const project of relevantProjectsForUser) {
     project.apps = project.apps.filter((app) => RoleUtils.sessionHasReadAccessForApp(session, app.id));
   }

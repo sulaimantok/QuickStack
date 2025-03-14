@@ -25,7 +25,7 @@ export default async function ProjectPage() {
     const session = await getAuthUserSession();
     const data = await projectService.getAllProjects();
     const relevantProjectsForUser = data.filter((project) =>
-        RoleUtils.sessionHasReadAccessToProject(session, project));
+        RoleUtils.sessionHasReadAccessToProject(session, project.id));
 
     return (
         <div className="flex-1 space-y-4 pt-6">
