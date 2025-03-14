@@ -1,18 +1,25 @@
 'use client';
 
 import { Button } from "@/components/ui/button";
-import { EditIcon, Plus, TrashIcon } from "lucide-react";
+import { ArrowDown, ChevronDown, EditIcon, Plus, Trash2, TrashIcon, UserPlus } from "lucide-react";
 import { Toast } from "@/frontend/utils/toast.utils";
 import { useConfirmDialog } from "@/frontend/states/zustand.states";
-import { User } from "@prisma/client";
 import React from "react";
 import { SimpleDataTable } from "@/components/custom/simple-data-table";
 import { formatDateTime } from "@/frontend/utils/format.utils";
 import { UserExtended } from "@/shared/model/user-extended.model";
 import UserEditOverlay from "./user-edit-overlay";
 import { deleteUser } from "./actions";
-import { RoleExtended } from "@/shared/model/role-extended.model.ts";
 import { UserRole, UserSession } from "@/shared/model/sim-session.model";
+import {
+    DropdownMenu,
+    DropdownMenuContent,
+    DropdownMenuItem,
+    DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import { toast } from "sonner";
+import UsersBulkRoleAssignment from "./users-table-bulk-role-assignment";
+import { Actions } from "@/frontend/utils/nextjs-actions.utils";
 
 export default function UsersTable({ users, roles, session }: {
     users: UserExtended[];
@@ -21,6 +28,8 @@ export default function UsersTable({ users, roles, session }: {
 }) {
 
     const { openConfirmDialog: openDialog } = useConfirmDialog();
+    const [selectedUsers, setSelectedUsers] = React.useState<UserExtended[]>([]);
+    const [isRoleDialogOpen, setIsRoleDialogOpen] = React.useState(false);
 
     const asyncDeleteItem = async (id: string) => {
         const confirm = await openDialog({
@@ -33,6 +42,35 @@ export default function UsersTable({ users, roles, session }: {
         }
     };
 
+    const handleBulkDelete = async () => {
+        // Filter out admin users from selected users
+        const deletableUsers = selectedUsers.filter(user => session.email !== user.email);
+
+        if (deletableUsers.length === 0) {
+            toast.error("No deletable users selected (admins cannot be deleted)");
+            return;
+        }
+
+        const confirm = await openDialog({
+            title: "Delete Selected Users",
+            description: `Do you really want to delete ${deletableUsers.length} user(s)?`,
+            okButton: "Delete",
+        });
+
+        if (confirm) {
+            try {
+                // Delete users one by one
+                for (const user of deletableUsers) {
+                    await Actions.run(() => deleteUser(user.id));
+                }
+                toast.success(`Successfully deleted ${deletableUsers.length} user(s)`);
+            } catch (error) {
+                toast.error("Error deleting users");
+                console.error(error);
+            }
+        }
+    };
+
     return <>
         <SimpleDataTable columns={[
             ['id', 'ID', false],
@@ -42,6 +80,13 @@ export default function UsersTable({ users, roles, session }: {
             ["updatedAt", "Updated At", false, (item) => formatDateTime(item.updatedAt)],
         ]}
             data={users}
+            showSelectCheckbox={true}
+            onRowSelectionUpdate={setSelectedUsers}
+            columnFilters={roles.map((role) => ({
+                accessorKey: 'role.name',
+                filterLabel: role.name,
+                filterFunction: (item: UserExtended) => item.roleId === role.id,
+            }))}
             actionCol={(item) =>
                 <>
                     <div className="flex">
@@ -56,8 +101,32 @@ export default function UsersTable({ users, roles, session }: {
                     </div>
                 </>}
         />
-        <UserEditOverlay roles={roles}>
-            <Button variant="secondary"><Plus /> Create User</Button>
-        </UserEditOverlay>
+        <div className="flex gap-4">
+            <UserEditOverlay roles={roles}>
+                <Button variant="secondary"><Plus /> Create User</Button>
+            </UserEditOverlay>
+            {selectedUsers.length > 0 && (
+                <DropdownMenu>
+                    <DropdownMenuTrigger asChild>
+                        <Button variant="outline"> Actions <ChevronDown /></Button>
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent>
+                        <DropdownMenuItem onClick={() => setIsRoleDialogOpen(true)}>
+                            <UserPlus />   Assign Role
+                        </DropdownMenuItem>
+                        <DropdownMenuItem onClick={handleBulkDelete}>
+                            <Trash2 /> Delete Selected
+                        </DropdownMenuItem>
+                    </DropdownMenuContent>
+                </DropdownMenu>
+            )}
+        </div>
+
+        <UsersBulkRoleAssignment
+            isOpen={isRoleDialogOpen}
+            onOpenChange={setIsRoleDialogOpen}
+            selectedUsers={selectedUsers}
+            roles={roles}
+        />
     </>;
 }

@@ -35,7 +35,7 @@ export default async function ProjectPage() {
                     <Button><Plus /> Create Project</Button>
                 </EditProjectDialog>}
             </div>
-            <ProjectsTable data={relevantProjectsForUser} />
+            <ProjectsTable session={session} data={relevantProjectsForUser} />
             <ProjectsBreadcrumbs />
         </div>
     )

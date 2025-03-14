@@ -7,6 +7,7 @@ import userService from "@/server/services/user.service";
 import { UserEditModel, userEditZodModel } from "@/shared/model/user-edit.model";
 import roleService from "@/server/services/role.service";
 import { RoleEditModel, roleEditZodModel } from "@/shared/model/role-edit.model";
+import { adminRoleName } from "@/shared/model/role-extended.model.ts";
 
 export const saveUser = async (prevState: any, inputData: UserEditModel) =>
     saveFormAction(inputData, userEditZodModel, async (validatedData) => {
@@ -40,8 +41,40 @@ export const saveRole = async (prevState: any, inputData: RoleEditModel) =>
 
 export const deleteUser = async (userId: string) =>
     simpleAction(async () => {
-        await getAdminUserSession();
+        const session = await getAdminUserSession();
+        const user = await userService.getUserById(userId);
+        if (user.email === session.email) {
+            throw new ServiceException('You cannot delete your own user');
+        }
+        if (user.role?.name === adminRoleName) {
+            throw new ServiceException('You cannot delete users with the role "admin"');
+        }
         await userService.deleteUserById(userId);
+        return new SuccessActionResult();
+    });
+
+export const assignRoleToUsers = async (userIds: string[], roleId: string) =>
+    simpleAction(async () => {
+        await getAdminUserSession();
+        const users = await userService.getAllUsers();
+        for (const user of users) {
+            if (userIds.includes(user.id)) {
+                user.roleId = roleId;
+            }
+        }
+
+        // check if there are any admin users left
+        const adminRole = await roleService.getOrCreateAdminRole();
+        if (!users.some(user => user.roleId === adminRole.id)) {
+            throw new ServiceException('You cannot perform this role assignment, because there are no admin users left after this operation.');
+        }
+
+        // save all users with new role
+        const relevantUsers = users.filter(user => userIds.includes(user.id));
+        for (const user of relevantUsers) {
+            await roleService.assignUserToRole(user.id, roleId);
+        }
+
         return new SuccessActionResult();
     });
 

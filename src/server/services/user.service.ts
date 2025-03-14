@@ -132,6 +132,22 @@ export class UserService {
         })();
     }
 
+    async getUserById(id: string): Promise<UserExtended> {
+        return await dataAccess.client.user.findFirstOrThrow({
+            where: {
+                id
+            },
+            select: {
+                id: true,
+                email: true,
+                roleId: true,
+                createdAt: true,
+                updatedAt: true,
+                role: true
+            }
+        });
+    }
+
     async getUserByEmail(email: string) {
         return await dataAccess.client.user.findFirstOrThrow({
             where: {

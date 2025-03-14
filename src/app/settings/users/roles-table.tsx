@@ -36,10 +36,8 @@ export default function RolesTable({ roles, projects }: {
         <SimpleDataTable columns={[
             ['id', 'ID', false],
             ['name', 'Name', true],
-           // ['roleReadPermissions', 'Read Permissions', true, (item) => item.roleAppPermissions.filter(x => x.permission === RolePermissionEnum.READ).map(p => p.app.name).join(', ')],
-            //['roleWritePermissions', 'Write Permissions', true, (item) => item.roleAppPermissions.filter(x => x.permission === RolePermissionEnum.READWRITE).map(p => p.app.name).join(', ')],
-           // ["createdAt", "Created At", true, (item) => formatDateTime(item.createdAt)],
-           // ["updatedAt", "Updated At", false, (item) => formatDateTime(item.updatedAt)],
+            ["createdAt", "Created At", true, (item) => formatDateTime((item as any).createdAt)],
+            ["updatedAt", "Updated At", false, (item) => formatDateTime((item as any).updatedAt)],
         ]}
             data={roles}
             actionCol={(item) =>
