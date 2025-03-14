@@ -284,7 +284,7 @@ export default function RoleEditOverlay({ children, role, projects }: {
                             <TableHead>Project</TableHead>
                             <TableHead>Individual Permissions</TableHead>
                             <TableHead>Read Apps</TableHead>
-                            <TableHead>Write Apps</TableHead>
+                            <TableHead>Edit/Deploy Apps</TableHead>
                             <TableHead>Create Apps</TableHead>
                             <TableHead>Delete Apps</TableHead>
                           </TableRow>
@@ -331,7 +331,7 @@ export default function RoleEditOverlay({ children, role, projects }: {
                                       />
                                     </TableCell>}
                                   {permission?.setPermissionsPerApp ?
-                                    <TableHead>Read & Write</TableHead>
+                                    <TableHead>Read, Write & Deploy</TableHead>
                                     : <TableCell>
                                       <Checkbox
                                         id={`delete-${project.id}`}
