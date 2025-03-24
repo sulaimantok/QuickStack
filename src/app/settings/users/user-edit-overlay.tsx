@@ -25,13 +25,12 @@ import { UserEditModel, userEditZodModel } from "@/shared/model/user-edit.model"
 import { UserExtended } from "@/shared/model/user-extended.model"
 import { saveUser } from "./actions"
 import SelectFormField from "@/components/custom/select-form-field"
-import { RoleExtended } from "@/shared/model/role-extended.model.ts"
-import { UserRole } from "@/shared/model/sim-session.model"
+import { UserGroupExtended } from "@/shared/model/sim-session.model"
 
 
-export default function UserEditOverlay({ children, user, roles }: {
+export default function UserEditOverlay({ children, user, userGroups }: {
   children: React.ReactNode;
-  roles: UserRole[];
+  userGroups: UserGroupExtended[];
   user?: UserExtended;
 }) {
 
@@ -98,13 +97,13 @@ export default function UserEditOverlay({ children, user, roles }: {
 
                     <SelectFormField
                       form={form}
-                      name="roleId"
-                      label="Role"
+                      name="userGroupId"
+                      label="Group"
                       formDescription={<>
-                        Choose a preconfigured role or create your own in the settings.
+                        Choose a preconfigured group or create your own in the settings.
                       </>}
-                      values={roles.map((role) =>
-                        [role.id, `${role.name}`])}
+                      values={userGroups.map((group) =>
+                        [group.id, `${group.name}`])}
                     />
 
                     <FormField

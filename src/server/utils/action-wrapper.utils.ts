@@ -1,5 +1,5 @@
 import { ServiceException } from "@/shared/model/service.exception.model";
-import { UserRole, UserSession } from "@/shared/model/sim-session.model";
+import {  UserGroupExtended, UserSession } from "@/shared/model/sim-session.model";
 import { getServerSession } from "next-auth";
 import { ZodRawShape, ZodObject, objectUtil, baseObjectOutputType, z, ZodType } from "zod";
 import { redirect } from "next/navigation";
@@ -7,10 +7,9 @@ import { ServerActionResult } from "@/shared/model/server-action-error-return.mo
 import { FormValidationException } from "@/shared/model/form-validation-exception.model";
 import { authOptions } from "@/server/utils/auth-options";
 import { NextResponse } from "next/server";
-import roleService from "../services/role.service";
-import { Role } from "@prisma/client";
+import userGroupService from "../services/user-group.service";
 import { RolePermissionEnum } from "@/shared/model/role-extended.model.ts";
-import { RoleUtils } from "../../shared/utils/role.utils";
+import { UserGroupUtils } from "../../shared/utils/role.utils";
 
 /**
  * THIS FUNCTION RETURNS NULL IF NO USER IS LOGGED IN
@@ -21,13 +20,13 @@ export async function getUserSession(): Promise<UserSession | null> {
     if (!session) {
         return null;
     }
-    let role: UserRole | null = null;
+    let userGroup: UserGroupExtended | null = null;
     if (!!session?.user?.email) {
-        role = await roleService.getRoleByUserMail(session.user.email);
+        userGroup = await userGroupService.getRoleByUserMail(session.user.email);
     }
     return {
         email: session?.user?.email as string,
-        role: role ?? undefined,
+        userGroup: userGroup ?? undefined,
     };
 }
 
@@ -42,7 +41,7 @@ export async function getAuthUserSession(): Promise<UserSession> {
 
 export async function getAdminUserSession(): Promise<UserSession> {
     const session = await getAuthUserSession();
-    if (!RoleUtils.isAdmin(session)) {
+    if (!UserGroupUtils.isAdmin(session)) {
         console.error('User is not admin.');
         throw new ServiceException('User is not authorized for this action.');
     }
@@ -51,7 +50,7 @@ export async function getAdminUserSession(): Promise<UserSession> {
 
 export async function isAuthorizedForBackups() {
     const session = await getAuthUserSession();
-    if (!RoleUtils.sessionHasAccessToBackups(session)) {
+    if (!UserGroupUtils.sessionHasAccessToBackups(session)) {
         console.error('User is not authorized for backups.');
         throw new ServiceException('User is not authorized for this action.');
     }
@@ -60,14 +59,14 @@ export async function isAuthorizedForBackups() {
 
 export async function isAuthorizedReadForApp(appId: string) {
     const session = await getAuthUserSession();
-    if (RoleUtils.isAdmin(session)) {
+    if (UserGroupUtils.isAdmin(session)) {
         return session;
     }
-    if (!session.role) {
+    if (!session.userGroup) {
         console.error('User is not authorized for app: ' + appId);
         throw new ServiceException('User is not authorized for this action.');
     }
-    const roleHasReadAccessForApp = RoleUtils.sessionHasReadAccessForApp(session, appId);
+    const roleHasReadAccessForApp = UserGroupUtils.sessionHasReadAccessForApp(session, appId);
     if (!roleHasReadAccessForApp) {
         console.error('User is not authorized for app: ' + appId);
         throw new ServiceException('User is not authorized for this action.');
@@ -77,14 +76,14 @@ export async function isAuthorizedReadForApp(appId: string) {
 
 export async function isAuthorizedWriteForApp(appId: string) {
     const session = await getAuthUserSession();
-    if (RoleUtils.isAdmin(session)) {
+    if (UserGroupUtils.isAdmin(session)) {
         return session;
     }
-    if (!session.role) {
+    if (!session.userGroup) {
         console.error('User is not authorized for app: ' + appId);
         throw new ServiceException('User is not authorized for this action.');
     }
-    const roleHasReadAccessForApp = RoleUtils.sessionHasWriteAccessForApp(session, appId);
+    const roleHasReadAccessForApp = UserGroupUtils.sessionHasWriteAccessForApp(session, appId);
     if (!roleHasReadAccessForApp) {
         console.error('User is not authorized for app: ' + appId);
         throw new ServiceException('User is not authorized for this action.');
@@ -97,7 +96,7 @@ export async function safeGetUserPermissionForApp(appId: string) {
     if (!session) {
         return null;
     }
-    return RoleUtils.getRolePermissionForApp(session, appId);
+    return UserGroupUtils.getRolePermissionForApp(session, appId);
 }
 
 export async function saveFormAction<ReturnType, TInputData, ZodType extends ZodRawShape>(

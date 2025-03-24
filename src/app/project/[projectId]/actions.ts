@@ -11,7 +11,7 @@ import dbGateService from "@/server/services/db-tool-services/dbgate.service";
 import fileBrowserService from "@/server/services/file-browser-service";
 import phpMyAdminService from "@/server/services/db-tool-services/phpmyadmin.service";
 import pgAdminService from "@/server/services/db-tool-services/pgadmin.service";
-import { RoleUtils } from "@/shared/utils/role.utils";
+import { UserGroupUtils } from "@/shared/utils/role.utils";
 
 const createAppSchema = z.object({
     appName: z.string().min(1)
@@ -20,7 +20,7 @@ const createAppSchema = z.object({
 export const createApp = async (appName: string, projectId: string, appId?: string) =>
     saveFormAction({ appName }, createAppSchema, async (validatedData) => {
         const session = await getAuthUserSession();
-        if (!RoleUtils.sessionCanCreateNewAppsForProject(session, projectId)) {
+        if (!UserGroupUtils.sessionCanCreateNewAppsForProject(session, projectId)) {
             throw new ServiceException("You are not allowed to create new apps.");
         }
 
@@ -36,7 +36,7 @@ export const createApp = async (appName: string, projectId: string, appId?: stri
 export const createAppFromTemplate = async (prevState: any, inputData: AppTemplateModel, projectId: string) =>
     saveFormAction(inputData, appTemplateZodModel, async (validatedData) => {
         const session = await getAuthUserSession();
-        if (!RoleUtils.sessionCanCreateNewAppsForProject(session, projectId)) {
+        if (!UserGroupUtils.sessionCanCreateNewAppsForProject(session, projectId)) {
             throw new ServiceException("You are not allowed to create new apps.");
         }
         if (validatedData.templates.some(x => x.inputSettings.some(y => !y.randomGeneratedIfEmpty && !y.value))) {
@@ -50,7 +50,7 @@ export const deleteApp = async (appId: string) =>
     simpleAction(async () => {
         const session = await getAuthUserSession();
         const app = await appService.getExtendedById(appId);
-        if (!RoleUtils.sessionCanDeleteAppsForProject(session, app.projectId)) {
+        if (!UserGroupUtils.sessionCanDeleteAppsForProject(session, app.projectId)) {
             throw new ServiceException("You are not allowed to delete apps in this project.");
         }
         // First delete external services wich might be running

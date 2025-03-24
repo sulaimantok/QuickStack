@@ -1,18 +1,18 @@
-import { Prisma, Role, RoleAppPermission } from "@prisma/client";
+import { Prisma, RoleAppPermission, UserGroup } from "@prisma/client";
 import dataAccess from "../adapter/db.client";
 import { revalidateTag, unstable_cache } from "next/cache";
 import { Tags } from "../utils/cache-tag-generator.utils";
 import { ServiceException } from "@/shared/model/service.exception.model";
 import { RoleEditModel } from "@/shared/model/role-edit.model";
 import { adminRoleName } from "@/shared/model/role-extended.model.ts";
-import { UserRole } from "@/shared/model/sim-session.model";
+import { UserGroupExtended } from "@/shared/model/sim-session.model";
 
-export class RoleService {
+export class UserGroupService {
 
-    async getRoleByUserMail(email: string): Promise<UserRole | null> {
+    async getRoleByUserMail(email: string): Promise<UserGroupExtended | null> {
         return await unstable_cache(async (mail: string) => await dataAccess.client.user.findFirst({
             select: {
-                role: {
+                userGroup: {
                     select: {
                         name: true,
                         id: true,
@@ -44,7 +44,7 @@ export class RoleService {
                 email: mail
             }
         }).then(user => {
-            return user?.role ?? null;
+            return user?.userGroup ?? null;
         }),
             [Tags.roles(), Tags.users()], {
             tags: [Tags.roles(), Tags.users()]
@@ -59,9 +59,9 @@ export class RoleService {
             await dataAccess.client.$transaction(async tx => {
                 // save role first
 
-                let savedRole: Role;
+                let savedRole: UserGroup;
                 if (item.id) {
-                    savedRole = await tx.role.update({
+                    savedRole = await tx.userGroup.update({
                         where: {
                             id: item.id as string
                         },
@@ -71,7 +71,7 @@ export class RoleService {
                         }
                     });
                 } else {
-                    savedRole = await tx.role.create({
+                    savedRole = await tx.userGroup.create({
                         data: {
                             name: item.name,
                             canAccessBackups: item.canAccessBackups,
@@ -83,14 +83,14 @@ export class RoleService {
 
                 await tx.roleProjectPermission.deleteMany({
                     where: {
-                        roleId: savedRole.id
+                        userGroupId: savedRole.id
                     }
                 });
 
                 for (let projectRolePermission of item.roleProjectPermissions) {
                     const forThisProjectCustomAppRolesExist = projectRolePermission.roleAppPermissions.length > 0;
                     const projectRolePermissionData = {
-                        roleId: savedRole.id,
+                        userGroupId: savedRole.id,
                         projectId: projectRolePermission.projectId,
                         createApps: forThisProjectCustomAppRolesExist ? false : projectRolePermission.createApps,
                         deleteApps: forThisProjectCustomAppRolesExist ? false : projectRolePermission.deleteApps,
@@ -122,21 +122,21 @@ export class RoleService {
         }
     }
 
-    async save(item: Prisma.RoleUncheckedCreateInput | Prisma.RoleUncheckedUpdateInput) {
+    async save(item: Prisma.UserGroupUncheckedCreateInput | Prisma.UserGroupUncheckedUpdateInput) {
         try {
             if (item.name === adminRoleName) {
                 throw new ServiceException("You cannot assign the name 'admin' to a role");
             }
             if (item.id) {
-                await dataAccess.client.role.update({
+                await dataAccess.client.userGroup.update({
                     where: {
                         id: item.id as string
                     },
                     data: item
                 });
             } else {
-                await dataAccess.client.role.create({
-                    data: item as Prisma.RoleUncheckedCreateInput
+                await dataAccess.client.userGroup.create({
+                    data: item as Prisma.UserGroupUncheckedCreateInput
                 });
             }
         } finally {
@@ -145,8 +145,8 @@ export class RoleService {
         }
     }
 
-    async getAll(): Promise<UserRole[]> {
-        return await unstable_cache(async () => await dataAccess.client.role.findMany({
+    async getAll(): Promise<UserGroupExtended[]> {
+        return await unstable_cache(async () => await dataAccess.client.userGroup.findMany({
             include: {
                 roleProjectPermissions: {
                     select: {
@@ -174,8 +174,8 @@ export class RoleService {
             tags: [Tags.roles()]
         })();
     }
-    async getById(id: string): Promise<UserRole> {
-        return await unstable_cache(async () => await dataAccess.client.role.findFirstOrThrow({
+    async getById(id: string): Promise<UserGroup> {
+        return await unstable_cache(async () => await dataAccess.client.userGroup.findFirstOrThrow({
             where: {
                 id
             },
@@ -207,14 +207,14 @@ export class RoleService {
         })();
     }
 
-    async assignUserToRole(userId: string, roleId: string) {
+    async assignUserToRole(userId: string, userGroupId: string) {
         try {
             await dataAccess.client.user.update({
                 where: {
                     id: userId,
                 },
                 data: {
-                    roleId,
+                    userGroupId,
                 },
             });
         } finally {
@@ -225,7 +225,7 @@ export class RoleService {
 
     async deleteById(id: string) {
         try {
-            await dataAccess.client.role.delete({
+            await dataAccess.client.userGroup.delete({
                 where: {
                     id
                 }
@@ -237,13 +237,13 @@ export class RoleService {
     }
 
     async getOrCreateAdminRole() {
-        let adminRole = await dataAccess.client.role.findFirst({
+        let adminRole = await dataAccess.client.userGroup.findFirst({
             where: {
                 name: adminRoleName
             }
         });
         if (!adminRole) {
-            adminRole = await dataAccess.client.role.create({
+            adminRole = await dataAccess.client.userGroup.create({
                 data: {
                     name: adminRoleName
                 }
@@ -254,23 +254,40 @@ export class RoleService {
 
     async createDefaultRolesIfNotExists() {
         try {
-            const roles = await dataAccess.client.role.findMany({
+            const dbAdminRole = await dataAccess.client.userGroup.findFirst({
                 where: {
                     name: {
                         in: [adminRoleName]
                     }
+                },
+                include: {
+                    users: true
                 }
             });
-            if (roles.length === 0) {
+            if (!dbAdminRole) {
+                console.warn("*** No admin users found. Creating default admin role ***");
                 const adminRole = await this.getOrCreateAdminRole();
                 await dataAccess.client.user.updateMany({
                     where: {
-                        roleId: null
+                        userGroupId: null
                     },
                     data: {
-                        roleId: adminRole.id
+                        userGroupId: adminRole.id
                     }
                 });
+                return;
+            }
+
+            if (dbAdminRole.users.length === 0) {
+                // making all users to admins
+                console.warn("*** No admin users found. Assigning all users to admin role ***");
+                const adminRole = await this.getOrCreateAdminRole();
+                await dataAccess.client.user.updateMany({
+                    data: {
+                        userGroupId: adminRole.id
+                    }
+                });
+                return;
             }
         } finally {
             revalidateTag(Tags.roles());
@@ -279,5 +296,5 @@ export class RoleService {
     }
 }
 
-const roleService = new RoleService();
-export default roleService;
+const userGroupService = new UserGroupService();
+export default userGroupService;

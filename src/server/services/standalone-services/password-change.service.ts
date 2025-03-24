@@ -9,7 +9,7 @@ class PasswordChangeService {
     async changeAdminPasswordAndPrintNewPassword() {
         const firstCreatedUser = await dataAccess.client.user.findFirst({
             where: {
-                role: {
+                userGroup: {
                     name: adminRoleName
                 }
             },

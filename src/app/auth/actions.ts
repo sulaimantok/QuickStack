@@ -9,7 +9,7 @@ import userService from "@/server/services/user.service";
 import { saveFormAction } from "@/server/utils/action-wrapper.utils";
 import ipAddressFinderAdapter from "@/server/adapter/ip-adress-finder.adapter";
 import traefikMeDomainStandaloneService from "@/server/services/standalone-services/traefik-me-domain-standalone.service";
-import roleService from "@/server/services/role.service";
+import userGroupService from "@/server/services/user-group.service";
 
 
 export const registerUser = async (prevState: any, inputData: RegisterFormInputSchema) =>
@@ -18,7 +18,7 @@ export const registerUser = async (prevState: any, inputData: RegisterFormInputS
         if (allUsers.length !== 0) {
             throw new ServiceException("User registration is currently not possible");
         }
-        const adminRole = await roleService.getOrCreateAdminRole();
+        const adminRole = await userGroupService.getOrCreateAdminRole();
         await userService.registerUser(validatedData.email, validatedData.password, adminRole.id);
         await quickStackService.createOrUpdateCertIssuer(validatedData.email);
 

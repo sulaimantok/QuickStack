@@ -3,7 +3,6 @@
 import React, { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { UserExtended } from "@/shared/model/user-extended.model";
-import { UserRole } from "@/shared/model/sim-session.model";
 import { toast } from "sonner";
 import {
     Dialog,
@@ -22,48 +21,50 @@ import {
 } from "@/components/ui/select";
 import { Toast } from "@/frontend/utils/toast.utils";
 import { assignRoleToUsers } from "./actions";
+import { UserGroupExtended } from "@/shared/model/sim-session.model";
 
 interface UsersBulkRoleAssignmentProps {
     isOpen: boolean;
     onOpenChange: (open: boolean) => void;
     selectedUsers: UserExtended[];
-    roles: UserRole[];
+    userGroups: UserGroupExtended[];
 }
 
 export default function UsersBulkRoleAssignment({
     isOpen,
     onOpenChange,
     selectedUsers,
-    roles
+    userGroups
 }: UsersBulkRoleAssignmentProps) {
-    const [selectedRole, setSelectedRole] = useState<string>("");
+    const [selectedGroup, setSelectedGroup] = useState<string>("");
 
-    const handleAssignRole = async () => {
-        if (!selectedRole) {
-            toast.error("Please select a role");
+    const handleAssignGroup = async () => {
+        if (!selectedGroup) {
+            toast.error("Please select a group");
             return;
         }
 
-        await Toast.fromAction(() => assignRoleToUsers(selectedUsers.map(u => u.id), selectedRole),  `Role assigned to ${selectedUsers.length} user(s)`, 'Assigning Role...');
+        await Toast.fromAction(() => assignRoleToUsers(selectedUsers.map(u => u.id), selectedGroup),  `Group
+         assigned to ${selectedUsers.length} user(s)`, 'Assigning Group...');
         onOpenChange(false);
-        setSelectedRole("");
+        setSelectedGroup("");
     };
 
     return (
         <Dialog open={isOpen} onOpenChange={onOpenChange}>
             <DialogContent>
                 <DialogHeader>
-                    <DialogTitle>Assign Role</DialogTitle>
+                    <DialogTitle>Assign Group</DialogTitle>
                     <DialogDescription>
-                        Select a role to assign to {selectedUsers.length} selected user(s).
+                        Select a Group to assign to {selectedUsers.length} selected user(s).
                     </DialogDescription>
                 </DialogHeader>
-                <Select onValueChange={setSelectedRole} value={selectedRole}>
+                <Select onValueChange={setSelectedGroup} value={selectedGroup}>
                     <SelectTrigger>
-                        <SelectValue placeholder="Select a role" />
+                        <SelectValue placeholder="Select a group" />
                     </SelectTrigger>
                     <SelectContent>
-                        {roles.map((role) => (
+                        {userGroups.map((role) => (
                             <SelectItem key={role.id} value={role.id}>
                                 {role.name}
                             </SelectItem>
@@ -74,7 +75,7 @@ export default function UsersBulkRoleAssignment({
                     <Button variant="outline" onClick={() => onOpenChange(false)}>
                         Cancel
                     </Button>
-                    <Button onClick={handleAssignRole}>Assign</Button>
+                    <Button onClick={handleAssignGroup}>Assign</Button>
                 </DialogFooter>
             </DialogContent>
         </Dialog>

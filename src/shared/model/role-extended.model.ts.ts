@@ -1,6 +1,6 @@
-import { Role, RoleAppPermission, User } from "@prisma/client";
+import { RoleAppPermission, User, UserGroup } from "@prisma/client";
 
-export type RoleExtended = Role & {
+export type RoleExtended = UserGroup & {
     roleAppPermissions: (RoleAppPermission & {
         app: {
             name: string;

@@ -31,7 +31,7 @@ import { usePathname } from "next/navigation"
 import { useRouter } from "next/router"
 import { useEffect, useState } from "react"
 import QuickStackLogo from "@/components/custom/quickstack-logo"
-import { RoleUtils } from "@/shared/utils/role.utils"
+import { UserGroupUtils } from "@/shared/utils/role.utils"
 
 
 const settingsMenu = [
@@ -41,7 +41,7 @@ const settingsMenu = [
     icon: User,
   },
   {
-    title: "Users & Roles",
+    title: "Users & Groups",
     url: "/settings/users",
     icon: User2,
     adminOnly: true,
@@ -165,7 +165,7 @@ export function SidebarCient({
                     <span>Projects</span>
                   </Link>
                 </SidebarMenuButton>
-                {RoleUtils.isAdmin(session) && <EditProjectDialog>
+                {UserGroupUtils.isAdmin(session) && <EditProjectDialog>
                   <SidebarMenuAction>
                     <Plus />
                   </SidebarMenuAction>
@@ -234,7 +234,7 @@ export function SidebarCient({
         </SidebarGroup>
 
 
-        {RoleUtils.sessionHasAccessToBackups(session) && <SidebarGroup>
+        {UserGroupUtils.sessionHasAccessToBackups(session) && <SidebarGroup>
           <SidebarGroupContent>
             <SidebarMenu>
               <SidebarMenuItem>
@@ -268,7 +268,7 @@ export function SidebarCient({
                   </Link>
                 </SidebarMenuButton>
                 <SidebarMenuSub>
-                  {(RoleUtils.isAdmin(session) ? settingsMenu :
+                  {(UserGroupUtils.isAdmin(session) ? settingsMenu :
                     settingsMenu.filter(x => !x.adminOnly)).map((item) => (
                       <SidebarMenuSubItem key={item.title}>
                         <SidebarMenuButton asChild>

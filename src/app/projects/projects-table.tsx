@@ -13,7 +13,7 @@ import { deleteProject } from "./actions";
 import { useConfirmDialog } from "@/frontend/states/zustand.states";
 import { EditProjectDialog } from "./edit-project-dialog";
 import { UserSession } from "@/shared/model/sim-session.model";
-import { RoleUtils } from "@/shared/utils/role.utils";
+import { UserGroupUtils } from "@/shared/utils/role.utils";
 
 
 export default function ProjectsTable({ data, session }: { data: Project[]; session: UserSession; }) {
@@ -59,7 +59,7 @@ export default function ProjectsTable({ data, session }: { data: Project[]; sess
                                     </DropdownMenuItem>
                                 </Link>
                                 <DropdownMenuSeparator />
-                                {RoleUtils.isAdmin(session) && <>
+                                {UserGroupUtils.isAdmin(session) && <>
                                     <EditProjectDialog existingItem={item}>
                                         <DropdownMenuItem>
                                             <Edit2 /> <span>Edit Project Name</span>

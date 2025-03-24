@@ -10,7 +10,7 @@ import { formatDateTime } from "@/frontend/utils/format.utils";
 import { UserExtended } from "@/shared/model/user-extended.model";
 import UserEditOverlay from "./user-edit-overlay";
 import { deleteUser } from "./actions";
-import { UserRole, UserSession } from "@/shared/model/sim-session.model";
+import { UserGroupExtended, UserSession } from "@/shared/model/sim-session.model";
 import {
     DropdownMenu,
     DropdownMenuContent,
@@ -21,9 +21,9 @@ import { toast } from "sonner";
 import UsersBulkRoleAssignment from "./users-table-bulk-role-assignment";
 import { Actions } from "@/frontend/utils/nextjs-actions.utils";
 
-export default function UsersTable({ users, roles, session }: {
+export default function UsersTable({ users, userGroups, session }: {
     users: UserExtended[];
-    roles: UserRole[];
+    userGroups: UserGroupExtended[];
     session: UserSession;
 }) {
 
@@ -82,16 +82,16 @@ export default function UsersTable({ users, roles, session }: {
             data={users}
             showSelectCheckbox={true}
             onRowSelectionUpdate={setSelectedUsers}
-            columnFilters={roles.map((role) => ({
+            columnFilters={userGroups.map((userGroup) => ({
                 accessorKey: 'role.name',
-                filterLabel: role.name,
-                filterFunction: (item: UserExtended) => item.roleId === role.id,
+                filterLabel: userGroup.name,
+                filterFunction: (item: UserExtended) => item.userGroupId === userGroup.id,
             }))}
             actionCol={(item) =>
                 <>
                     <div className="flex">
                         <div className="flex-1"></div>
-                        {session.email !== item.email && <><UserEditOverlay user={item} roles={roles}>
+                        {session.email !== item.email && <><UserEditOverlay user={item} userGroups={userGroups}>
                             <Button variant="ghost"><EditIcon /></Button>
                         </UserEditOverlay>
                             <Button variant="ghost" onClick={() => asyncDeleteItem(item.id)}>
@@ -102,7 +102,7 @@ export default function UsersTable({ users, roles, session }: {
                 </>}
         />
         <div className="flex gap-4">
-            <UserEditOverlay roles={roles}>
+            <UserEditOverlay userGroups={userGroups}>
                 <Button variant="secondary"><Plus /> Create User</Button>
             </UserEditOverlay>
             {selectedUsers.length > 0 && (
@@ -112,7 +112,7 @@ export default function UsersTable({ users, roles, session }: {
                     </DropdownMenuTrigger>
                     <DropdownMenuContent>
                         <DropdownMenuItem onClick={() => setIsRoleDialogOpen(true)}>
-                            <UserPlus />   Assign Role
+                            <UserPlus />   Assign Group
                         </DropdownMenuItem>
                         <DropdownMenuItem onClick={handleBulkDelete}>
                             <Trash2 /> Delete Selected
@@ -126,7 +126,7 @@ export default function UsersTable({ users, roles, session }: {
             isOpen={isRoleDialogOpen}
             onOpenChange={setIsRoleDialogOpen}
             selectedUsers={selectedUsers}
-            roles={roles}
+            userGroups={userGroups}
         />
     </>;
 }

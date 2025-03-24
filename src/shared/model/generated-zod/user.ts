@@ -1,6 +1,6 @@
 import * as z from "zod"
 
-import { CompleteRole, RelatedRoleModel, CompleteAccount, RelatedAccountModel, CompleteSession, RelatedSessionModel, CompleteAuthenticator, RelatedAuthenticatorModel } from "./index"
+import { CompleteUserGroup, RelatedUserGroupModel, CompleteAccount, RelatedAccountModel, CompleteSession, RelatedSessionModel, CompleteAuthenticator, RelatedAuthenticatorModel } from "./index"
 
 export const UserModel = z.object({
   id: z.string(),
@@ -11,13 +11,13 @@ export const UserModel = z.object({
   twoFaSecret: z.string().nullish(),
   twoFaEnabled: z.boolean(),
   image: z.string().nullish(),
-  roleId: z.string().nullish(),
+  userGroupId: z.string().nullish(),
   createdAt: z.date(),
   updatedAt: z.date(),
 })
 
 export interface CompleteUser extends z.infer<typeof UserModel> {
-  role?: CompleteRole | null
+  userGroup?: CompleteUserGroup | null
   accounts: CompleteAccount[]
   sessions: CompleteSession[]
   Authenticator: CompleteAuthenticator[]
@@ -29,7 +29,7 @@ export interface CompleteUser extends z.infer<typeof UserModel> {
  * NOTE: Lazy required in case of potential circular dependencies within schema
  */
 export const RelatedUserModel: z.ZodSchema<CompleteUser> = z.lazy(() => UserModel.extend({
-  role: RelatedRoleModel.nullish(),
+  userGroup: RelatedUserGroupModel.nullish(),
   accounts: RelatedAccountModel.array(),
   sessions: RelatedSessionModel.array(),
   Authenticator: RelatedAuthenticatorModel.array(),

@@ -4,10 +4,10 @@ import { RolePermissionEnum } from "./role-extended.model.ts";
 
 export interface UserSession {
     email: string;
-    role?: UserRole;
+    userGroup?: UserGroupExtended;
 }
 
-export type UserRole = {
+export type UserGroupExtended = {
     name: string;
     id: string;
     canAccessBackups: boolean;

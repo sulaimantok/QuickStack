@@ -14,7 +14,7 @@ import { useBreadcrumbs, useConfirmDialog } from "@/frontend/states/zustand.stat
 import { useEffect } from "react";
 import { EditAppDialog } from "./edit-app-dialog";
 import { UserSession } from "@/shared/model/sim-session.model";
-import { RoleUtils } from "@/shared/utils/role.utils";
+import { UserGroupUtils } from "@/shared/utils/role.utils";
 
 
 export default function AppTable({
@@ -63,13 +63,13 @@ export default function AppTable({
                                     </DropdownMenuItem>
                                 </Link>
                                 <DropdownMenuSeparator />
-                                {RoleUtils.sessionCanCreateNewAppsForProject(session, projectId) &&
+                                {UserGroupUtils.sessionCanCreateNewAppsForProject(session, projectId) &&
                                     <EditAppDialog projectId={projectId} existingItem={item}>
                                         <DropdownMenuItem>
                                             <Edit2 /> <span>Edit App Name</span>
                                         </DropdownMenuItem>
                                     </EditAppDialog>}
-                                {RoleUtils.sessionCanDeleteAppsForProject(session, projectId) && <DropdownMenuItem className="text-red-500"
+                                {UserGroupUtils.sessionCanDeleteAppsForProject(session, projectId) && <DropdownMenuItem className="text-red-500"
                                     onClick={() => openDialog({
                                         title: "Delete App",
                                         description: "Are you sure you want to delete this app? All data will be lost and this action cannot be undone.",

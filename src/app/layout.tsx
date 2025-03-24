@@ -13,7 +13,7 @@ import { cookies } from "next/headers";
 import { BreadcrumbsGenerator } from "../components/custom/breadcrumbs-generator";
 import { getUserSession } from "@/server/utils/action-wrapper.utils";
 import { InputDialog } from "@/components/custom/input-dialog";
-import roleService from "@/server/services/role.service";
+import userGroupService from "@/server/services/user-group.service";
 
 const inter = Inter({
   subsets: ["latin"],
@@ -42,7 +42,7 @@ export default async function RootLayout({
   const userIsLoggedIn = !!session;
 
   // todo remove in future versions and handle migrations in an other way
-  await roleService.createDefaultRolesIfNotExists();
+  await userGroupService.createDefaultRolesIfNotExists();
 
   return (
     <html lang="en">

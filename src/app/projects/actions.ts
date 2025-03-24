@@ -4,7 +4,7 @@ import { SuccessActionResult } from "@/shared/model/server-action-error-return.m
 import projectService from "@/server/services/project.service";
 import { getAdminUserSession, getAuthUserSession, saveFormAction, simpleAction } from "@/server/utils/action-wrapper.utils";
 import { z } from "zod";
-import { RoleUtils } from "@/shared/utils/role.utils";
+import { UserGroupUtils } from "@/shared/utils/role.utils";
 import { ServiceException } from "@/shared/model/service.exception.model";
 
 const createProjectSchema = z.object({

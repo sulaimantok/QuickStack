@@ -4,7 +4,7 @@ import AppTabs from "./app-tabs";
 import AppBreadcrumbs from "./app-breadcrumbs";
 import s3TargetService from "@/server/services/s3-target.service";
 import volumeBackupService from "@/server/services/volume-backup.service";
-import { RoleUtils } from "@/shared/utils/role.utils";
+import { UserGroupUtils } from "@/shared/utils/role.utils";
 
 export default async function AppPage({
     searchParams,
@@ -18,7 +18,7 @@ export default async function AppPage({
         return <p>Could not find app with id {appId}</p>
     }
     const session = await isAuthorizedReadForApp(appId);
-    const role = RoleUtils.getRolePermissionForApp(session, appId);
+    const role = UserGroupUtils.getRolePermissionForApp(session, appId);
     const [app, s3Targets, volumeBackups] = await Promise.all([
         appService.getExtendedById(appId),
         s3TargetService.getAll(),

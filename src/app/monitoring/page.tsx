@@ -10,7 +10,7 @@ import monitoringService from "@/server/services/monitoring.service";
 import AppRessourceMonitoring from "./app-monitoring";
 import AppVolumeMonitoring from "./app-volumes-monitoring";
 import { AppMonitoringUsageModel } from "@/shared/model/app-monitoring-usage.model";
-import { RoleUtils } from "@/shared/utils/role.utils";
+import { UserGroupUtils } from "@/shared/utils/role.utils";
 
 export default async function ResourceNodesInfoPage() {
 
@@ -29,8 +29,8 @@ export default async function ResourceNodesInfoPage() {
     }
 
     // filter by role
-    volumesUsage = volumesUsage?.filter((volume) => RoleUtils.sessionHasReadAccessForApp(session, volume.appId));
-    updatedNodeRessources = updatedNodeRessources?.filter((app) => RoleUtils.sessionHasReadAccessForApp(session, app.appId));
+    volumesUsage = volumesUsage?.filter((volume) => UserGroupUtils.sessionHasReadAccessForApp(session, volume.appId));
+    updatedNodeRessources = updatedNodeRessources?.filter((app) => UserGroupUtils.sessionHasReadAccessForApp(session, app.appId));
 
     return (
         <div className="flex-1 space-y-4 pt-6">

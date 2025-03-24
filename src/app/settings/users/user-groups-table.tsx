@@ -8,14 +8,13 @@ import React from "react";
 import { SimpleDataTable } from "@/components/custom/simple-data-table";
 import { formatDateTime } from "@/frontend/utils/format.utils";
 import { deleteRole } from "./actions";
-import { adminRoleName, RoleExtended, RolePermissionEnum } from "@/shared/model/role-extended.model.ts";
-import RoleEditOverlay from "./role-edit-overlay";
-import { AppWithProjectModel } from "@/shared/model/app-extended.model";
+import { adminRoleName } from "@/shared/model/role-extended.model.ts";
+import RoleEditOverlay from "./user-group-edit-overlay";
 import { ProjectExtendedModel } from "@/shared/model/project-extended.model";
-import { UserRole } from "@/shared/model/sim-session.model";
+import { UserGroupExtended } from "@/shared/model/sim-session.model";
 
-export default function RolesTable({ roles, projects }: {
-    roles: UserRole[];
+export default function UserGroupsTable({ userGroups, projects }: {
+    userGroups: UserGroupExtended[];
     projects: ProjectExtendedModel[];
 }) {
 
@@ -23,12 +22,12 @@ export default function RolesTable({ roles, projects }: {
 
     const asyncDeleteItem = async (id: string) => {
         const confirm = await openDialog({
-            title: "Delete Role",
-            description: "Do you really want to delete this role? Users with this role will be assigned to no role afterwards. They will not be able to use QuickStack until you reassign a new role to them.",
+            title: "Delete Group",
+            description: "Do you really want to delete this group? Users with this group will be assigned to no role afterwards. They will not be able to use QuickStack until you reassign a new group to them.",
             okButton: "Delete",
         });
         if (confirm) {
-            await Toast.fromAction(() => deleteRole(id), 'Deleting Role...', 'Role deleted successfully');
+            await Toast.fromAction(() => deleteRole(id), 'Deleting Group...', 'Group deleted successfully');
         }
     };
 
@@ -39,13 +38,13 @@ export default function RolesTable({ roles, projects }: {
             ["createdAt", "Created At", true, (item) => formatDateTime((item as any).createdAt)],
             ["updatedAt", "Updated At", false, (item) => formatDateTime((item as any).updatedAt)],
         ]}
-            data={roles}
+            data={userGroups}
             actionCol={(item) =>
                 <>
                     <div className="flex">
                         {item.name !== adminRoleName && <>
                             <div className="flex-1"></div>
-                            <RoleEditOverlay projects={projects} role={item} >
+                            <RoleEditOverlay projects={projects} userGroup={item} >
                                 <Button variant="ghost"><EditIcon /></Button>
                             </RoleEditOverlay>
                             <Button variant="ghost" onClick={() => asyncDeleteItem(item.id)}>
@@ -56,7 +55,7 @@ export default function RolesTable({ roles, projects }: {
                 </>}
         />
         <RoleEditOverlay projects={projects} >
-            <Button variant="secondary"><Plus /> Create Role</Button>
+            <Button variant="secondary"><Plus /> Create Group</Button>
         </RoleEditOverlay>
     </>;
 }

@@ -100,14 +100,14 @@ export class UserService {
         }
     }
 
-    async registerUser(email: string, password: string, roleId: string | null) {
+    async registerUser(email: string, password: string, userGroupId: string | null) {
         try {
             const hashedPassword = await bcrypt.hash(password, saltRounds);
             const user = await dataAccess.client.user.create({
                 data: {
                     email,
                     password: hashedPassword,
-                    roleId
+                    userGroupId
                 }
             });
             return user;
@@ -121,10 +121,10 @@ export class UserService {
             select: {
                 id: true,
                 email: true,
-                roleId: true,
+                userGroupId: true,
                 createdAt: true,
                 updatedAt: true,
-                role: true
+                userGroup: true
             }
         }),
             [Tags.users()], {
@@ -140,10 +140,10 @@ export class UserService {
             select: {
                 id: true,
                 email: true,
-                roleId: true,
+                userGroupId: true,
                 createdAt: true,
                 updatedAt: true,
-                role: true
+                userGroup: true
             }
         });
     }

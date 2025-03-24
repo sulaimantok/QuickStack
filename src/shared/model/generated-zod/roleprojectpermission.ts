@@ -1,10 +1,10 @@
 import * as z from "zod"
 
-import { CompleteRole, RelatedRoleModel, CompleteProject, RelatedProjectModel, CompleteRoleAppPermission, RelatedRoleAppPermissionModel } from "./index"
+import { CompleteUserGroup, RelatedUserGroupModel, CompleteProject, RelatedProjectModel, CompleteRoleAppPermission, RelatedRoleAppPermissionModel } from "./index"
 
 export const RoleProjectPermissionModel = z.object({
   id: z.string(),
-  roleId: z.string(),
+  userGroupId: z.string(),
   projectId: z.string(),
   createApps: z.boolean(),
   deleteApps: z.boolean(),
@@ -15,7 +15,7 @@ export const RoleProjectPermissionModel = z.object({
 })
 
 export interface CompleteRoleProjectPermission extends z.infer<typeof RoleProjectPermissionModel> {
-  role: CompleteRole
+  userGroup: CompleteUserGroup
   project: CompleteProject
   roleAppPermissions: CompleteRoleAppPermission[]
 }
@@ -26,7 +26,7 @@ export interface CompleteRoleProjectPermission extends z.infer<typeof RoleProjec
  * NOTE: Lazy required in case of potential circular dependencies within schema
  */
 export const RelatedRoleProjectPermissionModel: z.ZodSchema<CompleteRoleProjectPermission> = z.lazy(() => RoleProjectPermissionModel.extend({
-  role: RelatedRoleModel,
+  userGroup: RelatedUserGroupModel,
   project: RelatedProjectModel,
   roleAppPermissions: RelatedRoleAppPermissionModel.array(),
 }))

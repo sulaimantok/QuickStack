@@ -78,8 +78,8 @@ model User {
   twoFaEnabled  Boolean   @default(false)
   image         String?
 
-  roleId String?
-  role   Role?   @relation(fields: [roleId], references: [id])
+  userGroupId String?
+  userGroup   UserGroup? @relation(fields: [userGroupId], references: [id])
 
   accounts      Account[]
   sessions      Session[]
@@ -117,7 +117,7 @@ model Authenticator {
 
 // *** FROM HERE CUSTOM CLASSES
 
-model Role {
+model UserGroup {
   id               String  @id @default(uuid())
   name             String  @unique
   description      String?
@@ -128,6 +128,25 @@ model Role {
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+}
+
+model RoleProjectPermission {
+  id          String    @id @default(uuid())
+  userGroup   UserGroup @relation(fields: [userGroupId], references: [id], onDelete: Cascade)
+  userGroupId String
+  project     Project   @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  projectId   String
+  createApps  Boolean   @default(false)
+  deleteApps  Boolean   @default(false)
+  writeApps   Boolean   @default(false)
+  readApps    Boolean   @default(false)
+
+  roleAppPermissions RoleAppPermission[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([userGroupId, projectId])
 }
 
 model RoleAppPermission {
@@ -142,25 +161,6 @@ model RoleAppPermission {
   updatedAt DateTime @updatedAt
 
   @@unique([roleProjectPermissionId, appId])
-}
-
-model RoleProjectPermission {
-  id         String  @id @default(uuid())
-  role       Role    @relation(fields: [roleId], references: [id], onDelete: Cascade)
-  roleId     String
-  project    Project @relation(fields: [projectId], references: [id], onDelete: Cascade)
-  projectId  String
-  createApps Boolean @default(false)
-  deleteApps Boolean @default(false)
-  writeApps  Boolean @default(false)
-  readApps   Boolean @default(false)
-
-  roleAppPermissions RoleAppPermission[]
-
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-
-  @@unique([roleId, projectId])
 }
 
 model Project {

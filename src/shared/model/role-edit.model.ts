@@ -21,7 +21,7 @@ export const roleEditZodModel = z.object({
   id: z.string().trim().optional(),
   name: z.string().trim().min(1),
   canAccessBackups: z.boolean().optional().default(false),
-  roleProjectPermissions: z.array(RoleProjectPermissionSchema),
+  roleProjectPermissions: z.array(RoleProjectPermissionSchema).optional().default([]),
 });
 
 

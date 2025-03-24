@@ -1,14 +1,14 @@
 import { adminRoleName, RolePermissionEnum } from "@/shared/model/role-extended.model.ts";
 import { UserSession } from "@/shared/model/sim-session.model";
 
-export class RoleUtils {
+export class UserGroupUtils {
 
     static sessionHasReadAccessToProject(session: UserSession, projectId: string) {
         if (this.isAdmin(session)) {
             return true;
         }
 
-        const projectPermission = RoleUtils.getProjectPermissionForProjectId(session, projectId);
+        const projectPermission = UserGroupUtils.getProjectPermissionForProjectId(session, projectId);
         if (!projectPermission) {
             return false;
         }
@@ -21,11 +21,11 @@ export class RoleUtils {
     }
 
     private static getProjectPermissionForProjectId(session: UserSession, projectId: string) {
-        return session.role?.roleProjectPermissions?.find((projectPermission) => projectPermission.projectId === projectId);
+        return session.userGroup?.roleProjectPermissions?.find((projectPermission) => projectPermission.projectId === projectId);
     }
 
     private static getProjectPermissionForAppId(session: UserSession, appId: string) {
-        return session.role?.roleProjectPermissions?.find((projectPermission) => {
+        return session.userGroup?.roleProjectPermissions?.find((projectPermission) => {
             return projectPermission.project?.apps?.some(app => app.id === appId);
         });
     }
@@ -55,7 +55,7 @@ export class RoleUtils {
         if (this.isAdmin(session)) {
             return true;
         }
-        return !!session.role?.canAccessBackups;
+        return !!session.userGroup?.canAccessBackups;
     }
 
     static sessionCanCreateNewAppsForProject(session: UserSession, projectId: string) {
@@ -109,6 +109,6 @@ export class RoleUtils {
     }
 
     static isAdmin(session: UserSession) {
-        return session.role?.name === adminRoleName;
+        return session.userGroup?.name === adminRoleName;
     }
 }

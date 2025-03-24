@@ -26,7 +26,7 @@ import { RoleEditModel, roleEditZodModel } from "@/shared/model/role-edit.model"
 import { Checkbox } from "@/components/ui/checkbox"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import { ProjectExtendedModel } from "@/shared/model/project-extended.model"
-import { UserRole } from "@/shared/model/sim-session.model"
+import { UserGroupExtended } from "@/shared/model/sim-session.model"
 
 
 type UiProjectPermission = {
@@ -43,9 +43,9 @@ type UiProjectPermission = {
   }[];
 };
 
-export default function RoleEditOverlay({ children, role, projects }: {
+export default function RoleEditOverlay({ children, userGroup, projects }: {
   children: React.ReactNode;
-  role?: UserRole;
+  userGroup?: UserGroupExtended;
   projects: ProjectExtendedModel[]
 }) {
 
@@ -55,14 +55,14 @@ export default function RoleEditOverlay({ children, role, projects }: {
 
   const form = useForm<RoleEditModel>({
     resolver: zodResolver(roleEditZodModel),
-    defaultValues: role
+    defaultValues: userGroup
   });
 
   const [state, formAction] = useFormState((state: ServerActionResult<any, any>,
     payload: RoleEditModel) =>
     saveRole(state, {
       ...payload,
-      id: role?.id,
+      id: userGroup?.id,
       roleProjectPermissions: projects.map((project) => {
         const projectPermission = projectPermissions.find((perm) => perm.projectId === project.id);
         if (!projectPermission) {
@@ -87,18 +87,18 @@ export default function RoleEditOverlay({ children, role, projects }: {
   useEffect(() => {
     if (state.status === 'success') {
       form.reset();
-      toast.success('Role saved successfully');
+      toast.success('Group saved successfully');
       setIsOpen(false);
     }
     FormUtils.mapValidationErrorsToForm<typeof roleEditZodModel>(state, form);
   }, [state]);
 
   useEffect(() => {
-    if (role) {
-      form.reset(role);
+    if (userGroup) {
+      form.reset(userGroup);
       // Initialize app permissions based on role data
       const initialPermissions = projects.map(project => {
-        const existingPermission = role.roleProjectPermissions?.find(p => p.projectId === project.id);
+        const existingPermission = userGroup.roleProjectPermissions?.find(p => p.projectId === project.id);
         const roleAppPermissions = project.apps.map(app => ({
           appId: app.id,
           appName: app.name,
@@ -129,7 +129,7 @@ export default function RoleEditOverlay({ children, role, projects }: {
       } as UiProjectPermission));
       setProjectPermissions(initialPermissions);
     }
-  }, [role, projects, isOpen]);
+  }, [userGroup, projects, isOpen]);
 
 
   const handleReadChange = (projectId: string, checked: boolean) => {
@@ -230,14 +230,14 @@ export default function RoleEditOverlay({ children, role, projects }: {
       <Dialog open={!!isOpen} onOpenChange={(isOpened) => setIsOpen(isOpened)}>
         <DialogContent className="sm:max-w-[900px]">
           <DialogHeader>
-            <DialogTitle>{role?.id ? 'Edit' : 'Create'} Role</DialogTitle>
+            <DialogTitle>{userGroup?.id ? 'Edit' : 'Create'} Group</DialogTitle>
           </DialogHeader>
           <ScrollArea className="max-h-[70vh]">
             <div className="px-3">
               <Form {...form}>
                 <form action={(e) => form.handleSubmit((data) => {
                   return formAction(data);
-                })()}>
+                }, console.error)()}>
                   <div className="space-y-4">
                     <FormField
                       control={form.control}

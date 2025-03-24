@@ -1,9 +1,10 @@
-import { Role, User } from "@prisma/client";
+import { User, UserGroup } from "@prisma/client";
+import { UserGroupExtended } from "./sim-session.model";
 
 export type UserExtended = {
     id: string;
-    role: Role | null;
-    roleId: string | null;
+    userGroup: UserGroup | null;
+    userGroupId: string | null;
     email: string;
     createdAt: Date;
     updatedAt: Date;
