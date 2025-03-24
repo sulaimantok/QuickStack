@@ -13,10 +13,19 @@ import { deleteApp } from "./actions";
 import { useBreadcrumbs, useConfirmDialog } from "@/frontend/states/zustand.states";
 import { useEffect } from "react";
 import { EditAppDialog } from "./edit-app-dialog";
+import { UserSession } from "@/shared/model/sim-session.model";
+import { UserGroupUtils } from "@/shared/utils/role.utils";
 
 
-
-export default function AppTable({ app, projectId }: { app: App[], projectId: string }) {
+export default function AppTable({
+    app,
+    projectId,
+    session
+}: {
+    app: App[],
+    projectId: string,
+    session: UserSession
+}) {
 
     const { openConfirmDialog: openDialog } = useConfirmDialog();
 
@@ -54,18 +63,19 @@ export default function AppTable({ app, projectId }: { app: App[], projectId: st
                                     </DropdownMenuItem>
                                 </Link>
                                 <DropdownMenuSeparator />
-                                <EditAppDialog projectId={projectId} existingItem={item}>
-                                    <DropdownMenuItem>
-                                        <Edit2 /> <span>Edit App Name</span>
-                                    </DropdownMenuItem>
-                                </EditAppDialog>
-                                <DropdownMenuItem className="text-red-500"
+                                {UserGroupUtils.sessionCanCreateNewAppsForProject(session, projectId) &&
+                                    <EditAppDialog projectId={projectId} existingItem={item}>
+                                        <DropdownMenuItem>
+                                            <Edit2 /> <span>Edit App Name</span>
+                                        </DropdownMenuItem>
+                                    </EditAppDialog>}
+                                {UserGroupUtils.sessionCanDeleteAppsForProject(session, projectId) && <DropdownMenuItem className="text-red-500"
                                     onClick={() => openDialog({
                                         title: "Delete App",
                                         description: "Are you sure you want to delete this app? All data will be lost and this action cannot be undone.",
                                     }).then((result) => result ? Toast.fromAction(() => deleteApp(item.id)) : undefined)}>
                                     <Trash />  <span >Delete App</span>
-                                </DropdownMenuItem>
+                                </DropdownMenuItem>}
                             </DropdownMenuContent>
                         </DropdownMenu>
                     </div>

@@ -13,7 +13,9 @@ import {
     VisibilityState,
     getSortedRowModel,
     filterFns,
-    FilterFnOption
+    FilterFnOption,
+    PaginationState,
+    TableState
 } from "@tanstack/react-table"
 
 import {
@@ -45,53 +47,80 @@ export function DefaultDataTable<TData, TValue>({
     data,
     globalFilterFn,
     hideSearchBar = false,
-    onColumnVisabilityUpdate
+    initialTableState,
+    onRowSelectionUpdate,
+    onTableStateChanged
 }: DataTableProps<TData, TValue> & {
-    hideSearchBar?: boolean,
-    onColumnVisabilityUpdate?: (visabilityConfig: [string, boolean][]) => void
-    globalFilterFn?: FilterFnOption<any> | undefined
+    hideSearchBar?: boolean;
+    onRowSelectionUpdate?: (selectedItems: TData[]) => void;
+    onTableStateChanged?: (state: Partial<TableState>) => void;
+    initialTableState?: Partial<TableState>;
+    globalFilterFn?: FilterFnOption<any> | undefined;
 }) {
-    const [sorting, setSorting] = React.useState<SortingState>([]);
-    const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>(
-        []
-    );
-    const [globalFilter, setGlobalFilter] = React.useState<any>([])
+    const [sorting, setSorting] = React.useState<SortingState>(initialTableState?.sorting ?? []);
+    const [globalFilter, setGlobalFilter] = React.useState<any>(initialTableState?.globalFilter ?? []);
+    const [pagination, setPagination] = React.useState<PaginationState>(initialTableState?.pagination ?? {
+        pageSize: 10,
+        pageIndex: 0
+    });
 
-    const initialVisabilityState = columns.filter(col => (col as any).isVisible === false).reduce((acc, col) => {
-        acc[(col as any).accessorKey] = false;
+    const [rowSelection, setRowSelection] = React.useState<any>({});
+    const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>([]);
+    const initialVisabilityState = columns.reduce((acc, col) => {
+        const accessorKey = (col as any).accessorKey;
+        if (!accessorKey) {
+            return acc;
+        }
+        const valueOfInitialState = initialTableState?.columnVisibility?.[accessorKey];
+        acc[accessorKey] = valueOfInitialState ?? !!(col as any).isVisible;
         return acc;
     }, {} as VisibilityState);
-
-    const [columnVisibility, setColumnVisibility] =
-        React.useState<VisibilityState>(initialVisabilityState);
+    const [columnVisibility, setColumnVisibility] = React.useState<VisibilityState>(initialVisabilityState);
 
     React.useEffect(() => {
-        if (onColumnVisabilityUpdate) {
-            onColumnVisabilityUpdate(table.getAllColumns().filter(x => (x.columnDef as any).accessorKey).map(x => [(x.columnDef as any).accessorKey, x.getIsVisible()]));
+        if (onRowSelectionUpdate) {
+            const indexes = Object.keys(rowSelection).filter(key => Boolean(rowSelection[key] as boolean)).map(key => parseInt(key));
+            // the core row model contains all unfilteres rows, the indexes wich are given by the rowSelection are the indexes of the core row model
+            const values = table.getCoreRowModel().rows.map(row => row.original);
+            onRowSelectionUpdate(values.filter((_, index) => indexes.includes(index)));
         }
-    }, [columnVisibility]);
-
+    }, [rowSelection]);
 
     const table = useReactTable({
         data,
         columns,
         getCoreRowModel: getCoreRowModel(),
         getPaginationRowModel: getPaginationRowModel(),
-        onSortingChange: setSorting,
         getSortedRowModel: getSortedRowModel(),
-        onColumnFiltersChange: setColumnFilters,
         getFilteredRowModel: getFilteredRowModel(),
+        onSortingChange: setSorting,
+        onColumnFiltersChange: setColumnFilters,
         onColumnVisibilityChange: setColumnVisibility,
+        onPaginationChange: setPagination,
         onGlobalFilterChange: setGlobalFilter,
+        onRowSelectionChange: setRowSelection,
         enableGlobalFilter: true,
         globalFilterFn: globalFilterFn ?? filterFns.includesString,
         state: {
             sorting,
             columnFilters,
             columnVisibility,
-            globalFilter
+            globalFilter,
+            rowSelection,
+            pagination
         },
-    })
+    });
+
+    React.useEffect(() => {
+        if (onTableStateChanged) {
+            onTableStateChanged({
+                sorting,
+                pagination,
+                globalFilter,
+                columnVisibility
+            })
+        }
+    }, [sorting, columnVisibility, globalFilter, pagination]);
 
     return (
         <div>
@@ -152,7 +181,7 @@ export function DefaultDataTable<TData, TValue>({
                 </Table>
             </div>
             <div className="mt-4">
-                <DataTablePagination table={table} />
+                <DataTablePagination table={table}/>
             </div>
         </div>
     )

@@ -13,6 +13,7 @@ import { cookies } from "next/headers";
 import { BreadcrumbsGenerator } from "../components/custom/breadcrumbs-generator";
 import { getUserSession } from "@/server/utils/action-wrapper.utils";
 import { InputDialog } from "@/components/custom/input-dialog";
+import userGroupService from "@/server/services/user-group.service";
 
 const inter = Inter({
   subsets: ["latin"],
@@ -39,6 +40,9 @@ export default async function RootLayout({
   const defaultOpen = cookieSidebarState === "true";
   const session = await getUserSession();
   const userIsLoggedIn = !!session;
+
+  // todo remove in future versions and handle migrations in an other way
+  await userGroupService.createDefaultRolesIfNotExists();
 
   return (
     <html lang="en">

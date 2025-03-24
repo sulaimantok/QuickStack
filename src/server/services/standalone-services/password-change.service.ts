@@ -2,18 +2,24 @@ import dataAccess from "../../adapter/db.client";
 import bcrypt from "bcrypt";
 import { randomBytes } from "crypto";
 import quickStackService from "../qs.service";
+import { adminRoleName } from "../../../shared/model/role-extended.model.ts";
 
 class PasswordChangeService {
 
     async changeAdminPasswordAndPrintNewPassword() {
         const firstCreatedUser = await dataAccess.client.user.findFirst({
+            where: {
+                userGroup: {
+                    name: adminRoleName
+                }
+            },
             orderBy: {
                 createdAt: 'asc'
             }
         });
 
         if (!firstCreatedUser) {
-            console.error("No users found. QuickStack is not configured yet. Open your browser to setup quickstack");
+            console.error("No admin users found. QuickStack is not configured yet. Open your browser to setup quickstack");
             return;
         }
 
@@ -36,7 +42,7 @@ class PasswordChangeService {
         console.log('******* Password change *******');
         console.log('*******************************');
         console.log(``);
-        console.log(`New password for user ${firstCreatedUser.email} is: ${generatedPassword}`);
+        console.log(`New password for admin user ${firstCreatedUser.email} is: ${generatedPassword}`);
         console.log(``);
         console.log('*******************************');
         console.log('*******************************');

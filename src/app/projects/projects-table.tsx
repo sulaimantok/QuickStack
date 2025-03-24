@@ -10,13 +10,13 @@ import { Edit2, Eye, MoreHorizontal, Trash } from "lucide-react";
 import { Toast } from "@/frontend/utils/toast.utils";
 import { Project } from "@prisma/client";
 import { deleteProject } from "./actions";
-import { useBreadcrumbs, useConfirmDialog } from "@/frontend/states/zustand.states";
-import { useEffect } from "react";
+import { useConfirmDialog } from "@/frontend/states/zustand.states";
 import { EditProjectDialog } from "./edit-project-dialog";
+import { UserSession } from "@/shared/model/sim-session.model";
+import { UserGroupUtils } from "@/shared/utils/role.utils";
 
 
-
-export default function ProjectsTable({ data }: { data: Project[] }) {
+export default function ProjectsTable({ data, session }: { data: Project[]; session: UserSession; }) {
 
     const { openConfirmDialog: openDialog } = useConfirmDialog();
 
@@ -59,14 +59,16 @@ export default function ProjectsTable({ data }: { data: Project[] }) {
                                     </DropdownMenuItem>
                                 </Link>
                                 <DropdownMenuSeparator />
-                                <EditProjectDialog existingItem={item}>
-                                    <DropdownMenuItem>
-                                        <Edit2 /> <span>Edit Project Name</span>
+                                {UserGroupUtils.isAdmin(session) && <>
+                                    <EditProjectDialog existingItem={item}>
+                                        <DropdownMenuItem>
+                                            <Edit2 /> <span>Edit Project Name</span>
+                                        </DropdownMenuItem>
+                                    </EditProjectDialog>
+                                    <DropdownMenuItem className="text-red-500" onClick={() => asyncDeleteProject(item.id)}>
+                                        <Trash /> <span >Delete Project</span>
                                     </DropdownMenuItem>
-                                </EditProjectDialog>
-                                <DropdownMenuItem className="text-red-500" onClick={() => asyncDeleteProject(item.id)}>
-                                    <Trash /> <span >Delete Project</span>
-                                </DropdownMenuItem>
+                                </>}
                             </DropdownMenuContent>
                         </DropdownMenu>
                     </div>
