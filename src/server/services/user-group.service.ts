@@ -46,8 +46,8 @@ export class UserGroupService {
         }).then(user => {
             return user?.userGroup ?? null;
         }),
-            [Tags.roles(), Tags.users()], {
-            tags: [Tags.roles(), Tags.users()]
+            [Tags.userGroups(), Tags.users()], {
+            tags: [Tags.userGroups(), Tags.users()]
         })(email);
     }
 
@@ -117,7 +117,7 @@ export class UserGroupService {
                 }
             });
         } finally {
-            revalidateTag(Tags.roles());
+            revalidateTag(Tags.userGroups());
             revalidateTag(Tags.users());
         }
     }
@@ -140,7 +140,7 @@ export class UserGroupService {
                 });
             }
         } finally {
-            revalidateTag(Tags.roles());
+            revalidateTag(Tags.userGroups());
             revalidateTag(Tags.users());
         }
     }
@@ -170,8 +170,8 @@ export class UserGroupService {
                 }
             }
         }),
-            [Tags.roles()], {
-            tags: [Tags.roles()]
+            [Tags.userGroups()], {
+            tags: [Tags.userGroups()]
         })();
     }
     async getById(id: string): Promise<UserGroup> {
@@ -202,8 +202,8 @@ export class UserGroupService {
                 }
             }
         }),
-            [Tags.roles(), id], {
-            tags: [Tags.roles()]
+            [Tags.userGroups(), id], {
+            tags: [Tags.userGroups()]
         })();
     }
 
@@ -218,7 +218,7 @@ export class UserGroupService {
                 },
             });
         } finally {
-            revalidateTag(Tags.roles());
+            revalidateTag(Tags.userGroups());
             revalidateTag(Tags.users());
         }
     }
@@ -231,7 +231,7 @@ export class UserGroupService {
                 }
             });
         } finally {
-            revalidateTag(Tags.roles());
+            revalidateTag(Tags.userGroups());
             revalidateTag(Tags.users());
         }
     }
@@ -290,7 +290,7 @@ export class UserGroupService {
                 return;
             }
         } finally {
-            revalidateTag(Tags.roles());
+            revalidateTag(Tags.userGroups());
             revalidateTag(Tags.users());
         }
     }

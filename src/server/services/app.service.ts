@@ -63,7 +63,7 @@ class AppService {
             revalidateTag(Tags.apps(existingApp.projectId));
             revalidateTag(Tags.app(existingApp.id));
             revalidateTag(Tags.projects());
-            revalidateTag(Tags.roles());
+            revalidateTag(Tags.userGroups());
             revalidateTag(Tags.users());
         }
     }
@@ -159,7 +159,7 @@ class AppService {
             revalidateTag(Tags.apps(item.projectId as string));
             revalidateTag(Tags.app(item.id as string));
             revalidateTag(Tags.projects());
-            revalidateTag(Tags.roles());
+            revalidateTag(Tags.userGroups());
             revalidateTag(Tags.users());
         }
         return savedItem;
