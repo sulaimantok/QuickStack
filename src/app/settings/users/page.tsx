@@ -19,7 +19,7 @@ import UserGroupsTable from "./user-groups-table";
 import appService from "@/server/services/app.service";
 import projectService from "@/server/services/project.service";
 
-export default async function UsersAndRolesPage() {
+export default async function UsersAndGroupsPage() {
 
     const session = await getAdminUserSession();
     const users = await userService.getAllUsers();

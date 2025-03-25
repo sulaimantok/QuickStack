@@ -75,7 +75,7 @@ export default function UsersTable({ users, userGroups, session }: {
         <SimpleDataTable columns={[
             ['id', 'ID', false],
             ['email', 'Mail', true],
-            ['role.name', 'Role', true],
+            ['userGroup.name', 'Group', true],
             ["createdAt", "Created At", true, (item) => formatDateTime(item.createdAt)],
             ["updatedAt", "Updated At", false, (item) => formatDateTime(item.updatedAt)],
         ]}

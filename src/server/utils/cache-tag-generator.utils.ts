@@ -4,7 +4,7 @@ export class Tags {
         return `users`;
     }
 
-    static roles() {
+    static userGroups() {
         return `roles`;
     }
 
