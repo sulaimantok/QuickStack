@@ -60,7 +60,7 @@ export default function TotpCreateDialog({
                 <DialogHeader>
                     <DialogTitle>Enable 2FA</DialogTitle>
                     <DialogDescription>
-                        To enable the Two-Facor-Authenticatoon (2FA) scan the QR code with your preferred authenticator app and enter the token below.
+                        To enable the Two-Facor-Authentication (2FA) scan the QR code with your preferred authenticator app and enter the token below.
                     </DialogDescription>
                 </DialogHeader>
                 <div className="space-y-4">
