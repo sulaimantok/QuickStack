@@ -305,7 +305,7 @@ class QuickStackService {
                         containers: [
                             {
                                 name: this.QUICKSTACK_DEPLOYMENT_NAME,
-                                image: `quickstack/quickstack:${imageTag}`,
+                                image: `sulaiman28/quickstack:${imageTag}`,
                                 imagePullPolicy: 'Always',
                                 env: [
                                     {
