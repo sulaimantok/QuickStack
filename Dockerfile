@@ -11,8 +11,8 @@ RUN apk add --no-cache libc6-compat python3 make g++
 WORKDIR /app
 
 # Install dependencies
-COPY yarn.lock package.json ./
-RUN yarn install
+COPY package-lock.json package.json ./
+RUN npm install --legacy-peer-deps
 
 # Rebuild the source code only when needed
 FROM base AS builder
@@ -20,8 +20,8 @@ WORKDIR /app
 COPY --from=deps /app/node_modules ./node_modules
 COPY . .
 
-RUN yarn run prisma-generate-build
-RUN yarn run build
+RUN npm run prisma-generate-build
+RUN npm run build
 RUN rm -rf ./next/standalone
 
 # Production image, copy all the files and run next
