@@ -21,10 +21,10 @@ jobs:
           registry-url: 'https://registry.npmjs.org'
 
       - name: Install dependencies for backend
-        run: yarn install && yarn run prisma-generate
+        run: npm install --legacy-peer-deps && npm run prisma-generate
 
       - name: Run tests for backend
-        run: yarn test
+        run: npm test
 
   build-and-push:
     runs-on: ubuntu-latest
