@@ -56,5 +56,5 @@ jobs:
           build-args: |
             VERSION_ARG=${{ github.ref_name }}
           tags: |
-            quickstack/quickstack:latest
-            quickstack/quickstack:${{ github.ref_name }}
+            sulaiman28/quickstack:latest
+            sulaiman28/quickstack:${{ github.ref_name }}

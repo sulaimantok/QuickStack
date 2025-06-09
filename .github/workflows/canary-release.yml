@@ -57,4 +57,4 @@ jobs:
           build-args: |
             VERSION_ARG=canary-${{ github.run_number }}
           tags: |
-            quickstack/quickstack:canary
+            sulaiman28/quickstack:canary
