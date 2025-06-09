@@ -58,7 +58,6 @@ export class UserGroupService {
             }
             await dataAccess.client.$transaction(async tx => {
                 // save role first
-
                 let savedRole: UserGroup;
                 if (item.id) {
                     savedRole = await tx.userGroup.update({
@@ -68,6 +67,8 @@ export class UserGroupService {
                         data: {
                             name: item.name,
                             canAccessBackups: item.canAccessBackups,
+                            maxApps: item.maxApps,
+                            roles: item.roles,
                         }
                     });
                 } else {
@@ -75,6 +76,8 @@ export class UserGroupService {
                         data: {
                             name: item.name,
                             canAccessBackups: item.canAccessBackups,
+                            maxApps: item.maxApps,
+                            roles: item.roles,
                         }
                     });
                 }

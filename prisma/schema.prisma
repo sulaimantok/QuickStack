@@ -81,6 +81,10 @@ model User {
   userGroupId String?
   userGroup   UserGroup? @relation(fields: [userGroupId], references: [id])
 
+  maxCpu      Int?    // Tambahan field untuk limit CPU per user
+  maxMemory   Int?    // Tambahan field untuk limit Memory per user
+  maxStorage  Int?    // Tambahan field untuk limit Storage per user
+
   accounts      Account[]
   sessions      Session[]
   // Optional for WebAuthn support
@@ -123,8 +127,10 @@ model UserGroup {
   description      String?
   canAccessBackups Boolean @default(false)
   maxProjects      Int?
+  maxApps          Int?    // Tambahan field untuk limit jumlah aplikasi
   maxCpu           Int?
   maxMemory        Int?
+  roles            String? // Tambahan field untuk roles (bisa string atau enum, disesuaikan kebutuhan)
 
   users                  User[]
   roleProjectPermissions RoleProjectPermission[]

@@ -8,8 +8,10 @@ export const UserGroupModel = z.object({
   description: z.string().nullish(),
   canAccessBackups: z.boolean(),
   maxProjects: z.number().int().nullish(),
+  maxApps: z.number().int().nullish(),
   maxCpu: z.number().int().nullish(),
   maxMemory: z.number().int().nullish(),
+  roles: z.string().nullish(),
   createdAt: z.date(),
   updatedAt: z.date(),
 })

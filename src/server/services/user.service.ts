@@ -100,14 +100,17 @@ export class UserService {
         }
     }
 
-    async registerUser(email: string, password: string, userGroupId: string | null) {
+    async registerUser(email: string, password: string, userGroupId: string | null, maxCpu?: number, maxMemory?: number, maxStorage?: number) {
         try {
             const hashedPassword = await bcrypt.hash(password, saltRounds);
             const user = await dataAccess.client.user.create({
                 data: {
                     email,
                     password: hashedPassword,
-                    userGroupId
+                    userGroupId,
+                    maxCpu,
+                    maxMemory,
+                    maxStorage
                 }
             });
             return user;

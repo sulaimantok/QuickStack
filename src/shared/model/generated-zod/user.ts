@@ -12,6 +12,9 @@ export const UserModel = z.object({
   twoFaEnabled: z.boolean(),
   image: z.string().nullish(),
   userGroupId: z.string().nullish(),
+  maxCpu: z.number().int().nullish(),
+  maxMemory: z.number().int().nullish(),
+  maxStorage: z.number().int().nullish(),
   createdAt: z.date(),
   updatedAt: z.date(),
 })
