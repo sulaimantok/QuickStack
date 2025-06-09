@@ -122,6 +122,9 @@ model UserGroup {
   name             String  @unique
   description      String?
   canAccessBackups Boolean @default(false)
+  maxProjects      Int?
+  maxCpu           Int?
+  maxMemory        Int?
 
   users                  User[]
   roleProjectPermissions RoleProjectPermission[]
@@ -140,6 +143,7 @@ model RoleProjectPermission {
   deleteApps  Boolean   @default(false)
   writeApps   Boolean   @default(false)
   readApps    Boolean   @default(false)
+  createProjects Boolean @default(false)
 
   roleAppPermissions RoleAppPermission[]
 

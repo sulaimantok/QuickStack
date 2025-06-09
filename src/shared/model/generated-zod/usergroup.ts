@@ -1,5 +1,5 @@
 import * as z from "zod"
-
+import * as imports from "../../../../prisma/null"
 import { CompleteUser, RelatedUserModel, CompleteRoleProjectPermission, RelatedRoleProjectPermissionModel } from "./index"
 
 export const UserGroupModel = z.object({
@@ -7,6 +7,9 @@ export const UserGroupModel = z.object({
   name: z.string(),
   description: z.string().nullish(),
   canAccessBackups: z.boolean(),
+  maxProjects: z.number().int().nullish(),
+  maxCpu: z.number().int().nullish(),
+  maxMemory: z.number().int().nullish(),
   createdAt: z.date(),
   updatedAt: z.date(),
 })

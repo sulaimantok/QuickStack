@@ -1,5 +1,5 @@
 import * as z from "zod"
-
+import * as imports from "../../../../prisma/null"
 import { CompleteApp, RelatedAppModel, CompleteRoleProjectPermission, RelatedRoleProjectPermissionModel } from "./index"
 
 export const RoleAppPermissionModel = z.object({

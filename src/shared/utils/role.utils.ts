@@ -111,4 +111,35 @@ export class UserGroupUtils {
     static isAdmin(session: UserSession) {
         return session.userGroup?.name === adminRoleName;
     }
+
+    static sessionCanCreateProjects(session: UserSession) {
+        if (this.isAdmin(session)) {
+            return true;
+        }
+        return session.userGroup?.roleProjectPermissions?.some(
+            perm => perm.createProjects
+        );
+    }
+
+    static checkProjectQuota(session: UserSession, currentCount: number) {
+        if (this.isAdmin(session)) {
+            return true;
+        }
+        const maxProjects = session.userGroup?.maxProjects;
+        if (maxProjects === null || maxProjects === undefined) {
+            return true;
+        }
+        return currentCount < maxProjects;
+    }
+
+    static checkResourceQuota(session: UserSession, cpu: number, memory: number) {
+        if (this.isAdmin(session)) {
+            return true;
+        }
+        const maxCpu = session.userGroup?.maxCpu;
+        const maxMemory = session.userGroup?.maxMemory;
+
+        return (maxCpu === null || cpu <= maxCpu) &&
+               (maxMemory === null || memory <= maxMemory);
+    }
 }
