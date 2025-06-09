@@ -22,7 +22,7 @@ COPY . .
 
 RUN npx prisma generate
 RUN npm run prisma-generate-build
-RUN npm run build
+RUN npm run build --if-present
 RUN rm -rf ./next/standalone
 
 # Production image, copy all the files and run next

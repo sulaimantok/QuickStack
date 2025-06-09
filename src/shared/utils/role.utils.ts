@@ -1,5 +1,11 @@
+import * as z from "zod";
 import { adminRoleName, RolePermissionEnum } from "@/shared/model/role-extended.model.ts";
 import { UserSession } from "@/shared/model/sim-session.model";
+import { RoleProjectPermissionModel, UserGroupModel } from "@/shared/model/generated-zod";
+
+interface UserGroupExtended extends z.infer<typeof UserGroupModel> {
+    roleProjectPermissions?: z.infer<typeof RoleProjectPermissionModel>[];
+}
 
 export class UserGroupUtils {
 
@@ -116,12 +122,11 @@ export class UserGroupUtils {
         if (this.isAdmin(session)) {
             return true;
         }
-        return session.userGroup?.roleProjectPermissions?.some(
-            perm => perm.createProjects
-        );
+        const permissions = session.userGroup?.roleProjectPermissions as unknown as Array<z.infer<typeof RoleProjectPermissionModel>>;
+        return permissions?.some(perm => perm.createProjects) ?? false;
     }
 
-    static checkProjectQuota(session: UserSession, currentCount: number) {
+    static checkProjectQuota(session: UserSession & { userGroup?: UserGroupExtended }, currentCount: number) {
         if (this.isAdmin(session)) {
             return true;
         }
@@ -132,14 +137,14 @@ export class UserGroupUtils {
         return currentCount < maxProjects;
     }
 
-    static checkResourceQuota(session: UserSession, cpu: number, memory: number) {
+    static checkResourceQuota(session: UserSession & { userGroup?: UserGroupExtended }, cpu: number, memory: number) {
         if (this.isAdmin(session)) {
             return true;
         }
         const maxCpu = session.userGroup?.maxCpu;
         const maxMemory = session.userGroup?.maxMemory;
 
-        return (maxCpu === null || cpu <= maxCpu) &&
-               (maxMemory === null || memory <= maxMemory);
+        return (maxCpu === null || maxCpu === undefined || cpu <= maxCpu) &&
+               (maxMemory === null || maxMemory === undefined || memory <= maxMemory);
     }
 }
